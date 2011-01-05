@@ -33,8 +33,16 @@ public final class PassByValueInvocationProcessor implements InvocationProcessor
     }
 
     public InvocationReply processInvocation(final InvocationProcessorContext context, final Invocation invocation) throws InvocationException, IllegalArgumentException {
-
-        context.invokeNext(invocation);
-        return null;
+        try {
+            final ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
+            final InvocationReply reply = context.invokeNext(invocation.cloneTo(targetClassLoader));
+            try {
+                return ((InvocationReply) reply).cloneTo(originalLoader);
+            } catch (Exception e) {
+                throw new InvocationException("Cannot pass result by value", e);
+            }
+        } catch (Exception e) {
+            throw new InvocationException("Pass-by-value failed", e);
+        }
     }
 }

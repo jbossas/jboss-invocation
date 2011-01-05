@@ -25,6 +25,11 @@ package org.jboss.invocation;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import org.jboss.marshalling.cloner.ClassLoaderClassCloner;
+import org.jboss.marshalling.cloner.ClonerConfiguration;
+import org.jboss.marshalling.cloner.ObjectCloner;
+import org.jboss.marshalling.cloner.ObjectClonerFactory;
+import org.jboss.marshalling.cloner.ObjectCloners;
 
 /**
  * An invocation reply.  Includes the return value, along with any attachments that may have been set along the way.
@@ -107,5 +112,14 @@ public final class InvocationReply implements Serializable {
 
     private static <T> T defaulted(T value, T defaultValue) {
         return value == null ? defaultValue : value;
+    }
+
+    public InvocationReply cloneTo(ClassLoader classLoader) throws ClassNotFoundException, IOException {
+        final ObjectClonerFactory clonerFactory = ObjectCloners.getSerializingObjectClonerFactory();
+        final ClonerConfiguration configuration = new ClonerConfiguration();
+        final ClassLoaderClassCloner classCloner = new ClassLoaderClassCloner(classLoader);
+        configuration.setClassCloner(classCloner);
+        final ObjectCloner cloner = clonerFactory.createCloner(configuration);
+        return new InvocationReply(cloner.clone(reply), properties);
     }
 }
