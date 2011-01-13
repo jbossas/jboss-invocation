@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source
- * Copyright 2010, JBoss Inc., and individual contributors as indicated
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -23,15 +23,24 @@
 package org.jboss.invocation;
 
 /**
+ * An invocation processor which passes the invocation by value to a target class loader.  Invocations will be
+ * cloned to the target class loader; replies will be cloned to the current thread context class loader.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public final class PassByValueInvocationProcessor implements InvocationProcessor {
     private final ClassLoader targetClassLoader;
 
+    /**
+     * Construct a new instance.
+     *
+     * @param loader the target class loader
+     */
     public PassByValueInvocationProcessor(final ClassLoader loader) {
         targetClassLoader = loader;
     }
 
+    /** {@inheritDoc} */
     public InvocationReply processInvocation(final InvocationProcessorContext context, final Invocation invocation) throws InvocationException, IllegalArgumentException {
         try {
             final ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();

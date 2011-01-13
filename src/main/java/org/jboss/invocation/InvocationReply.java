@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source
- * Copyright 2010, JBoss Inc., and individual contributors as indicated
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -114,6 +114,17 @@ public final class InvocationReply implements Serializable {
         return value == null ? defaultValue : value;
     }
 
+    /**
+     * Create a cloned invocation reply to another class loader.  All of the classes referenced by the invocation reply
+     * must be visible (either from the same or different class loaders) to the new class loader.  Note that the invocation
+     * itself will still be of the same type as this one.
+     *
+     * @param classLoader the destination class loader
+     * @return the cloned invocation reply
+     * @throws ClassNotFoundException if a class required by this invocation reply is not present in the destination
+     *     class loader
+     * @throws IOException if an I/O error occurs during the cloning process
+     */
     public InvocationReply cloneTo(ClassLoader classLoader) throws ClassNotFoundException, IOException {
         final ObjectClonerFactory clonerFactory = ObjectCloners.getSerializingObjectClonerFactory();
         final ClonerConfiguration configuration = new ClonerConfiguration();

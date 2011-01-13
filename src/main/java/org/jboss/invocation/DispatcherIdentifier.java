@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source
- * Copyright 2010, JBoss Inc., and individual contributors as indicated
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -29,7 +29,8 @@ import java.io.Serializable;
 import org.jboss.marshalling.FieldSetter;
 
 /**
- * A unique identifier for a dispatcher within a single node.
+ * A unique identifier for a dispatcher within a single node.  The context name typically indicates
+ * the destination module; the dispatcher name typically indicates the destination component.
  */
 public final class DispatcherIdentifier implements Serializable {
 
@@ -41,6 +42,12 @@ public final class DispatcherIdentifier implements Serializable {
 
     private static final FieldSetter hashCodeSetter = FieldSetter.get(DispatcherIdentifier.class, "hashCode");
 
+    /**
+     * Construct a new instance.
+     *
+     * @param contextName the context name
+     * @param dispatcherName the dispatcher name
+     */
     public DispatcherIdentifier(final String contextName, final String dispatcherName) {
         if (contextName == null) {
             throw new IllegalArgumentException("contextName is null");
@@ -53,10 +60,20 @@ public final class DispatcherIdentifier implements Serializable {
         hashCode = hashCode(contextName, dispatcherName);
     }
 
+    /**
+     * Get the context name.
+     *
+     * @return the context name
+     */
     public String getContextName() {
         return contextName;
     }
 
+    /**
+     * Get the dispatcher name.
+     *
+     * @return the dispatcher name
+     */
     public String getDispatcherName() {
         return dispatcherName;
     }
@@ -65,14 +82,31 @@ public final class DispatcherIdentifier implements Serializable {
         return contextName.hashCode() * 31 + dispatcherName.hashCode();
     }
 
-    public boolean equals(final Object obj) {
-        return obj instanceof DispatcherIdentifier && equals((DispatcherIdentifier) obj);
+    /**
+     * Determine whether this object is equal to another.
+     *
+     * @param other the other object
+     * @return {@code true} if they are equal, {@code false} otherwise
+     */
+    public boolean equals(Object other) {
+        return other instanceof DispatcherIdentifier && equals((DispatcherIdentifier)other);
     }
 
-    public boolean equals(final DispatcherIdentifier other) {
-        return other == this || other != null && hashCode == other.hashCode && contextName.equals(other.contextName) && dispatcherName.equals(other.dispatcherName);
+    /**
+     * Determine whether this object is equal to another.
+     *
+     * @param other the other object
+     * @return {@code true} if they are equal, {@code false} otherwise
+     */
+    public boolean equals(DispatcherIdentifier other) {
+        return this == other || other != null && hashCode == other.hashCode && contextName.equals(other.contextName) && dispatcherName.equals(other.dispatcherName);
     }
 
+    /**
+     * Get the hash code of this identifier.
+     *
+     * @return the hash code
+     */
     public int hashCode() {
         return hashCode;
     }
@@ -88,6 +122,11 @@ public final class DispatcherIdentifier implements Serializable {
         hashCodeSetter.setInt(this, hashCode(contextName, dispatcherName));
     }
 
+    /**
+     * Get the string representation of this object.
+     *
+     * @return the string representation
+     */
     public String toString() {
         return String.format("Dispatcher identifier {context=\"%s\", name=\"%s\"}", contextName, dispatcherName);
     }

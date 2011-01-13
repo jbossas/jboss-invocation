@@ -1,9 +1,9 @@
 /*
- * JBoss, Home of Professional Open Source.
- * Copyright 2009, Red Hat Middleware LLC, and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
-  *
+ * JBoss, Home of Professional Open Source
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
+ * by the @authors tag. See the copyright.txt in the distribution for a
+ * full listing of individual contributors.
+ *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
@@ -30,57 +30,44 @@ package org.jboss.invocation;
  * @version $Revision: $
  */
 public class InvocationException extends Exception {
-    //-------------------------------------------------------------------------------------||
-    // Class Members ----------------------------------------------------------------------||
-    //-------------------------------------------------------------------------------------||
+
+    private static final long serialVersionUID = -4172203899596109966L;
 
     /**
-     * serialVersionUID
+     * Constructs a {@code InvocationException} with no detail message. The cause is not initialized, and may
+     * subsequently be initialized by a call to {@link #initCause(Throwable) initCause}.
      */
-    private static final long serialVersionUID = 1L;
-    //-------------------------------------------------------------------------------------||
-    // Constructors -----------------------------------------------------------------------||
-    //-------------------------------------------------------------------------------------||
-
-    /**
-     * Constructs a new {@link InvocationException}
-     *
-     * @param message
-     * @param cause
-     *
-     * @throws IllegalArgumentException If no cause has been specified
-     */
-    public InvocationException(final String message, final Throwable cause) {
-        super(message, cause);
-        // Assert invariants
-        assertCauseSpecified();
+    public InvocationException() {
     }
 
     /**
-     * Constructs a new {@link InvocationException}
+     * Constructs a {@code InvocationException} with the specified detail message. The cause is not initialized, and may
+     * subsequently be initialized by a call to {@link #initCause(Throwable) initCause}.
      *
-     * @param cause
+     * @param msg the detail message
+     */
+    public InvocationException(final String msg) {
+        super(msg);
+    }
+
+    /**
+     * Constructs a {@code InvocationException} with the specified cause. The detail message is set to:
+     * <pre>(cause == null ? null : cause.toString())</pre>
+     * (which typically contains the class and detail message of {@code cause}).
      *
-     * @throws IllegalArgumentException If no cause has been specified
+     * @param cause the cause (which is saved for later retrieval by the {@link #getCause()} method)
      */
     public InvocationException(final Throwable cause) {
         super(cause);
-        // Assert invariants
-        assertCauseSpecified();
     }
-    //-------------------------------------------------------------------------------------||
-    // Internal Helper Methods ------------------------------------------------------------||
-    //-------------------------------------------------------------------------------------||
 
     /**
-     * Ensures that the cause of this Exception has been specified; typically called from construction
+     * Constructs a {@code InvocationException} with the specified detail message and cause.
      *
-     * @throws IllegalArgumentException If no cause exists
+     * @param msg the detail message
+     * @param cause the cause (which is saved for later retrieval by the {@link #getCause()} method)
      */
-    private void assertCauseSpecified() {
-        // Assert invariants
-        if (getCause() == null) {
-            throw new IllegalArgumentException("Cause must be specified");
-        }
+    public InvocationException(final String msg, final Throwable cause) {
+        super(msg, cause);
     }
 }

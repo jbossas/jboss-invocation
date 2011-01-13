@@ -1,9 +1,9 @@
 /*
- * JBoss, Home of Professional Open Source.
- * Copyright 2009, Red Hat Middleware LLC, and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
-  *
+ * JBoss, Home of Professional Open Source
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
+ * by the @authors tag. See the copyright.txt in the distribution for a
+ * full listing of individual contributors.
+ *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
@@ -62,7 +62,7 @@ public final class InvocationProperties implements Serializable {
     /**
      * Obtains the context property associated with the specified key, or {@code null} if not found
      *
-     * @param key
+     * @param key the key to look up
      *
      * @return The value under the specified key, or null if not found
      *
@@ -79,7 +79,7 @@ public final class InvocationProperties implements Serializable {
      * Obtains the context property associated with the specified key, or {@code null} if not found
      *
      * @param <T> Type of the object to be returned
-     * @param key
+     * @param key the key to look up
      * @param expectedType Expected type of the object to be returned
      *
      * @return The value under the specified key, or null if not found

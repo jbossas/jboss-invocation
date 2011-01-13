@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source
- * Copyright 2010, JBoss Inc., and individual contributors as indicated
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -36,11 +36,23 @@ public final class InvocationProcessorChain implements InvocationDispatcher {
     private final InvocationDispatcher dispatcher;
     private final List<InvocationProcessor> processors;
 
+    /**
+     * Construct a new instance.
+     *
+     * @param dispatcher the final dispatcher
+     * @param processors the processors which make up this chain
+     */
     public InvocationProcessorChain(final InvocationDispatcher dispatcher, final InvocationProcessor... processors) {
         this.dispatcher = dispatcher;
         this.processors = Arrays.asList(processors.clone());
     }
 
+    /**
+     * Construct a new instance.
+     *
+     * @param dispatcher the final dispatcher
+     * @param processors the processors which make up this chain
+     */
     public InvocationProcessorChain(final InvocationDispatcher dispatcher, final Collection<InvocationProcessor> processors) {
         this.dispatcher = dispatcher;
         this.processors = Arrays.asList(processors.toArray(new InvocationProcessor[processors.size()]));

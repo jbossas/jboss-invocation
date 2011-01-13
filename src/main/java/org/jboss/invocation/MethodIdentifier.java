@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source
- * Copyright 2010, JBoss Inc., and individual contributors as indicated
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
  * by the @authors tag. See the copyright.txt in the distribution for a
  * full listing of individual contributors.
  *
@@ -85,31 +85,77 @@ public final class MethodIdentifier implements Serializable {
         return name.hashCode() * 7 + Arrays.hashCode(parameterTypes);
     }
 
+    /**
+     * Get the method name.
+     *
+     * @return the method name
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Get the parameter type names, as strings.
+     *
+     * @return the parameter type names
+     */
     public String[] getParameterTypes() {
         final String[] parameterTypes = this.parameterTypes;
         return parameterTypes == NO_STRINGS ? parameterTypes : parameterTypes.clone();
     }
 
-    public boolean equals(final Object o) {
-        return o instanceof MethodIdentifier && equals((MethodIdentifier) o);
+    /**
+     * Determine whether this object is equal to another.
+     *
+     * @param other the other object
+     * @return {@code true} if they are equal, {@code false} otherwise
+     */
+    public boolean equals(Object other) {
+        return other instanceof MethodIdentifier && equals((MethodIdentifier)other);
     }
 
-    public boolean equals(final MethodIdentifier o) {
-        return o == this || o != null && name.equals(o.name) && Arrays.equals(parameterTypes, o.parameterTypes);
+    /**
+     * Determine whether this object is equal to another.
+     *
+     * @param other the other object
+     * @return {@code true} if they are equal, {@code false} otherwise
+     */
+    public boolean equals(MethodIdentifier other) {
+        return this == other || other != null && name.equals(other.name) && Arrays.equals(parameterTypes, other.parameterTypes);
     }
 
+    /**
+     * Get the hash code for this method identifier.  The hash code is equal to:
+     * <pre>
+     *    n * 7 + a
+     * </pre>
+     * where <em>n</em> is the method name's hash code and <em>a</em> is the result of calling
+     * {@link Arrays#hashCode(Object[])} on the parameter type name list.
+     *
+     * @return the hash code
+     */
     public int hashCode() {
         return hashCode;
     }
 
+    /**
+     * Look up a public method matching this method identifier using reflection.
+     *
+     * @param clazz the class to search
+     * @return the method
+     * @throws NoSuchMethodException if no such method exists
+     * @throws ClassNotFoundException if one of the classes referenced by this identifier are not found in {@code clazz}'s
+     *      class loader
+     */
     public Method getPublicMethod(final Class<?> clazz) throws NoSuchMethodException, ClassNotFoundException {
         return clazz.getMethod(name, typesOf(parameterTypes, clazz.getClassLoader()));
     }
 
+    /**
+     * Get the human-readable representation of this identifier.
+     *
+     * @return the string
+     */
     public String toString() {
         final StringBuilder b = new StringBuilder();
         b.append("Method ").append(name).append('(');
@@ -124,10 +170,23 @@ public final class MethodIdentifier implements Serializable {
         hashCodeSetter.setInt(this, calculateHash(name, parameterTypes));
     }
 
-    public static MethodIdentifier getIdentifierForMethod(final Method method) throws IllegalArgumentException {
+    /**
+     * Get an identifier for the given reflection method.
+     *
+     * @param method the method
+     * @return the identifier
+     */
+    public static MethodIdentifier getIdentifierForMethod(final Method method) {
         return new MethodIdentifier(method);
     }
 
+    /**
+     * Construct a new instance using class objects for the parameter types.
+     *
+     * @param name the method name
+     * @param parameterTypes the method parameter types
+     * @return the identifier
+     */
     public static MethodIdentifier getIdentifier(final String name, final Class<?>... parameterTypes) {
         return new MethodIdentifier(name, namesOf(parameterTypes));
     }

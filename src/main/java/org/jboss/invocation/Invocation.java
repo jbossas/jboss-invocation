@@ -1,9 +1,9 @@
 /*
- * JBoss, Home of Professional Open Source.
- * Copyright 2009, Red Hat Middleware LLC, and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
-  *
+ * JBoss, Home of Professional Open Source
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
+ * by the @authors tag. See the copyright.txt in the distribution for a
+ * full listing of individual contributors.
+ *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation; either version 2.1 of
@@ -71,6 +71,14 @@ public final class Invocation implements Serializable {
 
     private static final Object[] NO_OBJECTS = new Object[0];
 
+    /**
+     * Construct a new instance.
+     *
+     * @param properties the invocation properties, or {@code null} for none
+     * @param declaringClass the declaring class of the invoked method
+     * @param methodIdentifier the method identifier of the invoked method
+     * @param args the arguments passed to the invoked method
+     */
     public Invocation(final InvocationProperties properties, final Class<?> declaringClass, final MethodIdentifier methodIdentifier, final Object[] args) {
         if (declaringClass == null) {
             throw new IllegalArgumentException("declaringClass is null");
@@ -195,6 +203,17 @@ public final class Invocation implements Serializable {
         return b.toString();
     }
 
+    /**
+     * Create a cloned invocation to another class loader.  All of the classes referenced by the invocation must be
+     * visible (either from the same or different class loaders) to the new class loader.  Note that the invocation
+     * itself will still be of the same type as this one.
+     *
+     * @param classLoader the destination class loader
+     * @return the cloned invocation
+     * @throws ClassNotFoundException if a class required by this invocation is not present in the destination
+     *     class loader
+     * @throws IOException if an I/O error occurs during the cloning process
+     */
     public Invocation cloneTo(ClassLoader classLoader) throws ClassNotFoundException, IOException {
         final ObjectClonerFactory clonerFactory = ObjectCloners.getSerializingObjectClonerFactory();
         final ClonerConfiguration configuration = new ClonerConfiguration();

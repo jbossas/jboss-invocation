@@ -1,8 +1,8 @@
 /*
- * JBoss, Home of Professional Open Source.
- * Copyright 2000 - 2008, Red Hat Middleware LLC, and individual contributors
- * as indicated by the @author tags. See the copyright.txt file in the
- * distribution for a full listing of individual contributors.
+ * JBoss, Home of Professional Open Source
+ * Copyright 2011, JBoss Inc., and individual contributors as indicated
+ * by the @authors tag. See the copyright.txt in the distribution for a
+ * full listing of individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -19,9 +19,12 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 package org.jboss.invocation;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
@@ -34,7 +37,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 /**
- * A HashMap that is optimized for fast shallow copies. If the copy-ctor is
+ * A HashMap that is optimized for fast shallow copies. If the copy-constructor is
  * passed another FastCopyHashMap, or clone is called on this map, the shallow
  * copy can be performed using little more than a single array copy. In order to
  * accomplish this, immutable objects must be used internally, so update
@@ -46,6 +49,8 @@ import java.util.Set;
  * However, a 90% load-factor is expected to return in around 50 probes.
  *
  * @author Jason T. Greene
+ * @param <V> the value type
+ * @param <K> the key type
  */
 final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>, Cloneable, Serializable
 {
@@ -125,15 +130,15 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       if (map instanceof FastCopyHashMap)
       {
          FastCopyHashMap<? extends K, ? extends V> fast = (FastCopyHashMap<? extends K, ? extends V>) map;
-         this.table = (Entry<K, V>[]) fast.table.clone();
-         this.loadFactor = fast.loadFactor;
-         this.size = fast.size;
-         this.threshold = fast.threshold;
+          table = (Entry<K, V>[]) fast.table.clone();
+          loadFactor = fast.loadFactor;
+          size = fast.size;
+          threshold = fast.threshold;
       }
       else
       {
-         this.loadFactor = DEFAULT_LOAD_FACTOR;
-         init(map.size(), this.loadFactor);
+          loadFactor = DEFAULT_LOAD_FACTOR;
+         init(map.size(), loadFactor);
          putAll(map);
       }
    }
@@ -158,7 +163,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
          threshold = (int) (c * loadFactor);
       }
 
-      this.table = (Entry<K, V>[]) new Entry[c];
+       table = (Entry<K, V>[]) new Entry[c];
    }
 
    public FastCopyHashMap(int initialCapacity)
@@ -172,7 +177,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
    }
 
    // The normal bit spreader...
-   private static final int hash(Object key)
+   private static int hash(Object key)
    {
       int h = key.hashCode();
       h ^= (h >>> 20) ^ (h >>> 12);
@@ -180,12 +185,12 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
    }
 
    @SuppressWarnings("unchecked")
-   private static final <K> K maskNull(K key)
+   private static <K> K maskNull(K key)
    {
       return key == null ? (K) NULL : key;
    }
 
-   private static final <K> K unmaskNull(K key)
+   private static <K> K unmaskNull(K key)
    {
       return key == NULL ? null : key;
    }
@@ -196,12 +201,12 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       return index;
    }
 
-   private static final boolean eq(Object o1, Object o2)
+   private static boolean eq(Object o1, Object o2)
    {
       return o1 == o2 || (o1 != null && o1.equals(o2));
    }
 
-   private static final int index(int hashCode, int length)
+   private static int index(int hashCode, int length)
    {
       return hashCode & (length - 1);
    }
@@ -473,7 +478,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       System.out.println(" Size:            " + size);
       System.out.println(" Real Size:       " + total);
       System.out.println(" Optimal:         " + optimal + " (" + (float) optimal * 100 / total + "%)");
-      System.out.println(" Average Distnce: " + ((float) totalSkew / (total - optimal)));
+      System.out.println(" Average Distance:" + ((float) totalSkew / (total - optimal)));
       System.out.println(" Max Distance:    " + maxSkew);
    }
 
@@ -502,7 +507,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
    }
 
    @SuppressWarnings("unchecked")
-   private void readObject(java.io.ObjectInputStream s) throws IOException, ClassNotFoundException
+   private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException
    {
       s.defaultReadObject();
 
@@ -540,7 +545,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       table[index] = new Entry<K, V>(key, hash, value);
    }
 
-   private void writeObject(java.io.ObjectOutputStream s) throws IOException
+   private void writeObject(ObjectOutputStream s) throws IOException
    {
       s.defaultWriteObject();
       s.writeInt(size);
@@ -569,7 +574,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       }
    }
 
-   private abstract class FasyCopyHashMapIterator<E> implements Iterator<E>
+   private abstract class FastCopyHashMapIterator<E> implements Iterator<E>
    {
       private int next = 0;
       private int expectedCount = modCount;
@@ -679,7 +684,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
    }
 
 
-   private class KeyIterator extends FasyCopyHashMapIterator<K>
+   private class KeyIterator extends FastCopyHashMapIterator<K>
    {
       public K next()
       {
@@ -687,7 +692,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       }
    }
 
-   private class ValueIterator extends FasyCopyHashMapIterator<V>
+   private class ValueIterator extends FastCopyHashMapIterator<V>
    {
       public V next()
       {
@@ -695,7 +700,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       }
    }
 
-   private class EntryIterator extends FasyCopyHashMapIterator<Map.Entry<K, V>>
+   private class EntryIterator extends FastCopyHashMapIterator<Map.Entry<K, V>>
    {
       private class WriteThroughEntry extends SimpleEntry<K, V>
       {
@@ -706,8 +711,7 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 
          public V setValue(V value)
          {
-            if (table != FastCopyHashMap.this.table)
-               FastCopyHashMap.this.put(getKey(), value);
+            if (table != FastCopyHashMap.this.table) put(getKey(), value);
 
             return super.setValue(value);
          }
@@ -802,9 +806,10 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
       }
    }
 
+   @SuppressWarnings( { "NonFinalFieldReferencedInHashCode", "NonFinalFieldReferenceInEquals" })
    protected static class SimpleEntry<K, V> implements Map.Entry<K, V>
    {
-      private K key;
+      private final K key;
       private V value;
 
       SimpleEntry(K key, V value)
@@ -815,8 +820,8 @@ final class FastCopyHashMap<K, V> extends AbstractMap<K, V> implements Map<K, V>
 
       SimpleEntry(Map.Entry<K, V> entry)
       {
-         this.key = entry.getKey();
-         this.value = entry.getValue();
+          key = entry.getKey();
+          value = entry.getValue();
       }
 
       public K getKey()
