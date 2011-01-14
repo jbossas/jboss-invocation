@@ -73,7 +73,8 @@ public final class ProxyInvocationHandler implements InvocationHandler, Serializ
         } else if (id.equals(MethodIdentifier.TO_STRING)) {
             return "Proxy via " + dispatcher;
         } else try {
-            return dispatcher.dispatch(new Invocation(method.getDeclaringClass(), id, (Object[]) args));
+            InvocationReply reply = dispatcher.dispatch(new Invocation(method.getDeclaringClass(), id, (Object[]) args));
+            return reply.getReply();
         } catch (InvocationException e) {
             throw e.getCause();
         }
