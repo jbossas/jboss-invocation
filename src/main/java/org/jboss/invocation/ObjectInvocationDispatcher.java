@@ -57,9 +57,9 @@ public final class ObjectInvocationDispatcher implements Serializable, Invocatio
         } catch (InvocationTargetException e) {
             throw new InvocationException(e.getCause());
         } catch (ClassNotFoundException e) {
-            throw new InvocationException(e.getCause());
+            throw new InvocationException(e);
         } catch (NoSuchMethodException e) {
-            throw new InvocationException(e.getCause());
+            throw new InvocationException(e);
         }
     }
 
