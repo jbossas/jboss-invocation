@@ -121,7 +121,7 @@ public final class MethodIdentifier implements Serializable {
      * @return {@code true} if they are equal, {@code false} otherwise
      */
     public boolean equals(MethodIdentifier other) {
-        return this == other || other != null && name.equals(other.name) && Arrays.equals(parameterTypes, other.parameterTypes);
+        return this == other || other != null && hashCode == other.hashCode && name.equals(other.name) && Arrays.equals(parameterTypes, other.parameterTypes);
     }
 
     /**
