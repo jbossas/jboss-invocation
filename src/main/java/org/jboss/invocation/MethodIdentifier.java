@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.jboss.marshalling.FieldSetter;
 
 /**
@@ -242,4 +243,8 @@ public final class MethodIdentifier implements Serializable {
      * The method identifier for {@code Object.toString()}.
      */
     public static final MethodIdentifier TO_STRING = getIdentifier(String.class, "toString");
+    /**
+     * The method identifier for {@code Object.finalize()}.
+     */
+    public static final MethodIdentifier FINALIZE = getIdentifier(void.class, "finalize");
 }
