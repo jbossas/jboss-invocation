@@ -32,7 +32,8 @@ import java.util.Map;
 import org.jboss.marshalling.FieldSetter;
 
 /**
- * A unique identification of a method within some class or interface.  Suitable for usage as a hash table key.
+ * A unique identification of a method within some class or interface which is class loader-agnostic.  Suitable for
+ * serialization as well as usage as a hash table key.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -42,6 +43,7 @@ public final class MethodIdentifier implements Serializable {
 
     private static final FieldSetter hashCodeSetter = FieldSetter.get(MethodIdentifier.class, "hashCode");
 
+    private final String returnType;
     private final String name;
     private final String[] parameterTypes;
     private final transient int hashCode;
@@ -62,23 +64,28 @@ public final class MethodIdentifier implements Serializable {
         PRIMITIVES = primitives;
     }
 
-    private MethodIdentifier(final String name, final String... parameterTypes) {
+    private MethodIdentifier(final String returnType, final String name, final String... parameterTypes) {
+        if (returnType == null) {
+            throw new IllegalArgumentException("returnType is null");
+        }
         if (name == null) {
             throw new IllegalArgumentException("name is null");
         }
         if (parameterTypes == null) {
             throw new IllegalArgumentException("parameterTypes is null");
         }
+        this.returnType = returnType;
         this.name = name;
         this.parameterTypes = parameterTypes == null || parameterTypes.length == 0 ? NO_STRINGS : parameterTypes.clone();
-        hashCode = calculateHash(name, parameterTypes);
+        hashCode = calculateHash(returnType, name, parameterTypes);
     }
 
     private MethodIdentifier(final Method method) {
+        returnType = method.getReturnType().getName();
         final String name = (this.name = method.getName());
         final Class<?>[] methodParameterTypes = method.getParameterTypes();
         final String[] parameterTypes = methodParameterTypes.length == 0 ? NO_STRINGS : namesOf(methodParameterTypes);
-        hashCode = calculateHash(name, parameterTypes);
+        hashCode = calculateHash(returnType, name, parameterTypes);
         this.parameterTypes = parameterTypes;
     }
 
@@ -99,8 +106,8 @@ public final class MethodIdentifier implements Serializable {
         return types;
     }
 
-    private static int calculateHash(final String name, final String[] parameterTypes) {
-        return name.hashCode() * 7 + Arrays.hashCode(parameterTypes);
+    private static int calculateHash(final String returnType, final String name, final String[] parameterTypes) {
+        return name.hashCode() * 7 + (returnType.hashCode() * 7 + Arrays.hashCode(parameterTypes));
     }
 
     /**
@@ -139,16 +146,17 @@ public final class MethodIdentifier implements Serializable {
      * @return {@code true} if they are equal, {@code false} otherwise
      */
     public boolean equals(MethodIdentifier other) {
-        return this == other || other != null && hashCode == other.hashCode && name.equals(other.name) && Arrays.equals(parameterTypes, other.parameterTypes);
+        return this == other || other != null && hashCode == other.hashCode && returnType.equals(other.returnType) && name.equals(other.name) && Arrays.equals(parameterTypes, other.parameterTypes);
     }
 
     /**
      * Get the hash code for this method identifier.  The hash code is equal to:
      * <pre>
-     *    n * 7 + a
+     *    n * 7 + (r * 7 + a)
      * </pre>
-     * where <em>n</em> is the method name's hash code and <em>a</em> is the result of calling
-     * {@link Arrays#hashCode(Object[])} on the parameter type name list.
+     * where <em>n</em> is the method name's hash code, <em>r</em> is the method return type's name's hash code
+     * and <em>a</em> is the result of calling {@link Arrays#hashCode(Object[])} on the parameter type name list (of
+     * strings).
      *
      * @return the hash code
      */
@@ -185,7 +193,7 @@ public final class MethodIdentifier implements Serializable {
 
     private void readObject(final ObjectInputStream ois) throws ClassNotFoundException, IOException {
         ois.defaultReadObject();
-        hashCodeSetter.setInt(this, calculateHash(name, parameterTypes));
+        hashCodeSetter.setInt(this, calculateHash(name, name, parameterTypes));
     }
 
     /**
@@ -201,24 +209,25 @@ public final class MethodIdentifier implements Serializable {
     /**
      * Construct a new instance using class objects for the parameter types.
      *
+     * @param returnType the method return type
      * @param name the method name
      * @param parameterTypes the method parameter types
      * @return the identifier
      */
-    public static MethodIdentifier getIdentifier(final String name, final Class<?>... parameterTypes) {
-        return new MethodIdentifier(name, namesOf(parameterTypes));
+    public static MethodIdentifier getIdentifier(final Class<?> returnType, final String name, final Class<?>... parameterTypes) {
+        return new MethodIdentifier(returnType.getName(), name, namesOf(parameterTypes));
     }
 
     /**
      * The method identifier for {@code Object.equals()}.
      */
-    public static final MethodIdentifier EQUALS = getIdentifier("equals", Object.class);
+    public static final MethodIdentifier EQUALS = getIdentifier(boolean.class, "equals", Object.class);
     /**
      * The method identifier for {@code Object.hashCode()}.
      */
-    public static final MethodIdentifier HASH_CODE = getIdentifier("hashCode");
+    public static final MethodIdentifier HASH_CODE = getIdentifier(int.class, "hashCode");
     /**
      * The method identifier for {@code Object.toString()}.
      */
-    public static final MethodIdentifier TO_STRING = getIdentifier("toString");
+    public static final MethodIdentifier TO_STRING = getIdentifier(String.class, "toString");
 }
