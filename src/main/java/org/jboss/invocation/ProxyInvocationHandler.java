@@ -39,6 +39,32 @@ public final class ProxyInvocationHandler implements InvocationHandler, Serializ
 
     private static final long serialVersionUID = -7550306900997519378L;
 
+    private static final Method EQUALS;
+    private static final Method HASH_CODE;
+    private static final Method TO_STRING;
+
+    static {
+        Method equals = null;
+        Method hashCode = null;
+        Method toString = null;
+        final Method[] methods = Object.class.getMethods();
+        for (Method method : methods) {
+            if (method.getName().equals("equals")) {
+                equals = method;
+            } else if (method.getName().equals("hashCode")) {
+                hashCode = method;
+            } else if (method.getName().equals("toString")) {
+                toString = method;
+            }
+        }
+        assert equals != null;
+        assert hashCode != null;
+        assert toString != null;
+        EQUALS = equals;
+        HASH_CODE = hashCode;
+        TO_STRING = toString;
+    }
+
     /**
      * The invocation dispatcher which should handle the invocation.
      *
@@ -65,14 +91,15 @@ public final class ProxyInvocationHandler implements InvocationHandler, Serializ
      * @throws Throwable the exception to thrown from the method invocation on the proxy instance, if any
      */
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-        final MethodIdentifier id = MethodIdentifier.getIdentifierForMethod(method);
-        if (id.equals(MethodIdentifier.EQUALS)) {
-            return Boolean.valueOf(proxy.equals(args[0]));
-        } else if (id.equals(MethodIdentifier.HASH_CODE)) {
+        if (method.equals(EQUALS)) {
+            return Boolean.valueOf(proxy == args[0]);
+        } else if (method.equals(HASH_CODE)) {
             return Integer.valueOf(System.identityHashCode(proxy));
-        } else if (id.equals(MethodIdentifier.TO_STRING)) {
+        } else if (method.equals(TO_STRING)) {
             return "Proxy via " + dispatcher;
-        } else try {
+        }
+        final MethodIdentifier id = MethodIdentifier.getIdentifierForMethod(method);
+        try {
             InvocationReply reply = dispatcher.dispatch(new Invocation(method.getDeclaringClass(), id, (Object[]) args));
             return reply.getReply();
         } catch (InvocationException e) {
