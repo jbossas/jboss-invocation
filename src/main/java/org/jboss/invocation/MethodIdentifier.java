@@ -219,6 +219,18 @@ public final class MethodIdentifier implements Serializable {
     }
 
     /**
+     * Construct a new instance using string names for the return and parameter types.
+     *
+     * @param returnType the return type name
+     * @param name the method name
+     * @param parameterTypes the method parameter type names
+     * @return the identifier
+     */
+    public static MethodIdentifier getIdentifier(final String returnType, final String name, final String... parameterTypes) {
+        return new MethodIdentifier(returnType, name, parameterTypes);
+    }
+
+    /**
      * The method identifier for {@code Object.equals()}.
      */
     public static final MethodIdentifier EQUALS = getIdentifier(boolean.class, "equals", Object.class);
