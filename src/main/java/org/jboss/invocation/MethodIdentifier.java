@@ -27,6 +27,8 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import org.jboss.marshalling.FieldSetter;
 
 /**
@@ -44,6 +46,21 @@ public final class MethodIdentifier implements Serializable {
     private final String[] parameterTypes;
     private final transient int hashCode;
     private static final String[] NO_STRINGS = new String[0];
+    private static final Map<String, Class<?>> PRIMITIVES;
+
+    static {
+        final Map<String, Class<?>> primitives = new HashMap<String, Class<?>>();
+        primitives.put("boolean", boolean.class);
+        primitives.put("byte", byte.class);
+        primitives.put("char", char.class);
+        primitives.put("double", double.class);
+        primitives.put("float", float.class);
+        primitives.put("int", int.class);
+        primitives.put("long", long.class);
+        primitives.put("short", short.class);
+        primitives.put("void", void.class);
+        PRIMITIVES = primitives;
+    }
 
     private MethodIdentifier(final String name, final String... parameterTypes) {
         if (name == null) {
@@ -76,7 +93,8 @@ public final class MethodIdentifier implements Serializable {
     private static Class<?>[] typesOf(final String[] names, final ClassLoader classLoader) throws ClassNotFoundException {
         final Class<?>[] types = new Class<?>[names.length];
         for (int i = 0, namesLength = names.length; i < namesLength; i++) {
-            types[i] = Class.forName(names[i], false, classLoader);
+            final Class<?> prim = PRIMITIVES.get(names[i]);
+            types[i] = prim == null ? Class.forName(names[i], false, classLoader) : prim;
         }
         return types;
     }
