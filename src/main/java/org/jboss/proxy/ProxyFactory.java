@@ -114,7 +114,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                             throw new RuntimeException("Unkown primitive type descriptor: " + typeChar);
                     }
                 } else {
-                    ca.iload(loadPosition);
+                    ca.aload(loadPosition);
                 }
                 ca.aastore();
                 loadPosition++;
