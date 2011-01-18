@@ -21,6 +21,7 @@
  */
 package org.jboss.proxy;
 
+import java.io.ObjectStreamException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
@@ -34,6 +35,7 @@ import org.jboss.classfilewriter.util.Boxing;
 import org.jboss.invocation.Invocation;
 import org.jboss.invocation.InvocationDispatcher;
 import org.jboss.invocation.InvocationReply;
+import org.jboss.invocation.MethodIdentifier;
 
 /**
  * Proxy Factory that generates proxis that delegate all calls to an {@link InvocationDispatcher}.
@@ -229,6 +231,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             ca.dup();
             ca.invokespecial(serializableProxyClass.getName(), "<init>", "()V");
             ca.dup();
+            ca.aload(0);
             ca.invokeinterface(SerializableProxy.class.getName(), "setProxyInstance", "(Lorg/jboss/proxy/ProxyInstance;)V");
             ca.returnInstruction();
         }
@@ -323,6 +326,9 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     protected void generateClass() {
         classFile.addField(AccessFlag.PRIVATE, INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
         classFile.addField(AccessFlag.PRIVATE, CONSTRUCTED_GUARD, "Z");
+        if (serializableProxyClass != null) {
+            createWriteReplace();
+        }
         ProxyMethodBodyCreator creator = new ProxyMethodBodyCreator();
         overrideAllMethods(creator);
         for (Class<?> iface : additionalInterfaces) {
@@ -337,7 +343,10 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     private void createWriteReplace() {
-
+        MethodIdentifier identifier = MethodIdentifier.getIdentifier(Object.class, "writeReplace");
+        ClassMethod method = classFile.addMethod(AccessFlag.PROTECTED, "writeReplace", "Ljava/lang/Object;");
+        method.addCheckedExceptions(ObjectStreamException.class);
+        overrideMethod(method, identifier, new WriteReplaceBodyCreator());
     }
 
     /**

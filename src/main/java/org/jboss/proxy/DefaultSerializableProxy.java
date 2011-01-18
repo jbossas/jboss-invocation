@@ -39,6 +39,7 @@ public class DefaultSerializableProxy implements SerializableProxy {
 
     public void setProxyInstance(ProxyInstance proxy) {
         this.proxyClassName = proxy.getClass().getName();
+        this.dispatcher = proxy._getProxyInvocationDispatcher();
     }
 
     Object readResolve() throws ObjectStreamException {

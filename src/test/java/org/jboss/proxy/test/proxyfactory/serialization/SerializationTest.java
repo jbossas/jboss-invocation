@@ -29,6 +29,7 @@ import java.io.ObjectOutputStream;
 
 import junit.framework.Assert;
 
+import org.jboss.proxy.DefaultSerializableProxy;
 import org.jboss.proxy.ProxyFactory;
 import org.jboss.proxy.ProxyInstance;
 import org.junit.Test;
@@ -51,6 +52,27 @@ public class SerializationTest {
         ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()));
         SerializableClass deserializedProxy = (SerializableClass) inputStream.readObject();
         Assert.assertEquals(100, deserializedProxy.state);
+        Assert.assertEquals(10, ((SerializableInvocationDispatcher) ((ProxyInstance) deserializedProxy)
+                ._getProxyInvocationDispatcher()).getState());
+    }
+
+    @Test
+    public void defaultSerializableProxyTest() throws InstantiationException, IllegalAccessException, IOException,
+            ClassNotFoundException {
+        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(SerializableClass.class);
+        proxyFactory.setSerializableProxyClass(DefaultSerializableProxy.class);
+        SerializableInvocationDispatcher dispatcher = new SerializableInvocationDispatcher();
+        SerializableClass proxy = proxyFactory.newInstance(dispatcher);
+        proxy.invoke(10);
+        Assert.assertEquals(10, dispatcher.getState());
+        proxy.state = 100;
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        ObjectOutputStream outputStream = new ObjectOutputStream(bytes);
+        outputStream.writeObject(proxy);
+
+        ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()));
+        SerializableClass deserializedProxy = (SerializableClass) inputStream.readObject();
+        Assert.assertEquals(0, deserializedProxy.state);
         Assert.assertEquals(10, ((SerializableInvocationDispatcher) ((ProxyInstance) deserializedProxy)
                 ._getProxyInvocationDispatcher()).getState());
     }

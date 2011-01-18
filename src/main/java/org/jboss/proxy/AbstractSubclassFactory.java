@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.invocation.MethodIdentifier;
 
 /**
@@ -85,6 +86,21 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
         if (!overridenMethods.contains(identifier)) {
             overridenMethods.add(identifier);
             creator.overrideMethod(classFile.addMethod(method), method);
+        }
+    }
+
+    /**
+     * Creates a new method on the generated class that overrides the given methods, unless a method with the same signiture has
+     * already been overriden
+     * 
+     * @param method The method to override
+     * @param identifier The identifier of the method to override
+     * @param creator The {@link MethodBodyCreator} used to create the method body
+     */
+    protected void overrideMethod(ClassMethod method, MethodIdentifier identifier, MethodBodyCreator creator) {
+        if (!overridenMethods.contains(identifier)) {
+            overridenMethods.add(identifier);
+            creator.overrideMethod(method, null);
         }
     }
 
