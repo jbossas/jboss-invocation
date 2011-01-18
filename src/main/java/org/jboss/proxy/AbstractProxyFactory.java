@@ -66,6 +66,11 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
         staticConstructor.getCodeAttribute().returnInstruction();
     }
 
+    @Override
+    protected void cleanup() {
+        staticConstructor = null;
+    }
+
     /**
      * Writes the bytecode to load an instance of MethodIdentifier for the given method onto the stack.
      * <p>

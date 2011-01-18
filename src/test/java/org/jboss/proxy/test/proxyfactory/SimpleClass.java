@@ -32,4 +32,8 @@ public class SimpleClass {
     public Invocation method1() {
         return null;
     }
+
+    public Invocation method2(long v1, double v2, Object v3, int[] v4) {
+        return null;
+    }
 }

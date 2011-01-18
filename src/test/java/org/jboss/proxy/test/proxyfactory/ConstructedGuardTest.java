@@ -21,6 +21,8 @@
  */
 package org.jboss.proxy.test.proxyfactory;
 
+import junit.framework.Assert;
+
 import org.jboss.proxy.ProxyFactory;
 import org.junit.Test;
 
@@ -32,5 +34,6 @@ public class ConstructedGuardTest {
         // if there is no guard we will get a NPE here
         // as the proxy attempts to delegate to a null method
         ConstructedGuardClass instance = proxyFactory.newInstance();
+        Assert.assertEquals(1, instance.count);
     }
 }

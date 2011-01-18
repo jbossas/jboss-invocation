@@ -25,16 +25,19 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.jboss.invocation.MethodIdentifier;
 
 /**
- * Class factory for classes that override superclass methods
- * 
+ * Class factory for classes that override superclass methods.
+ * <p>
+ * This class extends {@link AbstractClassFactory} by adding convenience methods to override methods on the superclass.
+ *
  * @author Stuart Douglas
- * 
+ *
  */
 public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T> {
 
@@ -52,11 +55,51 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
+     * Tracks methods that have already been overriden
+     */
+    private final Set<MethodIdentifier> overridenMethods = new HashSet<MethodIdentifier>();
+
+    /**
+     * Methods that should not be overriden by default
+     */
+    private static final Set<MethodIdentifier> SKIP_BY_DEFAULT;
+
+    static {
+        HashSet<MethodIdentifier> skip = new HashSet<MethodIdentifier>();
+        skip.add(MethodIdentifier.EQUALS);
+        skip.add(MethodIdentifier.FINALIZE);
+        skip.add(MethodIdentifier.HASH_CODE);
+        skip.add(MethodIdentifier.TO_STRING);
+        SKIP_BY_DEFAULT = Collections.unmodifiableSet(skip);
+    }
+
+    /**
+     * Creates a new method on the generated class that overrides the given methods, unless a method with the same signiture has
+     * already been overriden
+     * 
+     * @param method The method to override
+     * @param identifier The identifier of the method to override
+     * @param creator The {@link MethodBodyCreator} used to create the method body
+     */
+    protected void overrideMethod(Method method, MethodIdentifier identifier, MethodBodyCreator creator) {
+        if (!overridenMethods.contains(identifier)) {
+            overridenMethods.add(identifier);
+            creator.overrideMethod(classFile.addMethod(method), method);
+        }
+    }
+
+    /**
      * overrides all public methods on the superclass. The default {@link MethodBodyCreator} is used to generate the class body
      */
     protected void overridePublicMethods(boolean includeEquals, boolean includeHashcode, boolean includeToString) {
         overridePublicMethods(getDefaultMethodOverride(), includeEquals, includeHashcode, includeToString);
     }
+
+    @Override
+    protected void cleanup() {
+        overridenMethods.clear();
+    }
+
     /**
      * overrides all public methods on the superclass. The given {@link MethodBodyCreator} is used to generate the class body
      */
@@ -67,31 +110,14 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
             if (Modifier.isFinal(method.getModifiers())) {
                 continue;
             }
-            if (identifier.equals(MethodIdentifier.EQUALS)) {
-                if (includeEquals) {
-                    override.overrideMethod(classFile.addMethod(method), method);
-                }
-            } else if (identifier.equals(MethodIdentifier.HASH_CODE)) {
-                if (includeHashcode) {
-                    override.overrideMethod(classFile.addMethod(method), method);
-                }
-            } else if (identifier.equals(MethodIdentifier.TO_STRING)) {
-                if (includeToString) {
-                    override.overrideMethod(classFile.addMethod(method), method);
-                }
-            } else {
-                override.overrideMethod(classFile.addMethod(method), method);
+            if (!SKIP_BY_DEFAULT.contains(identifier)) {
+                overrideMethod(method, identifier, override);
             }
         }
     }
 
     /**
-     * Overrides all methods on the superclass with the exception of <code>equals(OBject)</code>, <code>hashCode()</code>,
-     * <code>toString()</code> and <code>finalize()</code>. The default {@link MethodBodyCreator} is used to generate the class
-     * body.
-     * <p>
-     * Note that private methods are not actually overriden, and if the sub-class is loaded by a different ClassLoader to the
-     * parent class then neither will package-private methods.
+     * Calls {@link #overrideAllMethods(MethodBodyCreator)} with the default {@link MethodBodyCreator}
      * 
      */
     protected void overrideAllMethods() {
@@ -99,16 +125,16 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Overrides all methods on the superclass with the exception of <code>equals(OBject)</code>, <code>hashCode()</code>,
+     * Overrides all methods on the superclass with the exception of <code>equals(Object)</code>, <code>hashCode()</code>,
      * <code>toString()</code> and <code>finalize()</code>. The given {@link MethodBodyCreator} is used to generate the class
-     * body
+     * body.
      * <p>
      * Note that private methods are not actually overriden, and if the sub-class is loaded by a different ClassLoader to the
-     * parent class then neither will package-private methods.
+     * parent class then neither will package-private methods. These methods will still be present on the new class however, and
+     * can be accessed via reflection
      * 
      */
     protected void overrideAllMethods(MethodBodyCreator override) {
-        Set<MethodIdentifier> methodIdentifiers = new HashSet<MethodIdentifier>();
         Class<?> currentClass = getSuperClass();
         while (currentClass != null) {
             for (Method method : getSuperClass().getDeclaredMethods()) {
@@ -116,19 +142,13 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
                 if (Modifier.isStatic(method.getModifiers()) || Modifier.isPrivate(method.getModifiers())) {
                     continue;
                 }
-                // make sure we do not override methods twice
                 MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
-                if (methodIdentifiers.contains(identifier)) {
-                    continue;
-                }
-                methodIdentifiers.add(identifier);
                 // don't attempt to override final methods
-                if (Modifier.isFinal(method.getModifiers()) || Modifier.isNative(method.getModifiers())) {
+                if (Modifier.isFinal(method.getModifiers())) {
                     continue;
                 }
-                if (!(identifier.equals(MethodIdentifier.EQUALS) || identifier.equals(MethodIdentifier.HASH_CODE)
-                        || identifier.equals(MethodIdentifier.TO_STRING) || identifier.equals(MethodIdentifier.FINALIZE))) {
-                    override.overrideMethod(classFile.addMethod(method), method);
+                if (!SKIP_BY_DEFAULT.contains(identifier)) {
+                    overrideMethod(method, identifier, override);
                 }
             }
             currentClass = currentClass.getSuperclass();
@@ -138,7 +158,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     /**
      * Override the equals method using the given {@link MethodBodyCreator}
      */
-    public void overrideEquals(MethodBodyCreator creator) {
+    protected void overrideEquals(MethodBodyCreator creator) {
         Method equals = null;
         try {
             equals = getSuperClass().getMethod("equals", Object.class);
@@ -151,7 +171,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     /**
      * Override the hashCode method using the given {@link MethodBodyCreator}
      */
-    public void overrideHashcode(MethodBodyCreator creator) {
+    protected void overrideHashcode(MethodBodyCreator creator) {
         Method hashCode = null;
         try {
             hashCode = getSuperClass().getMethod("hashCode");
@@ -164,7 +184,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     /**
      * Override the toString method using the given {@link MethodBodyCreator}
      */
-    public void overrideToString(MethodBodyCreator creator) {
+    protected void overrideToString(MethodBodyCreator creator) {
         Method toString = null;
         try {
             toString = getSuperClass().getMethod("toString");

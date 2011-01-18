@@ -35,6 +35,27 @@ import org.jboss.invocation.Invocation;
 import org.jboss.invocation.InvocationDispatcher;
 import org.jboss.invocation.InvocationReply;
 
+/**
+ * Proxy Factory that generates proxis that delegate all calls to an {@link InvocationDispatcher}.
+ * <p>
+ * Typical usage looks like:
+ * <p>
+ * 
+ * <pre>
+ * ProxyFactory&lt;SimpleClass&gt; proxyFactory = new ProxyFactory&lt;SimpleClass&gt;(SimpleClass.class);
+ * SimpleClass instance = proxyFactory.newInstance(new SimpleDispatcher());
+ * </pre>
+ * 
+ * </p>
+ * This will create a proxy for SimpleClass, and return a new instance that handles invocations using the InvocationDispatcher
+ * SimpleDispatcher.
+ * <p>
+ * Invocations on these proxies are very efficent, as no reflection is involved.
+ * 
+ * @author Stuart Douglas
+ * 
+ * @param <T>
+ */
 public class ProxyFactory<T> extends AbstractProxyFactory<T> {
 
     protected class ProxyMethodBodyCreator implements MethodBodyCreator {
@@ -263,6 +284,9 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         for (Class<?> iface : additionalInterfaces) {
             addInterface(creator, iface);
         }
+        overrideToString(creator);
+        overrideEquals(creator);
+        overrideHashcode(creator);
         addInterface(new ProxyInstanceMethodBodyCreator(), ProxyInstance.class);
         createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
