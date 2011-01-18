@@ -19,25 +19,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy.test.proxyfactory;
+package org.jboss.proxy;
 
-import junit.framework.Assert;
+import java.io.Serializable;
 
-import org.jboss.invocation.Invocation;
-import org.jboss.proxy.ProxyFactory;
-import org.jboss.proxy.ProxyInstance;
-import org.junit.Test;
+/**
+ * Serialized representation of a proxy. When a proxy that is using a {@link SerializableProxy} is serialized it is serialized
+ * via the following mechanism:
+ * 
+ * <pre>
+ * Object writeReplace() throws ObjectStreamException {
+ *     SerializableProxy proxy = serializableClass.newInstance();
+ *     proxy.setProxyInstance(this);
+ *     return proxy;
+ * }
+ * </pre>
+ * <p>
+ * Implementors of this interface should store any state that is required to re-create the proxy in this class's serialized
+ * form. Implementors also *MUST* implement an <code>Object readResolve() throws ObjectStreamException</code> method, the
+ * returns the de-serialized proxy.
+ * 
+ * @see DefaultSerializableProxy
+ * @author Stuart Douglas
+ * 
+ */
+public interface SerializableProxy extends Serializable {
 
-public class SimpleProxyFactoryTest {
-
-    @Test
-    public void testSimpleProxy() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
-        SimpleClass instance = proxyFactory.newInstance(new SimpleDispatcher());
-        ((ProxyInstance) instance)._setProxyInvocationDispatcher(new SimpleDispatcher());
-        Invocation invocation = instance.method1();
-        Assert.assertEquals("method1", invocation.getMethodIdentifier().getName());
-        Assert.assertEquals(0, invocation.getMethodIdentifier().getParameterTypes().length);
-    }
+    public abstract void setProxyInstance(ProxyInstance proxy);
 
 }

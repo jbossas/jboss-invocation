@@ -25,14 +25,17 @@ import org.jboss.invocation.InvocationDispatcher;
 
 /**
  * Class that is implemented by all proxy classes. Contains methods to get and set the {@link InvocationDispatcher}
+ * <p>
+ * The method names do not follow normal java naming conventions to minimise the chance of name collisions with methods on the
+ * proxy
  * 
  * @author Stuart Douglas
  * 
  */
 public interface ProxyInstance {
 
-    public void setProxyInvocationDispatcher(InvocationDispatcher dispatcher);
+    public void _setProxyInvocationDispatcher(InvocationDispatcher dispatcher);
 
-    public InvocationDispatcher getProxyInvocationDispatcher();
+    public InvocationDispatcher _getProxyInvocationDispatcher();
 
 }

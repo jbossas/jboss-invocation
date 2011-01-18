@@ -69,6 +69,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     @Override
     protected void cleanup() {
         staticConstructor = null;
+        super.cleanup();
     }
 
     /**

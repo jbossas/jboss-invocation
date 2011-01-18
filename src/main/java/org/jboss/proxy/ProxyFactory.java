@@ -58,6 +58,12 @@ import org.jboss.invocation.InvocationReply;
  */
 public class ProxyFactory<T> extends AbstractProxyFactory<T> {
 
+    /**
+     * Overrides superclass methods and forwards calls to the dispatcher
+     * 
+     * @author Stuart Douglas
+     * 
+     */
     protected class ProxyMethodBodyCreator implements MethodBodyCreator {
 
         // we simply want to load the corresponding identifier
@@ -157,16 +163,22 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         }
     }
 
+    /**
+     * Implements the methods from the {@link ProxyInstance} interface
+     * 
+     * @author Stuart Douglas
+     * 
+     */
     protected class ProxyInstanceMethodBodyCreator implements MethodBodyCreator {
 
         @Override
         public void overrideMethod(ClassMethod method, Method superclassMethod) {
             CodeAttribute ca = method.getCodeAttribute();
-            if (method.getName().equals("getProxyInvocationDispatcher")) {
+            if (method.getName().equals("_getProxyInvocationDispatcher")) {
                 ca.aload(0);
                 ca.getfield(getClassName(), INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
                 ca.returnInstruction();
-            } else if (method.getName().equals("setProxyInvocationDispatcher")) {
+            } else if (method.getName().equals("_setProxyInvocationDispatcher")) {
                 ca.aload(0);
                 ca.aload(1);
                 ca.putfield(getClassName(), INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
@@ -177,6 +189,12 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         }
     }
 
+    /**
+     * Generates a proxy constructor that delegates to super(), and then sets the constructed flag to true.
+     * 
+     * @author Stuart Douglas
+     * 
+     */
     protected class ProxyConstructorBodyCreator implements ConstructorBodyCreator {
 
         @Override
@@ -191,6 +209,27 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             ca.aload(0);
             ca.iconst(1);
             ca.putfield(getClassName(), CONSTRUCTED_GUARD, "Z");
+            ca.returnInstruction();
+        }
+    }
+
+    /**
+     * Generates the writereplace method if advanced serialization is enabled
+     * 
+     * @author Stuart Douglas
+     * 
+     */
+    protected class WriteReplaceBodyCreator implements MethodBodyCreator {
+
+        @Override
+        public void overrideMethod(ClassMethod method, Method superclassMethod) {
+            // superClassMethod will be null
+            CodeAttribute ca = method.getCodeAttribute();
+            ca.newInstruction(serializableProxyClass.getName());
+            ca.dup();
+            ca.invokespecial(serializableProxyClass.getName(), "<init>", "()V");
+            ca.dup();
+            ca.invokeinterface(SerializableProxy.class.getName(), "setProxyInstance", "(Lorg/jboss/proxy/ProxyInstance;)V");
             ca.returnInstruction();
         }
     }
@@ -217,6 +256,11 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      * dispatcher
      */
     private final Class<?>[] additionalInterfaces;
+
+    /**
+     * The type of {@link SerializableProxy} to generate from the writeReplace method
+     */
+    private Class<? extends SerializableProxy> serializableProxyClass;
 
     /**
      * 
@@ -271,7 +315,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      */
     public T newInstance(InvocationDispatcher dispatcher) throws InstantiationException, IllegalAccessException {
         T ret = newInstance();
-        ((ProxyInstance) ret).setProxyInvocationDispatcher(dispatcher);
+        ((ProxyInstance) ret)._setProxyInvocationDispatcher(dispatcher);
         return ret;
     }
 
@@ -290,5 +334,28 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         addInterface(new ProxyInstanceMethodBodyCreator(), ProxyInstance.class);
         createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
+    }
+
+    private void createWriteReplace() {
+
+    }
+
+    /**
+     * Sets the {@link SerializableProxy} class to emit from the proxies writeReplace method. If this is set to null (the
+     * default) then no writeReplace method will be generated. The proxy may still be serializable, providing that the
+     * superclass and {@link InvocationDispatcher} are both serializable.
+     * <p>
+     * 
+     * @see SerializableProxy
+     * @see DefaultSerializableProxy
+     * @param serializableProxyClass
+     * @throws IllegalStateException If the proxy class has already been generated
+     */
+    public void setSerializableProxyClass(Class<? extends SerializableProxy> serializableProxyClass) {
+        if (classFile == null) {
+            throw new IllegalStateException(
+                    "Cannot set a ProxyFactories SerialiableProxyClass after the proxy has been created");
+        }
+        this.serializableProxyClass = serializableProxyClass;
     }
 }

@@ -19,25 +19,16 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy.test.proxyfactory;
+package org.jboss.proxy.test.proxyfactory.serialization;
 
-import junit.framework.Assert;
+import java.io.Serializable;
 
-import org.jboss.invocation.Invocation;
-import org.jboss.proxy.ProxyFactory;
-import org.jboss.proxy.ProxyInstance;
-import org.junit.Test;
+public class SerializableClass implements Serializable {
 
-public class SimpleProxyFactoryTest {
+    public int state;
 
-    @Test
-    public void testSimpleProxy() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
-        SimpleClass instance = proxyFactory.newInstance(new SimpleDispatcher());
-        ((ProxyInstance) instance)._setProxyInvocationDispatcher(new SimpleDispatcher());
-        Invocation invocation = instance.method1();
-        Assert.assertEquals("method1", invocation.getMethodIdentifier().getName());
-        Assert.assertEquals(0, invocation.getMethodIdentifier().getParameterTypes().length);
+    public void invoke(int value) {
+
     }
 
 }
