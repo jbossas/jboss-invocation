@@ -21,12 +21,14 @@
  */
 package org.jboss.proxy;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.ProtectionDomain;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.util.Boxing;
 import org.jboss.invocation.Invocation;
@@ -37,6 +39,8 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
 
     private static final AtomicInteger nameCount = new AtomicInteger();
 
+    private static final String CONSTRUCTED_GUARD = "proxy$$Constructor$$finished";
+
     protected class ProxyMethodBodyCreator implements MethodBodyCreator {
 
         // we simply want to load the corresponding identifier
@@ -44,6 +48,15 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         @Override
         public void overrideMethod(ClassMethod method, Method superclassMethod) {
             CodeAttribute ca = method.getCodeAttribute();
+            // first we need to check the constructed field
+            ca.aload(0);
+            ca.getfield(getClassName(), CONSTRUCTED_GUARD, "Z");
+            BranchEnd end = ca.ifne();
+            ca.aload(0);
+            ca.loadMethodParameters();
+            ca.invokespecial(getSuperClass().getName(), method.getName(), method.getDescriptor());
+            ca.returnInstruction();
+            ca.branchEnd(end);
             ca.aload(0);
             ca.getfield(getClassName(), INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
             // now we have the dispatcher on the stack, we need to build an invocation
@@ -141,6 +154,25 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         }
     }
 
+    protected class ProxyConstructorBodyCreator implements ConstructorBodyCreator {
+
+        @Override
+        public void overrideConstructor(ClassMethod method, Constructor<?> constructor) {
+            CodeAttribute ca = method.getCodeAttribute();
+            ca.aload(0);
+            ca.iconst(0);
+            ca.putfield(getClassName(), CONSTRUCTED_GUARD, "Z");
+            ca.aload(0);
+            ca.loadMethodParameters();
+            ca.invokespecial(constructor);
+            ca.aload(0);
+            ca.iconst(1);
+            ca.putfield(getClassName(), CONSTRUCTED_GUARD, "Z");
+            ca.returnInstruction();
+        }
+
+    }
+
     public static final String INVOCATION_DISPATCHER_FIELD = "invocation$$dispatcher";
 
     public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
@@ -162,9 +194,11 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     @Override
     protected void generateClass() {
         classFile.addField(AccessFlag.PRIVATE, INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
+        classFile.addField(AccessFlag.PRIVATE, CONSTRUCTED_GUARD, "Z");
+
         overrideAllMethods(new ProxyMethodBodyCreator());
         addInterface(new ProxyInstanceMethodBodyCreator(), ProxyInstance.class);
-        createConstructorDelegates();
+        createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
     }
 
