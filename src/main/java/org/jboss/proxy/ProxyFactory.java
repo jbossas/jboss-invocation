@@ -37,10 +37,6 @@ import org.jboss.invocation.InvocationReply;
 
 public class ProxyFactory<T> extends AbstractProxyFactory<T> {
 
-    private static final AtomicInteger nameCount = new AtomicInteger();
-
-    private static final String CONSTRUCTED_GUARD = "proxy$$Constructor$$finished";
-
     protected class ProxyMethodBodyCreator implements MethodBodyCreator {
 
         // we simply want to load the corresponding identifier
@@ -51,11 +47,13 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             // first we need to check the constructed field
             ca.aload(0);
             ca.getfield(getClassName(), CONSTRUCTED_GUARD, "Z");
+            // if the object has not been constructed yet invoke the superclass version of the method
             BranchEnd end = ca.ifne();
             ca.aload(0);
             ca.loadMethodParameters();
-            ca.invokespecial(getSuperClass().getName(), method.getName(), method.getDescriptor());
+            ca.invokespecial(getSuperClassName(), method.getName(), method.getDescriptor());
             ca.returnInstruction();
+            // normal invocation path begins here
             ca.branchEnd(end);
             ca.aload(0);
             ca.getfield(getClassName(), INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
@@ -70,6 +68,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             String[] params = method.getParameters();
             ca.iconst(params.length);
             ca.anewarray("java/lang/Object");
+            int loadPosition = 1;
             for (int i = 0; i < params.length; ++i) {
                 ca.dup();
                 ca.iconst(i);
@@ -78,44 +77,47 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                     char typeChar = type.charAt(0);
                     switch (typeChar) {
                         case 'I':
-                            ca.iload(i + 1);
+                            ca.iload(loadPosition);
                             Boxing.boxInt(ca);
                             break;
                         case 'S':
-                            ca.iload(i + 1);
+                            ca.iload(loadPosition);
                             Boxing.boxShort(ca);
                             break;
                         case 'B':
-                            ca.iload(i + 1);
+                            ca.iload(loadPosition);
                             Boxing.boxByte(ca);
                             break;
                         case 'Z':
-                            ca.iload(i + 1);
+                            ca.iload(loadPosition);
                             Boxing.boxBoolean(ca);
                             break;
                         case 'C':
-                            ca.iload(i + 1);
+                            ca.iload(loadPosition);
                             Boxing.boxChar(ca);
                             break;
                         case 'D':
-                            ca.dload(i + 1);
+                            ca.dload(loadPosition);
                             Boxing.boxDouble(ca);
+                            loadPosition++;
                             break;
                         case 'J':
-                            ca.lload(i + 1);
+                            ca.lload(loadPosition);
                             Boxing.boxLong(ca);
+                            loadPosition++;
                             break;
                         case 'F':
-                            ca.fload(i + 1);
+                            ca.fload(loadPosition);
                             Boxing.boxFloat(ca);
                             break;
                         default:
                             throw new RuntimeException("Unkown primitive type descriptor: " + typeChar);
                     }
                 } else {
-                    ca.iload(i + 1);
+                    ca.iload(loadPosition);
                 }
                 ca.aastore();
+                loadPosition++;
             }
             ca.invokespecial(Invocation.class.getName(), "<init>",
                     "(Ljava/lang/Class;Lorg/jboss/invocation/MethodIdentifier;[Ljava/lang/Object;)V");
@@ -170,37 +172,99 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             ca.putfield(getClassName(), CONSTRUCTED_GUARD, "Z");
             ca.returnInstruction();
         }
-
     }
 
+    /**
+     * Name of the field that holds the generated dispatcher on the generated proxy
+     */
     public static final String INVOCATION_DISPATCHER_FIELD = "invocation$$dispatcher";
 
-    public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
+    /**
+     * atomic integer used to generate proxy names
+     */
+    private static final AtomicInteger nameCount = new AtomicInteger();
+
+    /**
+     * this field on the generated class stores if the constructor has been completed yet. No methods will be delegated to the
+     * dispacher until the constructor has finished. This prevents virtual methods called from the constructor being delegated
+     * to a handler that is null.
+     */
+    private static final String CONSTRUCTED_GUARD = "proxy$$Constructor$$finished";
+
+    /**
+     * A list of additional interfaces that should be added to the proxy, and should have invocations delegated to the
+     * dispatcher
+     */
+    private final Class<?>[] additionalInterfaces;
+
+    /**
+     * 
+     * @param className the name of the generated proxy
+     * @param superClass the superclass of the generated proxy
+     * @param classLoader the classloader to load the proxy with
+     * @param protectionDomain the ProtectionDomain to define the class with
+     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
+     */
+    public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain,
+            Class<?>... additionalInterfaces) {
         super(className, superClass, classLoader, protectionDomain);
+        this.additionalInterfaces = additionalInterfaces;
     }
 
-    public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader) {
+    /**
+     * 
+     * @param className the name of the generated proxy
+     * @param superClass the superclass of the generated proxy
+     * @param classLoader the classloader to load the proxy with
+     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
+     */
+    public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, Class<?>... additionalInterfaces) {
         super(className, superClass, classLoader);
+        this.additionalInterfaces = additionalInterfaces;
     }
 
-    public ProxyFactory(String className, Class<T> superClass) {
+    /**
+     * 
+     * @param className The name of the proxy class
+     * @param superClass The name of proxies superclass
+     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
+     */
+    public ProxyFactory(String className, Class<T> superClass, Class<?>... additionalInterfaces) {
         super(className, superClass);
+        this.additionalInterfaces = additionalInterfaces;
     }
 
-    public ProxyFactory(Class<T> superClass) {
+    /**
+     * Create a ProxyFactory for the given superclass, using the default name and the classloader of the superClass
+     * 
+     * @param superClass the superclass of the generated proxy
+     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
+     */
+    public ProxyFactory(Class<T> superClass, Class<?>... additionalInterfaces) {
         super(superClass.getName() + "$$Proxy" + nameCount.incrementAndGet(), superClass);
+        this.additionalInterfaces = additionalInterfaces;
+    }
+
+    /**
+     * Create a new proxy, initialising it with the given dispatcher
+     */
+    public T newInstance(InvocationDispatcher dispatcher) throws InstantiationException, IllegalAccessException {
+        T ret = newInstance();
+        ((ProxyInstance) ret).setProxyInvocationDispatcher(dispatcher);
+        return ret;
     }
 
     @Override
     protected void generateClass() {
         classFile.addField(AccessFlag.PRIVATE, INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
         classFile.addField(AccessFlag.PRIVATE, CONSTRUCTED_GUARD, "Z");
-
-        overrideAllMethods(new ProxyMethodBodyCreator());
+        ProxyMethodBodyCreator creator = new ProxyMethodBodyCreator();
+        overrideAllMethods(creator);
+        for (Class<?> iface : additionalInterfaces) {
+            addInterface(creator, iface);
+        }
         addInterface(new ProxyInstanceMethodBodyCreator(), ProxyInstance.class);
         createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
     }
-
-
 }

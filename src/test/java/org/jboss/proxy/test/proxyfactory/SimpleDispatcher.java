@@ -33,7 +33,7 @@ public class SimpleDispatcher implements InvocationDispatcher {
     @Override
     public InvocationReply dispatch(Invocation invocation) throws InvocationException {
         invoked = true;
-        return new InvocationReply(null);
+        return new InvocationReply(invocation);
     }
 
 }

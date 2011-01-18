@@ -21,17 +21,15 @@
  */
 package org.jboss.proxy.test.proxyfactory;
 
+import org.jboss.invocation.Invocation;
+
 public class SimpleClass {
 
     public SimpleClass() {
 
     }
 
-    public void invoke() {
-
-    }
-
-    public int intMethod(int a) {
-        return a;
+    public Invocation method1() {
+        return null;
     }
 }

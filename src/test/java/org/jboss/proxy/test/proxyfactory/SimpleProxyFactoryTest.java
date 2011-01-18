@@ -23,6 +23,7 @@ package org.jboss.proxy.test.proxyfactory;
 
 import junit.framework.Assert;
 
+import org.jboss.invocation.Invocation;
 import org.jboss.proxy.ProxyFactory;
 import org.jboss.proxy.ProxyInstance;
 import org.junit.Test;
@@ -34,8 +35,9 @@ public class SimpleProxyFactoryTest {
         ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
         SimpleClass instance = proxyFactory.newInstance();
         ((ProxyInstance) instance).setProxyInvocationDispatcher(new SimpleDispatcher());
-        instance.invoke();
-        Assert.assertTrue(SimpleDispatcher.invoked);
+        Invocation invocation = instance.method1();
+        Assert.assertEquals("method1", invocation.getMethodIdentifier().getName());
+        Assert.assertEquals(0, invocation.getMethodIdentifier().getParameterTypes().length);
     }
 
 }

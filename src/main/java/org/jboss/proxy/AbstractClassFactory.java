@@ -122,6 +122,10 @@ public abstract class AbstractClassFactory<T> {
         return className;
     }
 
+    public String getSuperClassName() {
+        return superClass.getName();
+    }
+
     public Class<T> getSuperClass() {
         return superClass;
     }
