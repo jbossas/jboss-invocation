@@ -52,7 +52,7 @@ import org.jboss.invocation.MethodIdentifier;
  * This will create a proxy for SimpleClass, and return a new instance that handles invocations using the InvocationDispatcher
  * SimpleDispatcher.
  * <p>
- * Invocations on these proxies are very efficent, as no reflection is involved.
+ * Invocations on these proxies are very efficient, as no reflection is involved.
  * 
  * @author Stuart Douglas
  * 

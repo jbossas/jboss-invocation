@@ -56,12 +56,12 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Tracks methods that have already been overriden
+     * Tracks methods that have already been overridden
      */
-    private final Set<MethodIdentifier> overridenMethods = new HashSet<MethodIdentifier>();
+    private final Set<MethodIdentifier> overriddenMethods = new HashSet<MethodIdentifier>();
 
     /**
-     * Methods that should not be overriden by default
+     * Methods that should not be overridden by default
      */
     private static final Set<MethodIdentifier> SKIP_BY_DEFAULT;
 
@@ -76,30 +76,30 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Creates a new method on the generated class that overrides the given methods, unless a method with the same signiture has
-     * already been overriden
+     * already been overridden
      * 
      * @param method The method to override
      * @param identifier The identifier of the method to override
      * @param creator The {@link MethodBodyCreator} used to create the method body
      */
     protected void overrideMethod(Method method, MethodIdentifier identifier, MethodBodyCreator creator) {
-        if (!overridenMethods.contains(identifier)) {
-            overridenMethods.add(identifier);
+        if (!overriddenMethods.contains(identifier)) {
+            overriddenMethods.add(identifier);
             creator.overrideMethod(classFile.addMethod(method), method);
         }
     }
 
     /**
      * Creates a new method on the generated class that overrides the given methods, unless a method with the same signiture has
-     * already been overriden
+     * already been overridden
      * 
      * @param method The method to override
      * @param identifier The identifier of the method to override
      * @param creator The {@link MethodBodyCreator} used to create the method body
      */
     protected void overrideMethod(ClassMethod method, MethodIdentifier identifier, MethodBodyCreator creator) {
-        if (!overridenMethods.contains(identifier)) {
-            overridenMethods.add(identifier);
+        if (!overriddenMethods.contains(identifier)) {
+            overriddenMethods.add(identifier);
             creator.overrideMethod(method, null);
         }
     }
@@ -113,7 +113,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     @Override
     protected void cleanup() {
-        overridenMethods.clear();
+        overriddenMethods.clear();
     }
 
     /**
@@ -145,7 +145,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * <code>toString()</code> and <code>finalize()</code>. The given {@link MethodBodyCreator} is used to generate the class
      * body.
      * <p>
-     * Note that private methods are not actually overriden, and if the sub-class is loaded by a different ClassLoader to the
+     * Note that private methods are not actually overridden, and if the sub-class is loaded by a different ClassLoader to the
      * parent class then neither will package-private methods. These methods will still be present on the new class however, and
      * can be accessed via reflection
      * 
@@ -247,14 +247,14 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * returns the default {@link MethodBodyCreator} to use when creating overriden methods
+     * returns the default {@link MethodBodyCreator} to use when creating overridden methods
      */
     public MethodBodyCreator getDefaultMethodOverride() {
         return DefaultMethodBodyCreator.INSTANCE;
     }
 
     /**
-     * returns the default {@link ConstructorBodyCreator} to use then creating overriden subclasses
+     * returns the default {@link ConstructorBodyCreator} to use then creating overridden subclasses
      */
     public ConstructorBodyCreator getDefaultConstructorOverride() {
         return DefaultConstructorBodyCreator.INSTANCE;
