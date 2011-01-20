@@ -26,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectStreamException;
 
 import junit.framework.Assert;
 
@@ -75,6 +76,49 @@ public class SerializationTest {
         Assert.assertEquals(0, deserializedProxy.state);
         Assert.assertEquals(10, ((SerializableInvocationDispatcher) ((ProxyInstance) deserializedProxy)
                 ._getProxyInvocationDispatcher()).getState());
+    }
+
+    @Test
+    public void serializableProxyDifferentClassloadTest() throws InstantiationException, IllegalAccessException, IOException,
+            ClassNotFoundException {
+
+        ClassLoader classLoader = new ClassLoader(getClass().getClassLoader()) {
+        };
+
+        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>("org.jboss.proxy.test.SomeProxy",
+                SerializableClass.class, classLoader);
+        proxyFactory.setSerializableProxyClass(TestSerializableProxy.class);
+        SerializableInvocationDispatcher dispatcher = new SerializableInvocationDispatcher();
+        SerializableClass proxy = proxyFactory.newInstance(dispatcher);
+        Class<?> proxyClass = proxyFactory.defineClass();
+        proxy.invoke(10);
+        Assert.assertEquals(10, dispatcher.getState());
+        proxy.state = 100;
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        ObjectOutputStream outputStream = new ObjectOutputStream(bytes);
+        outputStream.writeObject(proxy);
+
+        ObjectInputStream inputStream = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()));
+        SerializableClass deserializedProxy = (SerializableClass) inputStream.readObject();
+        Assert.assertEquals(0, deserializedProxy.state);
+        Assert.assertEquals(10, ((SerializableInvocationDispatcher) ((ProxyInstance) deserializedProxy)
+                ._getProxyInvocationDispatcher()).getState());
+        Assert.assertNotSame(proxyFactory.defineClass(), deserializedProxy.getClass());
+        Assert.assertEquals(deserializedProxy.getClass().getClassLoader(), getClass().getClassLoader());
+    }
+
+    public static class TestSerializableProxy extends DefaultSerializableProxy {
+        @Override
+        protected Class<?> getProxyClass() throws ClassNotFoundException {
+            ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(
+                    "org.jboss.proxy.test.SomeProxy", SerializableClass.class, getClass().getClassLoader());
+            return proxyFactory.defineClass();
+        }
+
+        @Override
+        protected Object readResolve() throws ObjectStreamException {
+            return super.readResolve();
+        }
     }
 
 }
