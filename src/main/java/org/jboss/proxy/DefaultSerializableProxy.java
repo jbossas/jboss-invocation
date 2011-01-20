@@ -42,7 +42,7 @@ public class DefaultSerializableProxy implements SerializableProxy {
         this.dispatcher = proxy._getProxyInvocationDispatcher();
     }
 
-    Object readResolve() throws ObjectStreamException {
+    protected Object readResolve() throws ObjectStreamException {
         try {
             Class<?> proxyClass = getProxyClass();
             ProxyInstance instance = (ProxyInstance) proxyClass.newInstance();
