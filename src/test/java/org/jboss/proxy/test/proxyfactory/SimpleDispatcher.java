@@ -29,10 +29,12 @@ import org.jboss.invocation.InvocationReply;
 public class SimpleDispatcher implements InvocationDispatcher {
 
     public static boolean invoked = false;
+    public static Class<?> declaringClass;
 
     @Override
     public InvocationReply dispatch(Invocation invocation) throws InvocationException {
         invoked = true;
+        declaringClass = invocation.getDeclaringClass();
         return new InvocationReply(invocation);
     }
 

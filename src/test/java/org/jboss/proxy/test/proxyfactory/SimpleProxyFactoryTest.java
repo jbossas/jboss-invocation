@@ -38,6 +38,7 @@ public class SimpleProxyFactoryTest {
         Invocation invocation = instance.method1();
         Assert.assertEquals("method1", invocation.getMethodIdentifier().getName());
         Assert.assertEquals(0, invocation.getMethodIdentifier().getParameterTypes().length);
+        Assert.assertEquals(SimpleClass.class, SimpleDispatcher.declaringClass);
     }
 
 }

@@ -91,7 +91,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             ca.dup();
             // the constructor we are using is Invocation(final Class<?> declaringClass, final MethodIdentifier
             // methodIdentifier, final Object... args)
-            ca.loadClass(getClassName());
+            ca.loadClass(superclassMethod.getDeclaringClass().getName());
             loadMethodIdentifier(superclassMethod, method);
             // now we need to stick the parameters into an array, boxing if nessesary
             String[] params = method.getParameters();
