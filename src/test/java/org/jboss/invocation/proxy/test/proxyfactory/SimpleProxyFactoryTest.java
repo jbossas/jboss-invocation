@@ -23,17 +23,22 @@ package org.jboss.proxy.test.proxyfactory;
 
 import junit.framework.Assert;
 
-import org.jboss.proxy.ProxyFactory;
+import org.jboss.invocation.Invocation;
+import org.jboss.invocation.proxy.ProxyFactory;
+import org.jboss.invocation.proxy.ProxyInstance;
 import org.junit.Test;
 
-public class ConstructedGuardTest {
+public class SimpleProxyFactoryTest {
 
     @Test
-    public void testConstructedGuard() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<ConstructedGuardClass> proxyFactory = new ProxyFactory<ConstructedGuardClass>(ConstructedGuardClass.class);
-        // if there is no guard we will get a NPE here
-        // as the proxy attempts to delegate to a null method
-        ConstructedGuardClass instance = proxyFactory.newInstance();
-        Assert.assertEquals(1, instance.count);
+    public void testSimpleProxy() throws InstantiationException, IllegalAccessException {
+        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
+        SimpleClass instance = proxyFactory.newInstance(new SimpleDispatcher());
+        ((ProxyInstance) instance)._setProxyInvocationDispatcher(new SimpleDispatcher());
+        Invocation invocation = instance.method1();
+        Assert.assertEquals("method1", invocation.getMethodIdentifier().getName());
+        Assert.assertEquals(0, invocation.getMethodIdentifier().getParameterTypes().length);
+        Assert.assertEquals(SimpleClass.class, SimpleDispatcher.declaringClass);
     }
+
 }

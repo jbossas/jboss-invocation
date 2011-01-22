@@ -30,9 +30,9 @@ import java.io.ObjectStreamException;
 
 import junit.framework.Assert;
 
-import org.jboss.proxy.DefaultSerializableProxy;
-import org.jboss.proxy.ProxyFactory;
-import org.jboss.proxy.ProxyInstance;
+import org.jboss.invocation.proxy.DefaultSerializableProxy;
+import org.jboss.invocation.proxy.ProxyFactory;
+import org.jboss.invocation.proxy.ProxyInstance;
 import org.junit.Test;
 
 public class SerializationTest {

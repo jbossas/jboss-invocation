@@ -19,19 +19,45 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy;
 
-import java.lang.reflect.Constructor;
+package org.jboss.invocation.proxy;
+
+import java.lang.reflect.Method;
 
 import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.code.CodeAttribute;
 
 /**
- * A class that can generate a overriden version of a constructor
+ * A {@link MethodBodyCreator} that simply returns 0 or null depending on the methods return type
  * 
  * @author Stuart Douglas
  * 
  */
-public interface ConstructorBodyCreator {
+public class DefaultMethodBodyCreator implements MethodBodyCreator {
 
-    public void overrideConstructor(ClassMethod method, Constructor<?> constructor);
+    public static final DefaultMethodBodyCreator INSTANCE = new DefaultMethodBodyCreator();
+
+    private DefaultMethodBodyCreator() {
+    }
+
+    @Override
+    public void overrideMethod(ClassMethod method, Method superclassMethod) {
+        CodeAttribute ca = method.getCodeAttribute();
+        Class<?> returnType = superclassMethod.getReturnType();
+        if (!returnType.isPrimitive()) {
+            ca.aconstNull();
+        } else if (returnType == double.class) {
+            ca.dconst(0);
+        } else if (returnType == float.class) {
+            ca.fconst(0);
+        } else if (returnType == long.class) {
+            ca.lconst(0);
+        } else if (returnType == void.class) {
+            // do nothing
+        } else {
+            ca.iconst(0);
+        }
+        ca.returnInstruction();
+    }
+
 }

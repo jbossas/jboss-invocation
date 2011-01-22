@@ -19,23 +19,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy;
+package org.jboss.proxy.test.abstractsubclassfactory;
 
-import org.jboss.invocation.InvocationDispatcher;
+import java.security.ProtectionDomain;
 
-/**
- * Class that is implemented by all proxy classes. Contains methods to get and set the {@link InvocationDispatcher}
- * <p>
- * The method names do not follow normal java naming conventions to minimise the chance of name collisions with methods on the
- * proxy
- * 
- * @author Stuart Douglas
- * 
- */
-public interface ProxyInstance {
+import org.jboss.invocation.proxy.AbstractSubclassFactory;
 
-    public void _setProxyInvocationDispatcher(InvocationDispatcher dispatcher);
+public class SimpleClassFactory<T> extends AbstractSubclassFactory<T> {
 
-    public InvocationDispatcher _getProxyInvocationDispatcher();
+    public SimpleClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
+        super(className, superClass, classLoader, protectionDomain);
+    }
+
+    public SimpleClassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
+        super(className, superClass, classLoader);
+    }
+
+    public SimpleClassFactory(String className, Class<T> superClass) {
+        super(className, superClass);
+    }
+
+    // simply overrides public methods and constructors using the default method builder
+    @Override
+    protected void generateClass() {
+        overridePublicMethods(true, true, true);
+        createConstructorDelegates();
+    }
 
 }

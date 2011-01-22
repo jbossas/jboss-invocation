@@ -19,34 +19,21 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy;
+package org.jboss.proxy.test.proxyfactory;
 
-import java.lang.reflect.Constructor;
+import junit.framework.Assert;
 
-import org.jboss.classfilewriter.ClassMethod;
-import org.jboss.classfilewriter.code.CodeAttribute;
+import org.jboss.invocation.proxy.ProxyFactory;
+import org.junit.Test;
 
-/**
- * Constructor override that simply delegates to super()
- * 
- * @author Stuart Douglas
- * 
- */
-public class DefaultConstructorBodyCreator implements ConstructorBodyCreator {
+public class ConstructedGuardTest {
 
-    public static final DefaultConstructorBodyCreator INSTANCE = new DefaultConstructorBodyCreator();
-
-    private DefaultConstructorBodyCreator() {
-
+    @Test
+    public void testConstructedGuard() throws InstantiationException, IllegalAccessException {
+        ProxyFactory<ConstructedGuardClass> proxyFactory = new ProxyFactory<ConstructedGuardClass>(ConstructedGuardClass.class);
+        // if there is no guard we will get a NPE here
+        // as the proxy attempts to delegate to a null method
+        ConstructedGuardClass instance = proxyFactory.newInstance();
+        Assert.assertEquals(1, instance.count);
     }
-
-    @Override
-    public void overrideConstructor(ClassMethod method, Constructor<?> constructor) {
-        CodeAttribute ca = method.getCodeAttribute();
-        ca.aload(0);
-        ca.loadMethodParameters();
-        ca.invokespecial(constructor);
-        ca.returnInstruction();
-    }
-
 }

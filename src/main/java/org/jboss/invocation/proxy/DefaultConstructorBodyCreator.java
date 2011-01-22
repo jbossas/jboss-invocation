@@ -19,43 +19,34 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy;
 
-import java.lang.reflect.Method;
+package org.jboss.invocation.proxy;
+
+import java.lang.reflect.Constructor;
 
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.code.CodeAttribute;
 
 /**
- * A {@link MethodBodyCreator} that simply returns 0 or null depending on the methods return type
+ * Constructor override that simply delegates to super()
  * 
  * @author Stuart Douglas
  * 
  */
-public class DefaultMethodBodyCreator implements MethodBodyCreator {
+public class DefaultConstructorBodyCreator implements ConstructorBodyCreator {
 
-    public static final DefaultMethodBodyCreator INSTANCE = new DefaultMethodBodyCreator();
+    public static final DefaultConstructorBodyCreator INSTANCE = new DefaultConstructorBodyCreator();
 
-    private DefaultMethodBodyCreator() {
+    private DefaultConstructorBodyCreator() {
+
     }
 
     @Override
-    public void overrideMethod(ClassMethod method, Method superclassMethod) {
+    public void overrideConstructor(ClassMethod method, Constructor<?> constructor) {
         CodeAttribute ca = method.getCodeAttribute();
-        Class<?> returnType = superclassMethod.getReturnType();
-        if (!returnType.isPrimitive()) {
-            ca.aconstNull();
-        } else if (returnType == double.class) {
-            ca.dconst(0);
-        } else if (returnType == float.class) {
-            ca.fconst(0);
-        } else if (returnType == long.class) {
-            ca.lconst(0);
-        } else if (returnType == void.class) {
-            // do nothing
-        } else {
-            ca.iconst(0);
-        }
+        ca.aload(0);
+        ca.loadMethodParameters();
+        ca.invokespecial(constructor);
         ca.returnInstruction();
     }
 

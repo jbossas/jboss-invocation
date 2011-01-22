@@ -19,8 +19,20 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxyfactory.test.abstractsubclassfactory;
 
-public class SimpleClassFactory {
+package org.jboss.invocation.proxy;
 
+import java.lang.reflect.Constructor;
+
+import org.jboss.classfilewriter.ClassMethod;
+
+/**
+ * A class that can generate a overriden version of a constructor
+ * 
+ * @author Stuart Douglas
+ * 
+ */
+public interface ConstructorBodyCreator {
+
+    public void overrideConstructor(ClassMethod method, Constructor<?> constructor);
 }

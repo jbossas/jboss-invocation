@@ -19,26 +19,20 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy.test.proxyfactory;
 
-import junit.framework.Assert;
+package org.jboss.invocation.proxy;
 
-import org.jboss.invocation.Invocation;
-import org.jboss.proxy.ProxyFactory;
-import org.jboss.proxy.ProxyInstance;
-import org.junit.Test;
+import java.lang.reflect.Method;
 
-public class SimpleProxyFactoryTest {
+import org.jboss.classfilewriter.ClassMethod;
 
-    @Test
-    public void testSimpleProxy() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
-        SimpleClass instance = proxyFactory.newInstance(new SimpleDispatcher());
-        ((ProxyInstance) instance)._setProxyInvocationDispatcher(new SimpleDispatcher());
-        Invocation invocation = instance.method1();
-        Assert.assertEquals("method1", invocation.getMethodIdentifier().getName());
-        Assert.assertEquals(0, invocation.getMethodIdentifier().getParameterTypes().length);
-        Assert.assertEquals(SimpleClass.class, SimpleDispatcher.declaringClass);
-    }
+/**
+ * A class that can generate a overriden version of a method
+ * 
+ * @author Stuart Douglas
+ * 
+ */
+public interface MethodBodyCreator {
 
+    public void overrideMethod(ClassMethod method, Method superclassMethod);
 }
