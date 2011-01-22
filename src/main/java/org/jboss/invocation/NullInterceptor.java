@@ -22,20 +22,32 @@
 
 package org.jboss.invocation;
 
+import javax.interceptor.InvocationContext;
+
+import static org.jboss.invocation.InvocationLogger.log;
+
 /**
- * An invocation processor context.  Use the context to forward the invocation on to
- * the next member in the processor chain.
- *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface InvocationProcessorContext {
+class NullInterceptor implements Interceptor {
 
-    /**
-     * Pass the given invocation on to the next processor in the chain.
-     *
-     * @param invocation the invocation
-     * @return the reply
-     * @throws InvocationException if the invocation fails
-     */
-    InvocationReply invokeNext(Invocation invocation) throws InvocationException;
+    static final Interceptor INSTANCE = new NullInterceptor();
+
+    private static final long serialVersionUID = -2792151547173027051L;
+
+    public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
+        try {
+            return context.proceed();
+        } catch (Exception e) {
+            throw log.invocationException(e);
+        }
+    }
+
+    protected Object readResolve() {
+        return INSTANCE;
+    }
+
+    public String toString() {
+        return "null interceptor";
+    }
 }

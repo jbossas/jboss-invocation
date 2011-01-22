@@ -22,52 +22,33 @@
 
 package org.jboss.invocation;
 
-import java.io.Serializable;
-
 /**
- * An invocation bound for a specific remote dispatcher.
+ * Interceptor utility and factory methods.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class RemoteInvocation implements Serializable {
+public final class Interceptors {
 
-    private static final long serialVersionUID = 8108865965008810909L;
-
-    private final String dispatcherName;
-    private final Invocation invocation;
-
-    /**
-     * Construct a new instance.
-     *
-     * @param dispatcherName the dispatcher identifier
-     * @param invocation the invocation
-     */
-    public RemoteInvocation(final String dispatcherName, final Invocation invocation) {
-        if (dispatcherName == null) {
-            throw new IllegalArgumentException("dispatcherIdentifier is null");
-        }
-        if (invocation == null) {
-            throw new IllegalArgumentException("invocation is null");
-        }
-        this.dispatcherName = dispatcherName;
-        this.invocation = invocation;
+    private Interceptors() {
     }
 
     /**
-     * Get the dispatcher name.
+     * Get a no-operation interceptor which always proceeds.
      *
-     * @return the dispatcher name
+     * @return the interceptor
      */
-    public String getDispatcherName() {
-        return dispatcherName;
+    public static Interceptor getNullInterceptor() {
+        return NullInterceptor.INSTANCE;
     }
 
     /**
-     * Get the invocation.
+     * Get an invoking interceptor which always terminates.  If the invoked method is {@code null}, this interceptor returns
+     * {@code null}, making it suitable for terminating lifecycle interceptor chains as well as invocation
+     * interceptor chains.
      *
-     * @return the invocation
+     * @return the interceptor
      */
-    public Invocation getInvocation() {
-        return invocation;
+    public static Interceptor getInvokingInterceptor() {
+        return InvokingInterceptor.INSTANCE;
     }
 }

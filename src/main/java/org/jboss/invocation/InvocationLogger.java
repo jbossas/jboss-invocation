@@ -22,24 +22,25 @@
 
 package org.jboss.invocation;
 
+import org.jboss.logging.BasicLogger;
+import org.jboss.logging.Cause;
+import org.jboss.logging.Logger;
+import org.jboss.logging.Message;
+import org.jboss.logging.MessageLogger;
+
 /**
- * A processor for invocations.  May perform some action, including but not limited to handling the invocation, before
- * or in lieu of passing it on to the dispatcher or another processor.
+ * Invocation message logger.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface InvocationProcessor {
+@MessageLogger(projectCode = "INV")
+interface InvocationLogger extends BasicLogger {
 
-    /**
-     * Process an invocation.  The invocation can be handled directly, or passed on to the next processor in the
-     * chain via {@code context}.
-     *
-     * @param context the invocation context
-     * @param invocation the invocation
-     * @return the result of the invocation
-     * @throws InvocationException If the underlying invocation resulted in some Exception; the original exception may be
-     * obtained via {@link InvocationException#getCause()}
-     * @throws IllegalArgumentException If the invocation or dispatcher is not specified (i.e. {@code null})
-     */
-    InvocationReply processInvocation(InvocationProcessorContext context, Invocation invocation) throws InvocationException, IllegalArgumentException;
+    InvocationLogger log = Logger.getMessageLogger(InvocationLogger.class, "org.jboss.invocation");
+
+    @Message(id = 1, value = "Invocation failed")
+    InvocationException invocationException(@Cause Throwable cause);
+
+    @Message(id = 2, value = "Invocation cannot proceed (end of interceptor chain has been hit)")
+    IllegalStateException cannotProceed();
 }

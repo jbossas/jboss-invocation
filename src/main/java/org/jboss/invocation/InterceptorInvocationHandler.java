@@ -22,52 +22,34 @@
 
 package org.jboss.invocation;
 
-import java.io.IOException;
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
- * A {@link Proxy} {@code InvocationHandler} which delegates invocations to an {@code InvocationDispatcher}.
+ * A {@link Proxy} {@code InvocationHandler} which delegates invocations to an {@code Interceptor}.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ProxyInvocationHandler implements InvocationHandler, Serializable {
+public final class InterceptorInvocationHandler implements InvocationHandler, Serializable {
 
     private static final long serialVersionUID = -7550306900997519378L;
-
-    private static final Method TO_STRING;
-
-    static {
-        Method toString = null;
-        final Method[] methods = Object.class.getMethods();
-        for (Method method : methods) {
-            if (method.getName().equals("toString")) {
-                toString = method;
-                break;
-            }
-        }
-        assert toString != null;
-        TO_STRING = toString;
-    }
 
     /**
      * The invocation dispatcher which should handle the invocation.
      *
      * @serial
      */
-    private final InvocationDispatcher dispatcher;
+    private final Interceptor interceptor;
 
     /**
      * Construct a new instance.
      *
-     * @param dispatcher the dispatcher to send invocations to
+     * @param interceptor the interceptor to send invocations through
      */
-    public ProxyInvocationHandler(final InvocationDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
+    public InterceptorInvocationHandler(final Interceptor interceptor) {
+        this.interceptor = interceptor;
     }
 
     /**
@@ -80,25 +62,15 @@ public final class ProxyInvocationHandler implements InvocationHandler, Serializ
      * @throws Throwable the exception to thrown from the method invocation on the proxy instance, if any
      */
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-        if (method.equals(TO_STRING)) {
-            return "Proxy via " + dispatcher;
-        }
-        final MethodIdentifier id = MethodIdentifier.getIdentifierForMethod(method);
         try {
-            InvocationReply reply = dispatcher.dispatch(new Invocation(method.getDeclaringClass(), id, (Object[]) args));
-            return reply.getReply();
+            return interceptor.processInvocation(new SimpleInvocationContext(proxy, method, args, null));
         } catch (InvocationException e) {
             throw e.getCause();
         }
     }
 
-    private void readObject(final ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        ois.defaultReadObject();
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            if (! dispatcher.getClass().getProtectionDomain().implies(Invocation.INVOCATION_PERMISSION)) {
-                throw new InvalidObjectException("Dispatcher does not have invoke permission");
-            }
-        }
+    /** {@inheritDoc} */
+    public String toString() {
+        return "interceptor invocation handler";
     }
 }

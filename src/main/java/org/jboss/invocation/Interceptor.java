@@ -19,28 +19,31 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+
 package org.jboss.invocation;
 
+import java.io.Serializable;
+
+import javax.interceptor.InvocationContext;
+
 /**
- * Contract of an dispatcher servicing incoming invocations.  For instance, implementations may either handle directly, or
- * delegate to an underlying bean instance.
+ * A processor for invocations.  May perform some action, including but not limited to handling the invocation, before
+ * or in lieu of passing it on to the dispatcher or another processor.
  *
- * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
+ * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
- * @version $Revision: $
  */
-public interface InvocationDispatcher {
+public interface Interceptor extends Serializable {
 
     /**
-     * Carries out the specified invocation, returning the result.
+     * Process an invocation.  The invocation can be handled directly, or passed on to the next processor in the
+     * chain via {@code context}.
      *
-     * @param invocation the invocation to execute
-     *
-     * @return the result
-     *
+     * @param context the invocation context
+     * @return the result of the invocation
      * @throws InvocationException If the underlying invocation resulted in some Exception; the original exception may be
      * obtained via {@link InvocationException#getCause()}
-     * @throws IllegalArgumentException If the invocation is not specified (i.e. {@code null})
+     * @throws IllegalArgumentException If the invocation or dispatcher is not specified (i.e. {@code null})
      */
-    InvocationReply dispatch(Invocation invocation) throws InvocationException;
+    Object processInvocation(InvocationContext context) throws InvocationException, IllegalArgumentException;
 }

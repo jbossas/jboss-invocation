@@ -22,23 +22,19 @@
 
 package org.jboss.invocation;
 
+import java.lang.reflect.Method;
+
 /**
- * Common invocation context keys.
+ * A resolver for {@link Method} objects.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public enum Keys {
+public interface MethodResolver {
 
     /**
-     * The security principal associated with the invocation.
+     * Get the associated method.  The method should be accessible.
+     *
+     * @return the method
      */
-    PRINCIPAL,
-    /**
-     * The transaction associated with this invocation.
-     */
-    TRANSACTION,
-    /**
-     * The session identifier, for distinguishing between more than one target instance for a given dispatcher.
-     */
-    SESSION,
+    Method getMethod();
 }
