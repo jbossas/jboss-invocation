@@ -58,12 +58,16 @@ public final class MethodInterceptor implements Interceptor {
      * @param methodResolver the interceptor method resolver
      */
     public MethodInterceptor(final Object interceptorInstance, final MethodResolver methodResolver) {
+        if (interceptorInstance == null) {
+            throw new IllegalArgumentException("interceptorInstance is null");
+        }
+        if (methodResolver == null) {
+            throw new IllegalArgumentException("methodResolver is null");
+        }
         this.methodResolver = methodResolver;
         this.interceptorInstance = interceptorInstance;
         interceptorMethod = getMethod(methodResolver);
-        if (! interceptorMethod.getDeclaringClass().isInstance(interceptorInstance)) {
-            throw new IllegalArgumentException("The given interceptor instance is of the wrong type");
-        }
+        checkMethodType(interceptorInstance);
     }
 
     /** {@inheritDoc} */
@@ -81,7 +85,21 @@ public final class MethodInterceptor implements Interceptor {
 
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
         ois.defaultReadObject();
-        methodSetter.set(this, getMethod(methodResolver));
+        if (interceptorInstance == null) {
+            throw new InvalidObjectException("interceptorInstance is null");
+        }
+        if (methodResolver == null) {
+            throw new InvalidObjectException("methodResolver is null");
+        }
+        try {
+            methodSetter.set(this, getMethod(methodResolver));
+            checkMethodType(interceptorInstance);
+        } catch (IllegalArgumentException ex) {
+            throw new InvalidObjectException(ex.getMessage());
+        }
+    }
+
+    private void checkMethodType(final Object interceptorInstance) {
         if (! interceptorMethod.getDeclaringClass().isInstance(interceptorInstance)) {
             throw new IllegalArgumentException("The given interceptor instance is of the wrong type");
         }
