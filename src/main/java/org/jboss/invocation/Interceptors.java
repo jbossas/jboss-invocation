@@ -22,6 +22,8 @@
 
 package org.jboss.invocation;
 
+import java.util.Collection;
+
 /**
  * Interceptor utility and factory methods.
  *
@@ -42,6 +44,15 @@ public final class Interceptors {
     }
 
     /**
+     * Get a factory which returns the no-operation interceptor.
+     *
+     * @return the factory
+     */
+    public static InterceptorFactory getNullInterceptorFactory() {
+        return NullInterceptor.FACTORY;
+    }
+
+    /**
      * Get an invoking interceptor which always terminates.  If the invoked method is {@code null}, this interceptor returns
      * {@code null}, making it suitable for terminating lifecycle interceptor chains as well as invocation
      * interceptor chains.
@@ -51,4 +62,55 @@ public final class Interceptors {
     public static Interceptor getInvokingInterceptor() {
         return InvokingInterceptor.INSTANCE;
     }
+
+    /**
+     * Get a factory which returns the invoking interceptor.
+     *
+     * @return the factory
+     */
+    public static InterceptorFactory getInvokingInterceptorFactory() {
+        return InvokingInterceptor.FACTORY;
+    }
+
+    /**
+     * Get a chained interceptor which passes the invocation through the given interceptors.
+     *
+     * @param instances the interceptors to pass through
+     * @return the chained interceptor
+     */
+    public static Interceptor getChainedInterceptor(Interceptor... instances) {
+        return new ChainedInterceptor(instances);
+    }
+
+    /**
+     * Get a chained interceptor which passes the invocation through the given interceptors.
+     *
+     * @param instances the interceptors to pass through
+     * @return the chained interceptor
+     */
+    public static Interceptor getChainedInterceptor(Collection<Interceptor> instances) {
+        return new ChainedInterceptor(instances.toArray(new Interceptor[instances.size()]));
+    }
+
+    /**
+     * Get a chained interceptor factory which builds a chained interceptor using the given factories.
+     *
+     * @param instances the interceptor factories to use
+     * @return the chained interceptor factory
+     */
+    public static InterceptorFactory getChainedInterceptorFactory(InterceptorFactory... instances) {
+        return new ChainedInterceptorFactory(instances);
+    }
+
+    /**
+     * Get a chained interceptor which passes the invocation through the given interceptors.
+     *
+     * @param instances the interceptors to pass through
+     * @return the chained interceptor
+     */
+    public static InterceptorFactory getChainedInterceptorFactory(Collection<InterceptorFactory> instances) {
+        return new ChainedInterceptorFactory(instances.toArray(new InterceptorFactory[instances.size()]));
+    }
+
+
 }

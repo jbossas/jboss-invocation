@@ -22,8 +22,6 @@
 
 package org.jboss.invocation;
 
-import java.io.Serializable;
-
 import javax.interceptor.InvocationContext;
 
 /**
@@ -33,7 +31,7 @@ import javax.interceptor.InvocationContext;
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public interface Interceptor extends Serializable {
+public interface Interceptor {
 
     /**
      * Process an invocation.  The invocation can be handled directly, or passed on to the next processor in the

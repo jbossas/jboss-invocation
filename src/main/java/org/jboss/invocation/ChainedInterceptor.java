@@ -22,6 +22,8 @@
 
 package org.jboss.invocation;
 
+import java.io.Serializable;
+
 import javax.interceptor.InvocationContext;
 
 import static org.jboss.invocation.InvocationLogger.log;
@@ -32,7 +34,7 @@ import static org.jboss.invocation.InvocationLogger.log;
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public class ChainedInterceptor implements Interceptor {
+class ChainedInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 7951017996430287249L;
 
@@ -43,7 +45,7 @@ public class ChainedInterceptor implements Interceptor {
      *
      * @param interceptors the child interceptors
      */
-    public ChainedInterceptor(final Interceptor... interceptors) {
+    ChainedInterceptor(final Interceptor... interceptors) {
         if (interceptors == null) {
             throw new IllegalArgumentException("interceptors is null");
         }
@@ -52,7 +54,7 @@ public class ChainedInterceptor implements Interceptor {
 
     /** {@inheritDoc} */
     public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
-        final InvocationContext realChildContext = new DelegatingInvocationContext(getChildContext(context)) {
+        final InvocationContext childContext = new DelegatingInvocationContext(context) {
             private int index = 0;
 
             public Object proceed() throws Exception {
@@ -68,19 +70,9 @@ public class ChainedInterceptor implements Interceptor {
             }
         };
         try {
-            return realChildContext.proceed();
+            return childContext.proceed();
         } catch (Exception e) {
             throw log.invocationException(e);
         }
-    }
-
-    /**
-     * Get the child invocation context.  By default, just returns the parent context.
-     *
-     * @param parentContext the parent context
-     * @return the child context
-     */
-    protected InvocationContext getChildContext(InvocationContext parentContext) {
-        return parentContext;
     }
 }

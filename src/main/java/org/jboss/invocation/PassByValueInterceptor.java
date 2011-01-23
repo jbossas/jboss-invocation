@@ -1,8 +1,8 @@
 /*
- * JBoss, Home of Professional Open Source
- * Copyright 2011, JBoss Inc., and individual contributors as indicated
- * by the @authors tag. See the copyright.txt in the distribution for a
- * full listing of individual contributors.
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2011, Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags. See the copyright.txt file in the
+ * distribution for a full listing of individual contributors.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as
@@ -23,6 +23,7 @@
 package org.jboss.invocation;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Method;
 import org.jboss.marshalling.cloner.ClassCloner;
 import org.jboss.marshalling.cloner.ClassLoaderClassCloner;
@@ -39,7 +40,7 @@ import javax.interceptor.InvocationContext;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class PassByValueInterceptor implements Interceptor {
+public final class PassByValueInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 6414413097651380754L;
     private final ClassLoader targetClassLoader;

@@ -22,6 +22,8 @@
 
 package org.jboss.invocation;
 
+import java.io.Serializable;
+
 import javax.interceptor.InvocationContext;
 
 import static org.jboss.invocation.InvocationLogger.log;
@@ -29,9 +31,10 @@ import static org.jboss.invocation.InvocationLogger.log;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-class NullInterceptor implements Interceptor {
+class NullInterceptor implements Interceptor, Serializable {
 
     static final Interceptor INSTANCE = new NullInterceptor();
+    static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
     private static final long serialVersionUID = -2792151547173027051L;
 

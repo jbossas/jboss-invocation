@@ -22,6 +22,7 @@
 
 package org.jboss.invocation;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -32,9 +33,10 @@ import static org.jboss.invocation.InvocationLogger.log;
 /**
 * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
 */
-class InvokingInterceptor implements Interceptor {
+class InvokingInterceptor implements Interceptor, Serializable {
 
     static final Interceptor INSTANCE = new InvokingInterceptor();
+    static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
     private static final long serialVersionUID = 175221411434392097L;
 

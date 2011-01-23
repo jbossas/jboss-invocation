@@ -25,6 +25,7 @@ package org.jboss.invocation;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -41,7 +42,7 @@ import static org.jboss.invocation.InvocationLogger.log;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class MethodInterceptor implements Interceptor {
+public final class MethodInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 3951626966559917049L;
 
