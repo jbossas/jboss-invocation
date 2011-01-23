@@ -106,6 +106,7 @@ public abstract class AbstractClassFactory<T> {
             synchronized (this) {
                 if (generatedClass == null) {
                     generateClass();
+
                     if (protectionDomain == null) {
                         generatedClass = (Class<? extends T>)classFile.define(classLoader);
                     } else {

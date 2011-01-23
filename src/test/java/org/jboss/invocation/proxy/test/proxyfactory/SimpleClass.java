@@ -19,9 +19,8 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy.test.proxyfactory;
+package org.jboss.invocation.proxy.test.proxyfactory;
 
-import org.jboss.invocation.Invocation;
 
 public class SimpleClass {
 
@@ -29,11 +28,11 @@ public class SimpleClass {
 
     }
 
-    public Invocation method1() {
+    public Object[] method1() {
         return null;
     }
 
-    public Invocation method2(long v1, double v2, Object v3, int[] v4) {
+    public Object[] method2(long v1, double v2, Object v3, int[] v4) {
         return null;
     }
 }

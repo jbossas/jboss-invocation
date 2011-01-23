@@ -19,16 +19,13 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.proxy.test.proxyfactory.serialization;
+package org.jboss.invocation.proxy.test.proxyfactory.serialization;
 
 import java.io.Serializable;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 
-import org.jboss.invocation.Invocation;
-import org.jboss.invocation.InvocationDispatcher;
-import org.jboss.invocation.InvocationException;
-import org.jboss.invocation.InvocationReply;
-
-public class SerializableInvocationDispatcher implements InvocationDispatcher, Serializable {
+public class SerializableInvocationHandler implements InvocationHandler, Serializable {
     private int state;
 
     public int getState() {
@@ -36,8 +33,7 @@ public class SerializableInvocationDispatcher implements InvocationDispatcher, S
     }
 
     @Override
-    public InvocationReply dispatch(Invocation invocation) throws InvocationException {
-        state = (Integer) invocation.getArgs()[0];
-        return new InvocationReply(null);
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        return state = (Integer) args[0];
     }
 }

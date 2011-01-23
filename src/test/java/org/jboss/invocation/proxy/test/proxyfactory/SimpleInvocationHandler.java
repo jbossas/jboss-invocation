@@ -19,24 +19,20 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+package org.jboss.invocation.proxy.test.proxyfactory;
 
-package org.jboss.invocation.proxy;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 
-import org.jboss.invocation.InvocationDispatcher;
+public class SimpleInvocationHandler implements InvocationHandler {
 
-/**
- * Class that is implemented by all proxy classes. Contains methods to get and set the {@link InvocationDispatcher}
- * <p>
- * The method names do not follow normal java naming conventions to minimise the chance of name collisions with methods on the
- * proxy
- * 
- * @author Stuart Douglas
- * 
- */
-public interface ProxyInstance {
+    public static boolean invoked = false;
+    public static Class<?> declaringClass;
 
-    public void _setProxyInvocationDispatcher(InvocationDispatcher dispatcher);
 
-    public InvocationDispatcher _getProxyInvocationDispatcher();
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        return args;
+    }
 
 }

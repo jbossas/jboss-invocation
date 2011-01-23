@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.jboss.classfilewriter.ClassMethod;
-import org.jboss.invocation.MethodIdentifier;
 
 /**
  * Class factory for classes that override superclass methods.

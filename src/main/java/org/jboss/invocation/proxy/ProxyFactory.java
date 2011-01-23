@@ -24,7 +24,10 @@ package org.jboss.invocation.proxy;
 
 import java.io.ObjectStreamException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,10 +36,6 @@ import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.util.Boxing;
-import org.jboss.invocation.Invocation;
-import org.jboss.invocation.InvocationDispatcher;
-import org.jboss.invocation.InvocationReply;
-import org.jboss.invocation.MethodIdentifier;
 
 /**
  * Proxy Factory that generates proxis that delegate all calls to an {@link InvocationDispatcher}.
@@ -60,6 +59,8 @@ import org.jboss.invocation.MethodIdentifier;
  * @param <T>
  */
 public class ProxyFactory<T> extends AbstractProxyFactory<T> {
+
+    private volatile Field invocationHandlerField;
 
     /**
      * Overrides superclass methods and forwards calls to the dispatcher
@@ -86,13 +87,8 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             // normal invocation path begins here
             ca.branchEnd(end);
             ca.aload(0);
-            ca.getfield(getClassName(), INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
-            // now we have the dispatcher on the stack, we need to build an invocation
-            ca.newInstruction(Invocation.class.getName());
-            ca.dup();
-            // the constructor we are using is Invocation(final Class<?> declaringClass, final MethodIdentifier
-            // methodIdentifier, final Object... args)
-            ca.loadClass(superclassMethod.getDeclaringClass().getName());
+            ca.getfield(getClassName(), INVOCATION_HANDLER_FIELD, InvocationHandler.class);
+            ca.aload(0);
             loadMethodIdentifier(superclassMethod, method);
             // now we need to stick the parameters into an array, boxing if nessesary
             String[] params = method.getParameters();
@@ -149,12 +145,9 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                 ca.aastore();
                 loadPosition++;
             }
-            ca.invokespecial(Invocation.class.getName(), "<init>",
-                    "(Ljava/lang/Class;Lorg/jboss/invocation/MethodIdentifier;[Ljava/lang/Object;)V");
-            // now we have the invocation on top of the stack, with the dispatcher below it
-            ca.invokeinterface(InvocationDispatcher.class.getName(), "dispatch",
-                    "(Lorg/jboss/invocation/Invocation;)Lorg/jboss/invocation/InvocationReply;");
-            ca.invokevirtual(InvocationReply.class.getName(), "getReply", "()Ljava/lang/Object;");
+            ca.invokeinterface(InvocationHandler.class.getName(), "invoke",
+                    "(Ljava/lang/Object;Ljava/lang/reflect/Method;[Ljava/lang/Object;)Ljava/lang/Object;");
+
             if (superclassMethod.getReturnType() != void.class) {
                 if (superclassMethod.getReturnType().isPrimitive()) {
                     Boxing.unbox(ca, method.getReturnType());
@@ -163,32 +156,6 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                 }
             }
             ca.returnInstruction();
-        }
-    }
-
-    /**
-     * Implements the methods from the {@link ProxyInstance} interface
-     * 
-     * @author Stuart Douglas
-     * 
-     */
-    protected class ProxyInstanceMethodBodyCreator implements MethodBodyCreator {
-
-        @Override
-        public void overrideMethod(ClassMethod method, Method superclassMethod) {
-            CodeAttribute ca = method.getCodeAttribute();
-            if (method.getName().equals("_getProxyInvocationDispatcher")) {
-                ca.aload(0);
-                ca.getfield(getClassName(), INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
-                ca.returnInstruction();
-            } else if (method.getName().equals("_setProxyInvocationDispatcher")) {
-                ca.aload(0);
-                ca.aload(1);
-                ca.putfield(getClassName(), INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
-                ca.returnInstruction();
-            } else {
-                throw new RuntimeException("Unkown method on interface " + ProxyInstance.class);
-            }
         }
     }
 
@@ -233,7 +200,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             ca.invokespecial(serializableProxyClass.getName(), "<init>", "()V");
             ca.dup();
             ca.aload(0);
-            ca.invokeinterface(SerializableProxy.class.getName(), "setProxyInstance", "(Lorg/jboss/proxy/ProxyInstance;)V");
+            ca.invokeinterface(SerializableProxy.class.getName(), "setProxyInstance", "(Ljava/lang/Object;)V");
             ca.returnInstruction();
         }
     }
@@ -241,7 +208,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     /**
      * Name of the field that holds the generated dispatcher on the generated proxy
      */
-    public static final String INVOCATION_DISPATCHER_FIELD = "invocation$$dispatcher";
+    public static final String INVOCATION_HANDLER_FIELD = "invocation$$dispatcher";
 
     /**
      * atomic integer used to generate proxy names
@@ -317,15 +284,15 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     /**
      * Create a new proxy, initialising it with the given dispatcher
      */
-    public T newInstance(InvocationDispatcher dispatcher) throws InstantiationException, IllegalAccessException {
+    public T newInstance(InvocationHandler handler) throws InstantiationException, IllegalAccessException {
         T ret = newInstance();
-        ((ProxyInstance) ret)._setProxyInvocationDispatcher(dispatcher);
+        setInvocationHandler(ret, handler);
         return ret;
     }
 
     @Override
     protected void generateClass() {
-        classFile.addField(AccessFlag.PRIVATE, INVOCATION_DISPATCHER_FIELD, InvocationDispatcher.class);
+        classFile.addField(AccessFlag.PRIVATE, INVOCATION_HANDLER_FIELD, InvocationHandler.class);
         classFile.addField(AccessFlag.PRIVATE, CONSTRUCTED_GUARD, "Z");
         if (serializableProxyClass != null) {
             createWriteReplace();
@@ -338,7 +305,6 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         overrideToString(creator);
         overrideEquals(creator);
         overrideHashcode(creator);
-        addInterface(new ProxyInstanceMethodBodyCreator(), ProxyInstance.class);
         createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
     }
@@ -367,5 +333,109 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                     "Cannot set a ProxyFactories SerialiableProxyClass after the proxy has been created");
         }
         this.serializableProxyClass = serializableProxyClass;
+    }
+
+    private Field getInvocationHandlerField() {
+        if (invocationHandlerField == null) {
+            synchronized (this) {
+                if (invocationHandlerField == null) {
+                    try {
+                        invocationHandlerField = defineClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
+                        new PrivilegedAction<Void>() {
+
+                            @Override
+                            public Void run() {
+                                invocationHandlerField.setAccessible(true);
+                                return null;
+                            }
+                        }.run();
+                    } catch (NoSuchFieldException e) {
+                        throw new RuntimeException("Could not find inocation handler on generated proxy", e);
+                    }
+                }
+            }
+        }
+        return invocationHandlerField;
+    }
+
+    /**
+     * Sets the invocation hander for a proxy created from this factory
+     */
+    public void setInvocationHandler(Object proxy, InvocationHandler handler) {
+        Field field = getInvocationHandlerField();
+        try {
+            field.set(proxy, handler);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * returns the invocation handler for a proxy created from this factory
+     */
+    public InvocationHandler getInvocationHandler(Object proxy) {
+        Field field = getInvocationHandlerField();
+        try {
+            return (InvocationHandler) field.get(proxy);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Object is not a proxy of correct type", e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Sets the invocation handler for a proxy. This method will is less efficient than
+     * {@link #setInvocationHandler(Object, InvocationHandler)}, however it will work on any proxy, not just proxies from a
+     * specific factory
+     */
+    public static void setInvocationHandlerStatic(Object proxy, InvocationHandler handler) {
+        try {
+            final Field field = proxy.getClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
+            new PrivilegedAction<Void>() {
+
+                @Override
+                public Void run() {
+                    field.setAccessible(true);
+                    return null;
+                }
+            }.run();
+
+            field.set(proxy, handler);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException("Could not find inocation handler on generated proxy", e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Gets the {@link InvocationHandler} for a given proxy instance. This method is less effiecient than
+     * {@link #getInvocationHandler(Object)}, however it will work for any proxy, not just proxies from a specific factory
+     * instance
+     */
+    public static InvocationHandler getInvocationHandlerStatic(Object proxy) {
+        try {
+            final Field field = proxy.getClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
+            new PrivilegedAction<Void>() {
+
+                @Override
+                public Void run() {
+                    field.setAccessible(true);
+                    return null;
+                }
+            }.run();
+            return (InvocationHandler) field.get(proxy);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException("Could not find inocation handler on generated proxy", e);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Object is not a proxy of correct type", e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

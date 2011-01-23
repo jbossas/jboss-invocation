@@ -81,13 +81,6 @@
             <plugin>
                 <artifactId>maven-source-plugin</artifactId>
             </plugin>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                   <forkMode>once</forkMode>
-                   <argLine>-XX:-FailOverToOldVerifier -Xverify:all</argLine>
-                </configuration>
-            </plugin>
         </plugins>
 
     </build>
