@@ -23,10 +23,12 @@
 package org.jboss.invocation.proxy;
 
 import java.io.ObjectStreamException;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -341,14 +343,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                 if (invocationHandlerField == null) {
                     try {
                         invocationHandlerField = defineClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
-                        new PrivilegedAction<Void>() {
-
-                            @Override
-                            public Void run() {
-                                invocationHandlerField.setAccessible(true);
-                                return null;
-                            }
-                        }.run();
+                        AccessController.doPrivileged(new SetAccessiblePrivilege(invocationHandlerField));
                     } catch (NoSuchFieldException e) {
                         throw new RuntimeException("Could not find inocation handler on generated proxy", e);
                     }
@@ -394,15 +389,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     public static void setInvocationHandlerStatic(Object proxy, InvocationHandler handler) {
         try {
             final Field field = proxy.getClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
-            new PrivilegedAction<Void>() {
-
-                @Override
-                public Void run() {
-                    field.setAccessible(true);
-                    return null;
-                }
-            }.run();
-
+            AccessController.doPrivileged(new SetAccessiblePrivilege(field));
             field.set(proxy, handler);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException("Could not find inocation handler on generated proxy", e);
@@ -421,14 +408,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     public static InvocationHandler getInvocationHandlerStatic(Object proxy) {
         try {
             final Field field = proxy.getClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
-            new PrivilegedAction<Void>() {
-
-                @Override
-                public Void run() {
-                    field.setAccessible(true);
-                    return null;
-                }
-            }.run();
+            AccessController.doPrivileged(new SetAccessiblePrivilege(field));
             return (InvocationHandler) field.get(proxy);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException("Could not find inocation handler on generated proxy", e);
@@ -436,6 +416,20 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             throw new RuntimeException("Object is not a proxy of correct type", e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private static class SetAccessiblePrivilege implements PrivilegedAction<Void> {
+        private final AccessibleObject object;
+
+        public SetAccessiblePrivilege(final AccessibleObject object) {
+            this.object = object;
+        }
+
+        @Override
+        public Void run() {
+            object.setAccessible(true);
+            return null;
         }
     }
 }
