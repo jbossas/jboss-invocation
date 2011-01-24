@@ -23,6 +23,7 @@
 package org.jboss.invocation;
 
 import java.io.Serializable;
+import java.lang.reflect.UndeclaredThrowableException;
 
 import javax.interceptor.InvocationContext;
 
@@ -61,6 +62,16 @@ class ChainedInterceptor implements Interceptor, Serializable {
                 if (index < interceptors.length) {
                     try {
                         return interceptors[index++].processInvocation(this);
+                    } catch (InvocationException invocationException) {
+                        try {
+                            throw invocationException.getCause();
+                        } catch (Exception exception) {
+                            throw exception;
+                        } catch (Error error) {
+                            throw error;
+                        } catch (Throwable throwable) {
+                            throw new UndeclaredThrowableException(throwable);
+                        }
                     } finally {
                         index--;
                     }
