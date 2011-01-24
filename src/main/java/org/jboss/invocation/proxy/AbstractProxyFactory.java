@@ -103,11 +103,11 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     }
 
     /**
-     * Writes the bytecode to load an instance of Method for the given method onto the stack and set it to accessible.
+     * Writes the bytecode to load an instance of Method for the given method onto the stack
      * <p>
      * If loadMethod has not already been called for the given method then a static field to hold the method is added to the
      * class, and code is added to the static constructor to initialize the field to the correct Method.
-     *
+     * 
      * @param methodToLoad the method to load
      * @param method the subclass method to populate
      */
