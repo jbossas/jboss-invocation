@@ -24,10 +24,14 @@ package org.jboss.invocation.proxy;
 
 import java.io.ObjectStreamException;
 import java.lang.reflect.InvocationHandler;
-import java.security.PrivilegedAction;
 
 /**
  * Serialized representation of a proxy.
+ * <p>
+ * Provides a simple default serialized representation, that saves the {@link InvocationHandler} state and loads the proxy into
+ * the Thread Context Class Loader.
+ * <p>
+ * This class should not be used if a security manager is present that prevents access to the Thread Context Class Loader.
  * 
  * @author Stuart Douglas
  * 
@@ -79,19 +83,10 @@ public class DefaultSerializableProxy implements SerializableProxy {
 
     /**
      * Get the proxy class loader.
-     * <p>
-     * TODO: This is a security hole which allows anyone to get the context class loader simply by subclassing this
-     * public class.
      *
      * @return the proxy class loader
      */
     protected ClassLoader getProxyClassLoader()  {
-        return new PrivilegedAction<ClassLoader>() {
-
-            @Override
-            public ClassLoader run() {
-                return Thread.currentThread().getContextClassLoader();
-            }
-        }.run();
+        return Thread.currentThread().getContextClassLoader();
     }
 }
