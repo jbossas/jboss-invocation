@@ -28,19 +28,23 @@ import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.code.CodeAttribute;
 
 /**
- * Constructor override that simply delegates to super()
+ * Constructor override that simply delegates to {@code super()}.
  * 
  * @author Stuart Douglas
  * 
  */
 public class DefaultConstructorBodyCreator implements ConstructorBodyCreator {
 
+    /**
+     * The singleton instance.
+     */
     public static final DefaultConstructorBodyCreator INSTANCE = new DefaultConstructorBodyCreator();
 
     private DefaultConstructorBodyCreator() {
 
     }
 
+    /** {@inheritDoc} */
     @Override
     public void overrideConstructor(ClassMethod method, Constructor<?> constructor) {
         CodeAttribute ca = method.getCodeAttribute();

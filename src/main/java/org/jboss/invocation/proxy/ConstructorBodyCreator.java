@@ -27,12 +27,17 @@ import java.lang.reflect.Constructor;
 import org.jboss.classfilewriter.ClassMethod;
 
 /**
- * A class that can generate a overriden version of a constructor
+ * A class that can generate an overriden version of a constructor.
  * 
  * @author Stuart Douglas
- * 
  */
 public interface ConstructorBodyCreator {
 
-    public void overrideConstructor(ClassMethod method, Constructor<?> constructor);
+    /**
+     * Generate an overridden constructor.
+     *
+     * @param method the class method to populate
+     * @param constructor the constructor to override
+     */
+    void overrideConstructor(ClassMethod method, Constructor<?> constructor);
 }

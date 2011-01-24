@@ -34,14 +34,23 @@ import java.security.PrivilegedAction;
  */
 public class DefaultSerializableProxy implements SerializableProxy {
 
+    private static final long serialVersionUID = -1296036574026839239L;
+
     private InvocationHandler handler;
     private String proxyClassName;
 
+    /** {@inheritDoc} */
     public void setProxyInstance(Object proxy) {
-        this.proxyClassName = proxy.getClass().getName();
-        this.handler = ProxyFactory.getInvocationHandlerStatic(proxy);
+        proxyClassName = proxy.getClass().getName();
+        handler = ProxyFactory.getInvocationHandlerStatic(proxy);
     }
 
+    /**
+     * Resolve the serialized proxy to a real instance.
+     *
+     * @return the resolved instance
+     * @throws ObjectStreamException if an error occurs
+     */
     protected Object readResolve() throws ObjectStreamException {
         try {
             Class<?> proxyClass = getProxyClass();
@@ -57,11 +66,25 @@ public class DefaultSerializableProxy implements SerializableProxy {
         }
     }
 
+    /**
+     * Get the associated proxy class.
+     *
+     * @return the proxy class
+     * @throws ClassNotFoundException if the proxy class is not found
+     */
     protected Class<?> getProxyClass() throws ClassNotFoundException {
         ClassLoader classLoader = getProxyClassLoader();
         return Class.forName(proxyClassName, false, classLoader);
     }
 
+    /**
+     * Get the proxy class loader.
+     * <p>
+     * TODO: This is a security hole which allows anyone to get the context class loader simply by subclassing this
+     * public class.
+     *
+     * @return the proxy class loader
+     */
     protected ClassLoader getProxyClassLoader()  {
         return new PrivilegedAction<ClassLoader>() {
 
@@ -71,5 +94,4 @@ public class DefaultSerializableProxy implements SerializableProxy {
             }
         }.run();
     }
-
 }

@@ -33,7 +33,8 @@ import org.jboss.classfilewriter.ClassFile;
  * once at most
  * 
  * @author Stuart Douglas
- * 
+ *
+ * @param <T> the type of the superclass
  */
 public abstract class AbstractClassFactory<T> {
 
@@ -53,7 +54,7 @@ public abstract class AbstractClassFactory<T> {
     private final ClassLoader classLoader;
 
     /**
-     * The ProtectionDomain that the generated class will be definied in
+     * The ProtectionDomain that the generated class will be defined in
      */
     private final ProtectionDomain protectionDomain;
 
@@ -66,30 +67,53 @@ public abstract class AbstractClassFactory<T> {
      * The class file that is used to generate the class.
      * <p>
      * Note that this object is not thread safe, so care should be taken by subclasses to ensure that no more than one thread
-     * accesses this at once. In normal use this should not be an issue, as {@link #generatedClass()} will only be called once
+     * accesses this at once. In normal use this should not be an issue, as {@link #generateClass()} will only be called once
      * by a single thread.
      * <p>
      * This is set to null after the class is generated
      */
     protected ClassFile classFile;
 
-    public AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader,
-            ProtectionDomain protectionDomain) {
+    /**
+     * Construct a new instance.
+     *
+     * @param className the generated class name
+     * @param superClass the superclass of the generated class
+     * @param classLoader the class loader used to load the class
+     * @param protectionDomain the protection domain of the class
+     */
+    protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
         this.className = className;
         this.superClass = superClass;
         this.classLoader = classLoader;
         this.protectionDomain = protectionDomain;
-        this.classFile = new ClassFile(className, superClass.getName());
+        classFile = new ClassFile(className, superClass.getName());
     }
 
-    public AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
+    /**
+     * Construct a new instance with a {@code null} protection domain.
+     *
+     * @param className the generated class name
+     * @param superClass the superclass of the generated class
+     * @param classLoader the class loader used to load the class
+     */
+    protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
         this(className, superClass, classLoader, null);
     }
 
-    public AbstractClassFactory(String className, Class<T> superClass) {
+    /**
+     * Construct a new instance with a {@code null} protection domain.
+     *
+     * @param className the generated class name
+     * @param superClass the superclass of the generated class
+     */
+    protected AbstractClassFactory(String className, Class<T> superClass) {
         this(className, superClass, superClass.getClassLoader(), null);
     }
 
+    /**
+     * Generate the class.
+     */
     protected abstract void generateClass();
 
     /**
@@ -99,7 +123,8 @@ public abstract class AbstractClassFactory<T> {
 
     /**
      * Returns the {@link Class} object for the generated class, creating it if it does not exist
-     * 
+     *
+     * @return the generated class
      */
     public Class<? extends T> defineClass() {
         if (generatedClass == null) {
@@ -123,29 +148,57 @@ public abstract class AbstractClassFactory<T> {
     /**
      * Creates a new instance of the generated class by invoking the default constructor.
      * <p>
-     * If the generated class has not been defined it will be created
-     * 
+     * If the generated class has not been defined it will be created.
+     *
+     * @return the new instance
+     * @throws InstantiationException if the new instance could not be created
+     * @throws IllegalAccessException if the new constructor is inaccessible for some reason
      */
     public T newInstance() throws InstantiationException, IllegalAccessException {
         return defineClass().newInstance();
     }
 
+    /**
+     * Get the class name.
+     *
+     * @return the class name
+     */
     public String getClassName() {
         return className;
     }
 
+    /**
+     * Get the superclass name.
+     *
+     * @return the superclass name
+     */
     public String getSuperClassName() {
         return superClass.getName();
     }
 
+    /**
+     * Get the superclass.
+     *
+     * @return the superclass
+     */
     public Class<T> getSuperClass() {
         return superClass;
     }
 
+    /**
+     * Get the defining class loader.
+     *
+     * @return the defining class loader
+     */
     public ClassLoader getClassLoader() {
         return classLoader;
     }
 
+    /**
+     * Get the defined protection domain.
+     *
+     * @return the protection domain
+     */
     public ProtectionDomain getProtectionDomain() {
         return protectionDomain;
     }

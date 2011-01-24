@@ -35,11 +35,15 @@ import org.jboss.classfilewriter.code.CodeAttribute;
  */
 public class DefaultMethodBodyCreator implements MethodBodyCreator {
 
+    /**
+     * The singleton instance.
+     */
     public static final DefaultMethodBodyCreator INSTANCE = new DefaultMethodBodyCreator();
 
     private DefaultMethodBodyCreator() {
     }
 
+    /** {@inheritDoc} */
     @Override
     public void overrideMethod(ClassMethod method, Method superclassMethod) {
         CodeAttribute ca = method.getCodeAttribute();

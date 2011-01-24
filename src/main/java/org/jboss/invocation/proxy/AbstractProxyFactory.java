@@ -34,6 +34,11 @@ import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.code.CodeLocation;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 
+/**
+ * A subclass factory specializing in proxy generation.
+ *
+ * @param <T> the superclass type
+ */
 public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T> {
 
     private static final String METHOD_FIELD_PREFIX = "METHOD$$IDENTIFIER";
@@ -46,29 +51,51 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
 
     private ClassMethod staticConstructor;
 
-    public AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader) {
+    /**
+     * Construct a new instance.
+     *
+     * @param className the class name
+     * @param superClass the superclass
+     * @param classLoader the defining class loader
+     */
+    protected AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader) {
         super(className, superClass, classLoader);
         staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
     }
 
-    public AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader,
+    /**
+     * Construct a new instance.
+     *
+     * @param className the class name
+     * @param superClass the superclass
+     * @param classLoader the defining class loader
+     * @param protectionDomain the protection domain
+     */
+    protected AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader,
             ProtectionDomain protectionDomain) {
         super(className, superClass, classLoader, protectionDomain);
         staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
     }
 
-    public AbstractProxyFactory(String className, Class<T> superClass) {
+    /**
+     * Construct a new instance.
+     *
+     * @param className the class name
+     * @param superClass the superclass
+     */
+    protected AbstractProxyFactory(String className, Class<T> superClass) {
         super(className, superClass);
         staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
     }
 
     /**
-     * This method must be called by subclasses after they have finished generating the class
+     * This method must be called by subclasses after they have finished generating the class.
      */
     protected void finalizeStaticConstructor() {
         staticConstructor.getCodeAttribute().returnInstruction();
     }
 
+    /** {@inheritDoc} */
     @Override
     protected void cleanup() {
         staticConstructor = null;
@@ -76,11 +103,13 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     }
 
     /**
-     * Writes the bytecode to load an instance of Method for the given method onto the stack and set it to accessible
+     * Writes the bytecode to load an instance of Method for the given method onto the stack and set it to accessible.
      * <p>
      * If loadMethod has not already been called for the given method then a static field to hold the method is added to the
-     * class, and code is added to the static constructor to initalize the field to the correct Method
+     * class, and code is added to the static constructor to initialize the field to the correct Method.
      *
+     * @param methodToLoad the method to load
+     * @param method the subclass method to populate
      */
     protected void loadMethodIdentifier(Method methodToLoad, ClassMethod method) {
         if (!methodIdentifiers.containsKey(methodToLoad)) {

@@ -40,7 +40,7 @@ import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.classfilewriter.util.Boxing;
 
 /**
- * Proxy Factory that generates proxis that delegate all calls to an {@link InvocationDispatcher}.
+ * Proxy Factory that generates proxies that delegate all calls to an {@link InvocationHandler}.
  * <p>
  * Typical usage looks like:
  * <p>
@@ -58,20 +58,26 @@ import org.jboss.classfilewriter.util.Boxing;
  * 
  * @author Stuart Douglas
  * 
- * @param <T>
+ * @param <T> the superclass type
  */
 public class ProxyFactory<T> extends AbstractProxyFactory<T> {
 
     private volatile Field invocationHandlerField;
 
     /**
-     * Overrides superclass methods and forwards calls to the dispatcher
+     * Overrides superclass methods and forwards calls to the dispatcher.
      * 
      * @author Stuart Douglas
      * 
      */
     protected class ProxyMethodBodyCreator implements MethodBodyCreator {
 
+        /**
+         * Override a method by forwarding all calls to the dispatcher.
+         *
+         * @param method the method to populate
+         * @param superclassMethod the method to override
+         */
         // we simply want to load the corresponding identifier
         // and then forward it to the dispatcher
         @Override
@@ -139,7 +145,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                             Boxing.boxFloat(ca);
                             break;
                         default:
-                            throw new RuntimeException("Unkown primitive type descriptor: " + typeChar);
+                            throw new RuntimeException("Unknown primitive type descriptor: " + typeChar);
                     }
                 } else {
                     ca.aload(loadPosition);
@@ -169,6 +175,12 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      */
     protected class ProxyConstructorBodyCreator implements ConstructorBodyCreator {
 
+        /**
+         * Override the given constructor.
+         *
+         * @param method the class method to populate
+         * @param constructor the constructor to override
+         */
         @Override
         public void overrideConstructor(ClassMethod method, Constructor<?> constructor) {
             CodeAttribute ca = method.getCodeAttribute();
@@ -186,13 +198,19 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * Generates the writereplace method if advanced serialization is enabled
+     * Generates the writeReplace method if advanced serialization is enabled.
      * 
      * @author Stuart Douglas
      * 
      */
     protected class WriteReplaceBodyCreator implements MethodBodyCreator {
 
+        /**
+         * Generate the writeReplace method body.
+         *
+         * @param method the method to populate
+         * @param superclassMethod the method to override
+         */
         @Override
         public void overrideMethod(ClassMethod method, Method superclassMethod) {
             // superClassMethod will be null
@@ -219,29 +237,30 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
 
     /**
      * this field on the generated class stores if the constructor has been completed yet. No methods will be delegated to the
-     * dispacher until the constructor has finished. This prevents virtual methods called from the constructor being delegated
+     * dispatcher until the constructor has finished. This prevents virtual methods called from the constructor being delegated
      * to a handler that is null.
      */
     private static final String CONSTRUCTED_GUARD = "proxy$$Constructor$$finished";
 
     /**
      * A list of additional interfaces that should be added to the proxy, and should have invocations delegated to the
-     * dispatcher
+     * dispatcher.
      */
     private final Class<?>[] additionalInterfaces;
 
     /**
-     * The type of {@link SerializableProxy} to generate from the writeReplace method
+     * The type of {@link SerializableProxy} to generate from the writeReplace method.
      */
     private Class<? extends SerializableProxy> serializableProxyClass;
 
     /**
-     * 
+     * Construct a new instance.
+     *
      * @param className the name of the generated proxy
      * @param superClass the superclass of the generated proxy
      * @param classLoader the classloader to load the proxy with
      * @param protectionDomain the ProtectionDomain to define the class with
-     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
+     * @param additionalInterfaces additional interfaces that should be implemented by the proxy class
      */
     public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain,
             Class<?>... additionalInterfaces) {
@@ -250,11 +269,12 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * 
+     * Construct a new instance.
+     *
      * @param className the name of the generated proxy
      * @param superClass the superclass of the generated proxy
      * @param classLoader the classloader to load the proxy with
-     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
+     * @param additionalInterfaces additional interfaces that should be implemented by the proxy class
      */
     public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, Class<?>... additionalInterfaces) {
         super(className, superClass, classLoader);
@@ -262,10 +282,11 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * 
-     * @param className The name of the proxy class
-     * @param superClass The name of proxies superclass
-     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
+     * Construct a new instance.
+     *
+     * @param className the name of the proxy class
+     * @param superClass the name of proxies superclass
+     * @param additionalInterfaces additional interfaces that should be implemented by the proxy class
      */
     public ProxyFactory(String className, Class<T> superClass, Class<?>... additionalInterfaces) {
         super(className, superClass);
@@ -273,7 +294,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * Create a ProxyFactory for the given superclass, using the default name and the classloader of the superClass
+     * Create a ProxyFactory for the given superclass, using the default name and the classloader of the superClass.
      * 
      * @param superClass the superclass of the generated proxy
      * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
@@ -284,7 +305,12 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * Create a new proxy, initialising it with the given dispatcher
+     * Create a new proxy, initialising it with the given invocation handler.
+     *
+     * @param handler the invocation handler to use
+     * @return the new proxy instance
+     * @throws IllegalAccessException if the constructor is not accessible
+     * @throws InstantiationException if instantiation failed due to an exception
      */
     public T newInstance(InvocationHandler handler) throws InstantiationException, IllegalAccessException {
         T ret = newInstance();
@@ -292,6 +318,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         return ret;
     }
 
+    /** {@inheritDoc} */
     @Override
     protected void generateClass() {
         classFile.addField(AccessFlag.PRIVATE, INVOCATION_HANDLER_FIELD, InvocationHandler.class);
@@ -321,18 +348,18 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     /**
      * Sets the {@link SerializableProxy} class to emit from the proxies writeReplace method. If this is set to null (the
      * default) then no writeReplace method will be generated. The proxy may still be serializable, providing that the
-     * superclass and {@link InvocationDispatcher} are both serializable.
+     * superclass and {@link InvocationHandler} are both serializable.
      * <p>
      * 
      * @see SerializableProxy
      * @see DefaultSerializableProxy
-     * @param serializableProxyClass
+     * @param serializableProxyClass the proxy class
      * @throws IllegalStateException If the proxy class has already been generated
      */
     public void setSerializableProxyClass(Class<? extends SerializableProxy> serializableProxyClass) {
         if (classFile == null) {
             throw new IllegalStateException(
-                    "Cannot set a ProxyFactories SerialiableProxyClass after the proxy has been created");
+                    "Cannot set a ProxyFactories SerializableProxyClass after the proxy has been created");
         }
         this.serializableProxyClass = serializableProxyClass;
     }
@@ -345,7 +372,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
                         invocationHandlerField = defineClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
                         AccessController.doPrivileged(new SetAccessiblePrivilege(invocationHandlerField));
                     } catch (NoSuchFieldException e) {
-                        throw new RuntimeException("Could not find inocation handler on generated proxy", e);
+                        throw new RuntimeException("Could not find invocation handler on generated proxy", e);
                     }
                 }
             }
@@ -354,7 +381,10 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * Sets the invocation hander for a proxy created from this factory
+     * Sets the invocation handler for a proxy created from this factory.
+     *
+     * @param proxy the proxy to modify
+     * @param handler the handler to use
      */
     public void setInvocationHandler(Object proxy, InvocationHandler handler) {
         Field field = getInvocationHandlerField();
@@ -368,7 +398,10 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * returns the invocation handler for a proxy created from this factory
+     * Returns the invocation handler for a proxy created from this factory.
+     *
+     * @param proxy the proxy
+     * @return the invocation handler
      */
     public InvocationHandler getInvocationHandler(Object proxy) {
         Field field = getInvocationHandlerField();
@@ -382,9 +415,12 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * Sets the invocation handler for a proxy. This method will is less efficient than
+     * Sets the invocation handler for a proxy. This method is less efficient than
      * {@link #setInvocationHandler(Object, InvocationHandler)}, however it will work on any proxy, not just proxies from a
-     * specific factory
+     * specific factory.
+     *
+     * @param proxy the proxy to modify
+     * @param handler the handler to use
      */
     public static void setInvocationHandlerStatic(Object proxy, InvocationHandler handler) {
         try {
@@ -392,7 +428,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             AccessController.doPrivileged(new SetAccessiblePrivilege(field));
             field.set(proxy, handler);
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException("Could not find inocation handler on generated proxy", e);
+            throw new RuntimeException("Could not find invocation handler on generated proxy", e);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
@@ -401,9 +437,12 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     }
 
     /**
-     * Gets the {@link InvocationHandler} for a given proxy instance. This method is less effiecient than
+     * Gets the {@link InvocationHandler} for a given proxy instance. This method is less efficient than
      * {@link #getInvocationHandler(Object)}, however it will work for any proxy, not just proxies from a specific factory
-     * instance
+     * instance.
+     *
+     * @param proxy the proxy
+     * @return the invocation handler
      */
     public static InvocationHandler getInvocationHandlerStatic(Object proxy) {
         try {
@@ -411,7 +450,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             AccessController.doPrivileged(new SetAccessiblePrivilege(field));
             return (InvocationHandler) field.get(proxy);
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException("Could not find inocation handler on generated proxy", e);
+            throw new RuntimeException("Could not find invocation handler on generated proxy", e);
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("Object is not a proxy of correct type", e);
         } catch (IllegalAccessException e) {

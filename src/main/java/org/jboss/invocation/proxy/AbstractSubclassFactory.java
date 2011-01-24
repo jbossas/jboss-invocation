@@ -39,19 +39,41 @@ import org.jboss.classfilewriter.ClassMethod;
  *
  * @author Stuart Douglas
  *
+ * @param <T> the superclass type
  */
 public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T> {
 
-    public AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader,
+    /**
+     * Construct a new instance.
+     *
+     * @param className the class name
+     * @param superClass the superclass
+     * @param classLoader the defining class loader
+     * @param protectionDomain the protection domain
+     */
+    protected AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader,
             ProtectionDomain protectionDomain) {
         super(className, superClass, classLoader, protectionDomain);
     }
 
-    public AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
+    /**
+     * Construct a new instance.
+     *
+     * @param className the class name
+     * @param superClass the superclass
+     * @param classLoader the defining class loader
+     */
+    protected AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
         super(className, superClass, classLoader);
     }
 
-    public AbstractSubclassFactory(String className, Class<T> superClass) {
+    /**
+     * Construct a new instance.
+     *
+     * @param className the class name
+     * @param superClass the superclass
+     */
+    protected AbstractSubclassFactory(String className, Class<T> superClass) {
         super(className, superClass);
     }
 
@@ -75,12 +97,13 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Creates a new method on the generated class that overrides the given methods, unless a method with the same signiture has
-     * already been overridden
+     * Creates a new method on the generated class that overrides the given methods, unless a method with the same signature has
+     * already been overridden.
      * 
      * @param method The method to override
      * @param identifier The identifier of the method to override
      * @param creator The {@link MethodBodyCreator} used to create the method body
+     * @return {@code true} if the method was successfully overridden, {@code false} otherwise
      */
     protected boolean overrideMethod(Method method, MethodIdentifier identifier, MethodBodyCreator creator) {
         if (!overriddenMethods.contains(identifier)) {
@@ -92,13 +115,13 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Creates a new method on the generated class that overrides the given methods, unless a method with the same signiture has
-     * already been overridden
+     * Creates a new method on the generated class that overrides the given methods, unless a method with the same signature has
+     * already been overridden.
      * 
      * @param method The method to override
      * @param identifier The identifier of the method to override
      * @param creator The {@link MethodBodyCreator} used to create the method body
-     * @return false if the method has already been overriden
+     * @return {@code false} if the method has already been overriden
      */
     protected boolean overrideMethod(ClassMethod method, MethodIdentifier identifier, MethodBodyCreator creator) {
         if (!overriddenMethods.contains(identifier)) {
@@ -110,19 +133,29 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * overrides all public methods on the superclass. The default {@link MethodBodyCreator} is used to generate the class body
+     * Overrides all public methods on the superclass. The default {@link MethodBodyCreator} is used to generate the class body.
+     *
+     * @param includeEquals {@code true} to include {@link Object#equals(Object)}
+     * @param includeHashcode {@code true} to include {@link Object#hashCode()}
+     * @param includeToString {@code true} to include {@link Object#toString()}
      */
     protected void overridePublicMethods(boolean includeEquals, boolean includeHashcode, boolean includeToString) {
         overridePublicMethods(getDefaultMethodOverride(), includeEquals, includeHashcode, includeToString);
     }
 
+    /** {@inheritDoc} */
     @Override
     protected void cleanup() {
         overriddenMethods.clear();
     }
 
     /**
-     * overrides all public methods on the superclass. The given {@link MethodBodyCreator} is used to generate the class body
+     * Overrides all public methods on the superclass. The given {@link MethodBodyCreator} is used to generate the class body.
+     *
+     * @param override the method body creator to use
+     * @param includeEquals {@code true} to include {@link Object#equals(Object)}
+     * @param includeHashcode {@code true} to include {@link Object#hashCode()}
+     * @param includeToString {@code true} to include {@link Object#toString()}
      */
     protected void overridePublicMethods(MethodBodyCreator override, boolean includeEquals, boolean includeHashcode,
             boolean includeToString) {
@@ -138,8 +171,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Calls {@link #overrideAllMethods(MethodBodyCreator)} with the default {@link MethodBodyCreator}
-     * 
+     * Calls {@link #overrideAllMethods(MethodBodyCreator)} with the default {@link MethodBodyCreator}.
      */
     protected void overrideAllMethods() {
         overrideAllMethods(getDefaultMethodOverride());
@@ -153,7 +185,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Note that private methods are not actually overridden, and if the sub-class is loaded by a different ClassLoader to the
      * parent class then neither will package-private methods. These methods will still be present on the new class however, and
      * can be accessed via reflection
-     * 
+     *
+     * @param override the method body creator to use
      */
     protected void overrideAllMethods(MethodBodyCreator override) {
         Class<?> currentClass = getSuperClass();
@@ -177,7 +210,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Override the equals method using the given {@link MethodBodyCreator}
+     * Override the equals method using the given {@link MethodBodyCreator}.
+     *
+     * @param creator the method body creator to use
      */
     protected void overrideEquals(MethodBodyCreator creator) {
         Method equals = null;
@@ -190,7 +225,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Override the hashCode method using the given {@link MethodBodyCreator}
+     * Override the hashCode method using the given {@link MethodBodyCreator}.
+     *
+     * @param creator the method body creator to use
      */
     protected void overrideHashcode(MethodBodyCreator creator) {
         Method hashCode = null;
@@ -203,7 +240,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Override the toString method using the given {@link MethodBodyCreator}
+     * Override the toString method using the given {@link MethodBodyCreator}.
+     *
+     * @param creator the method body creator to use
      */
     protected void overrideToString(MethodBodyCreator creator) {
         Method toString = null;
@@ -216,7 +255,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Adds an interface to the generated subclass, using the default {@link MethodBodyCreator} to generate the method bodies
+     * Adds an interface to the generated subclass, using the default {@link MethodBodyCreator} to generate the method bodies.
+     *
+     * @param interfaceClass the interface to add
      */
     protected void addInterface(Class<?> interfaceClass) {
         addInterface(getDefaultMethodOverride(), interfaceClass);
@@ -224,6 +265,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Adds an interface to the generated subclass, using the given {@link MethodBodyCreator} to generate the method bodies
+     *
+     * @param override the method body creator to use
+     * @param interfaceClass the interface to add
      */
     protected void addInterface(MethodBodyCreator override, Class<?> interfaceClass) {
         classFile.addInterface(interfaceClass.getName());
@@ -233,7 +277,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Adds a constructor for every non-private constructor present on the superclass. The constrcutor bodies are generated with
+     * Adds a constructor for every non-private constructor present on the superclass. The constructor bodies are generated with
      * the default {@link ConstructorBodyCreator}
      */
     protected void createConstructorDelegates() {
@@ -242,6 +286,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Adds constructors that delegate the the superclass constructor for all non-private constructors present on the superclass
+     *
+     * @param creator the constructor body creator to use
      */
     protected void createConstructorDelegates(ConstructorBodyCreator creator) {
         for (Constructor<?> constructor : getSuperClass().getDeclaredConstructors()) {
@@ -252,17 +298,20 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * returns the default {@link MethodBodyCreator} to use when creating overridden methods
+     * Returns the default {@link MethodBodyCreator} to use when creating overridden methods.
+     *
+     * @return the default method body creator
      */
     public MethodBodyCreator getDefaultMethodOverride() {
         return DefaultMethodBodyCreator.INSTANCE;
     }
 
     /**
-     * returns the default {@link ConstructorBodyCreator} to use then creating overridden subclasses
+     * Returns the default {@link ConstructorBodyCreator} to use then creating overridden subclasses.
+     *
+     * @return the default constructor body creator
      */
     public ConstructorBodyCreator getDefaultConstructorOverride() {
         return DefaultConstructorBodyCreator.INSTANCE;
     }
-
 }

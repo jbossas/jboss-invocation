@@ -46,6 +46,10 @@ import java.io.Serializable;
  */
 public interface SerializableProxy extends Serializable {
 
-    public abstract void setProxyInstance(Object proxy);
-
+    /**
+     * Set the proxy instance.
+     *
+     * @param proxy the proxy instance
+     */
+    void setProxyInstance(Object proxy);
 }

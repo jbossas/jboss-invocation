@@ -27,12 +27,18 @@ import java.lang.reflect.Method;
 import org.jboss.classfilewriter.ClassMethod;
 
 /**
- * A class that can generate a overriden version of a method
+ * A class that can generate an overriden version of a method.
  * 
  * @author Stuart Douglas
  * 
  */
 public interface MethodBodyCreator {
 
-    public void overrideMethod(ClassMethod method, Method superclassMethod);
+    /**
+     * Generate an overridden method.
+     *
+     * @param method the method to populate
+     * @param superclassMethod the method to override
+     */
+    void overrideMethod(ClassMethod method, Method superclassMethod);
 }
