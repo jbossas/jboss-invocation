@@ -21,22 +21,29 @@
  */
 package org.jboss.invocation.proxy.test.proxyfactory;
 
+import java.lang.reflect.Method;
+
 import junit.framework.Assert;
 
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
 
-public class SimpleProxyFactoryTest {
+public class BridgeMethodTest {
 
     @Test
-    public void testSimpleProxy() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
-        SimpleClass instance = proxyFactory.newInstance(new SimpleInvocationHandler());
-        Object result = instance.method2(10, 0, this, new int[0]);
-        Assert.assertTrue(result.getClass().isArray());
-        Object[] array = (Object[]) result;
-        Assert.assertEquals(10L, array[0]);
-        Assert.assertEquals(0.0, array[1]);
+    public void testBridgeMethods() throws InstantiationException, IllegalAccessException {
+        ProxyFactory<BridgeMethodChild> proxyFactory = new ProxyFactory<BridgeMethodChild>(BridgeMethodChild.class);
+        BridgeMethodChild instance = proxyFactory.newInstance(new BridgeMethodInvocationHandler());
+        Method result = instance.getResult();
+        Assert.assertEquals(Method.class, result.getReturnType());
+        Assert.assertFalse(result.isBridge());
+
+    }
+
+    public void testParent(BridgeMethodParent parent) {
+        Method result = (Method) parent.getResult();
+        Assert.assertEquals(Object.class, result.getReturnType());
+        Assert.assertTrue(result.isBridge());
     }
 
 }
