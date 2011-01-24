@@ -66,8 +66,8 @@ public abstract class AbstractClassFactory<T> {
      * The class file that is used to generate the class.
      * <p>
      * Note that this object is not thread safe, so care should be taken by subclasses to ensure that no more than one thread
-     * accesses this at once. In normal use this should not be an issue, as {@link #defineClass()} will only be called once by a
-     * single thread.
+     * accesses this at once. In normal use this should not be an issue, as {@link #generatedClass()} will only be called once
+     * by a single thread.
      * <p>
      * This is set to null after the class is generated
      */

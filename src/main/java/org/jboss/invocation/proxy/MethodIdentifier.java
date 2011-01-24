@@ -38,7 +38,7 @@ import org.jboss.marshalling.FieldSetter;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class MethodIdentifier implements Serializable {
+public final class MethodIdentifier implements Serializable {
 
     private static final long serialVersionUID = -4303462176794600579L;
 
