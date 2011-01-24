@@ -32,7 +32,8 @@ public interface InterceptorFactory {
     /**
      * Create the interceptor instance.
      *
+     * @param context the interceptor factory context
      * @return the interceptor instance
      */
-    Interceptor create();
+    Interceptor create(InterceptorFactoryContext context);
 }

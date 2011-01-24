@@ -45,7 +45,7 @@ public final class ImmediateInterceptorFactory implements InterceptorFactory, Se
     }
 
     /** {@inheritDoc} */
-    public Interceptor create() {
+    public Interceptor create(final InterceptorFactoryContext context) {
         return interceptor;
     }
 }

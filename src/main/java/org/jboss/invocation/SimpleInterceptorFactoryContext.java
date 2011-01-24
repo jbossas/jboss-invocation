@@ -22,33 +22,20 @@
 
 package org.jboss.invocation;
 
-import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
+ * A simple implementation of {@code InterceptorFactoryContext}.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class ChainedInterceptorFactory implements InterceptorFactory, Serializable {
+public final class SimpleInterceptorFactoryContext implements InterceptorFactoryContext {
+    private Map<Object, Object> contextData;
 
-    private static final long serialVersionUID = -4300168217824335867L;
-
-    private final InterceptorFactory[] interceptorFactories;
-
-    ChainedInterceptorFactory(final InterceptorFactory... interceptorFactories) {
-        if (interceptorFactories == null) {
-            throw new IllegalArgumentException("interceptorFactories is null");
-        }
-        this.interceptorFactories = interceptorFactories;
-    }
-
-    /** {@inheritDoc}
-     * @param context*/
-    public Interceptor create(final InterceptorFactoryContext context) {
-        final InterceptorFactory[] factories = interceptorFactories;
-        final int length = factories.length;
-        final Interceptor[] interceptors = new Interceptor[length];
-        for (int i = 0; i < length; i++) {
-            interceptors[i] = factories[i].create(context);
-        }
-        return new ChainedInterceptor(interceptors);
+    /** {@inheritDoc} */
+    public Map<Object, Object> getContextData() {
+        final Map<Object, Object> contextData = this.contextData;
+        return contextData == null ? (this.contextData = new HashMap<Object, Object>()) : contextData;
     }
 }

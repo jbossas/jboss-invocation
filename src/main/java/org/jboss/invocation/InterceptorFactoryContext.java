@@ -22,33 +22,20 @@
 
 package org.jboss.invocation;
 
-import java.io.Serializable;
+import java.util.Map;
 
 /**
+ * Contextual information for an interceptor factory, used when interceptors are created.
+ * Use to store state about previously-constructed interceptors, for example.
+ *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-final class ChainedInterceptorFactory implements InterceptorFactory, Serializable {
+public interface InterceptorFactoryContext {
 
-    private static final long serialVersionUID = -4300168217824335867L;
-
-    private final InterceptorFactory[] interceptorFactories;
-
-    ChainedInterceptorFactory(final InterceptorFactory... interceptorFactories) {
-        if (interceptorFactories == null) {
-            throw new IllegalArgumentException("interceptorFactories is null");
-        }
-        this.interceptorFactories = interceptorFactories;
-    }
-
-    /** {@inheritDoc}
-     * @param context*/
-    public Interceptor create(final InterceptorFactoryContext context) {
-        final InterceptorFactory[] factories = interceptorFactories;
-        final int length = factories.length;
-        final Interceptor[] interceptors = new Interceptor[length];
-        for (int i = 0; i < length; i++) {
-            interceptors[i] = factories[i].create(context);
-        }
-        return new ChainedInterceptor(interceptors);
-    }
+    /**
+     * Get the context data for this interceptor factory execution.
+     *
+     * @return the context data
+     */
+    Map<Object, Object> getContextData();
 }
