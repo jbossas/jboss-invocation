@@ -42,7 +42,11 @@ public class SimpleClassFactory<T> extends AbstractSubclassFactory<T> {
     // simply overrides public methods and constructors using the default method builder
     @Override
     protected void generateClass() {
-        overridePublicMethods(true, true, true);
+        overridePublicMethods();
+        overrideEquals();
+        overrideFinalize();
+        overrideHashcode();
+        overrideToString();
         createConstructorDelegates();
     }
 

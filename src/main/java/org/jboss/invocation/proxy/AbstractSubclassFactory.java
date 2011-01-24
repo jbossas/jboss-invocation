@@ -134,13 +134,15 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Overrides all public methods on the superclass. The default {@link MethodBodyCreator} is used to generate the class body.
-     *
-     * @param includeEquals {@code true} to include {@link Object#equals(Object)}
-     * @param includeHashcode {@code true} to include {@link Object#hashCode()}
-     * @param includeToString {@code true} to include {@link Object#toString()}
+     * <p>
+     * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
+     * <code>toString()</code>, these should be overriden separately using {@link #overrideEquals(MethodBodyCreator)}
+     * {@link #overrideHashcode(MethodBodyCreator)}{@link #overrideToString(MethodBodyCreator)}
+     * {@link #overrideFinalize(MethodBodyCreator)}
+     * 
      */
-    protected void overridePublicMethods(boolean includeEquals, boolean includeHashcode, boolean includeToString) {
-        overridePublicMethods(getDefaultMethodOverride(), includeEquals, includeHashcode, includeToString);
+    protected void overridePublicMethods() {
+        overridePublicMethods(getDefaultMethodOverride());
     }
 
     /** {@inheritDoc} */
@@ -151,14 +153,15 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Overrides all public methods on the superclass. The given {@link MethodBodyCreator} is used to generate the class body.
-     *
+     * <p>
+     * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
+     * <code>toString()</code>, these should be overriden separately using {@link #overrideEquals(MethodBodyCreator)}
+     * {@link #overrideHashcode(MethodBodyCreator)},{@link #overrideToString(MethodBodyCreator)} and
+     * {@link #overrideFinalize(MethodBodyCreator)}
+     * 
      * @param override the method body creator to use
-     * @param includeEquals {@code true} to include {@link Object#equals(Object)}
-     * @param includeHashcode {@code true} to include {@link Object#hashCode()}
-     * @param includeToString {@code true} to include {@link Object#toString()}
      */
-    protected void overridePublicMethods(MethodBodyCreator override, boolean includeEquals, boolean includeHashcode,
-            boolean includeToString) {
+    protected void overridePublicMethods(MethodBodyCreator override) {
         for (Method method : getSuperClass().getMethods()) {
             MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
             if (Modifier.isFinal(method.getModifiers())) {
@@ -210,8 +213,16 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
+     * Override the equals method using the default {@link MethodBodyCreator}.
+     * 
+     */
+    protected void overrideEquals() {
+        overrideEquals(getDefaultMethodOverride());
+    }
+
+    /**
      * Override the equals method using the given {@link MethodBodyCreator}.
-     *
+     * 
      * @param creator the method body creator to use
      */
     protected void overrideEquals(MethodBodyCreator creator) {
@@ -225,8 +236,16 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
+     * Override the hashCode method using the default {@link MethodBodyCreator}.
+     * 
+     */
+    protected void overrideHashcode() {
+        overrideHashcode(getDefaultMethodOverride());
+    }
+
+    /**
      * Override the hashCode method using the given {@link MethodBodyCreator}.
-     *
+     * 
      * @param creator the method body creator to use
      */
     protected void overrideHashcode(MethodBodyCreator creator) {
@@ -237,6 +256,13 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
             throw new RuntimeException(e);
         }
         creator.overrideMethod(classFile.addMethod(hashCode), hashCode);
+    }
+
+    /**
+     * Override the toString method using the default {@link MethodBodyCreator}
+     */
+    protected void overrideToString() {
+        overrideToString(getDefaultMethodOverride());
     }
 
     /**
@@ -252,6 +278,29 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
             throw new RuntimeException(e);
         }
         creator.overrideMethod(classFile.addMethod(toString), toString);
+    }
+
+    /**
+     * Override the finalize method using the default {@link MethodBodyCreator}.
+     * 
+     */
+    protected void overrideFinalize() {
+        overrideFinalize(getDefaultMethodOverride());
+    }
+
+    /**
+     * Override the finalize method using the given {@link MethodBodyCreator}.
+     * 
+     * @param creator the method body creator to use
+     */
+    protected void overrideFinalize(MethodBodyCreator creator) {
+        Method finalize = null;
+        try {
+            finalize = Object.class.getDeclaredMethod("finalize");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        creator.overrideMethod(classFile.addMethod(finalize), finalize);
     }
 
     /**
