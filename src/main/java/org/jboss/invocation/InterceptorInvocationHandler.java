@@ -62,11 +62,7 @@ public final class InterceptorInvocationHandler implements InvocationHandler, Se
      * @throws Throwable the exception to thrown from the method invocation on the proxy instance, if any
      */
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-        try {
-            return interceptor.processInvocation(new SimpleInvocationContext(proxy, method, args, null));
-        } catch (InvocationException e) {
-            throw e.getCause();
-        }
+        return interceptor.processInvocation(new SimpleInvocationContext(proxy, method, args, null));
     }
 
     /** {@inheritDoc} */

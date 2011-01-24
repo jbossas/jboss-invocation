@@ -23,11 +23,8 @@
 package org.jboss.invocation;
 
 import java.io.Serializable;
-import java.lang.reflect.UndeclaredThrowableException;
 
 import javax.interceptor.InvocationContext;
-
-import static org.jboss.invocation.InvocationLogger.log;
 
 /**
  * An interceptor which passes invocations through a series of nested interceptors.
@@ -54,7 +51,7 @@ class ChainedInterceptor implements Interceptor, Serializable {
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
+    public Object processInvocation(final InvocationContext context) throws Exception {
         final InvocationContext childContext = new DelegatingInvocationContext(context) {
             private int index = 0;
 
@@ -62,16 +59,6 @@ class ChainedInterceptor implements Interceptor, Serializable {
                 if (index < interceptors.length) {
                     try {
                         return interceptors[index++].processInvocation(this);
-                    } catch (InvocationException invocationException) {
-                        try {
-                            throw invocationException.getCause();
-                        } catch (Exception exception) {
-                            throw exception;
-                        } catch (Error error) {
-                            throw error;
-                        } catch (Throwable throwable) {
-                            throw new UndeclaredThrowableException(throwable);
-                        }
                     } finally {
                         index--;
                     }
@@ -80,10 +67,6 @@ class ChainedInterceptor implements Interceptor, Serializable {
                 }
             }
         };
-        try {
-            return childContext.proceed();
-        } catch (Exception e) {
-            throw log.invocationException(e);
-        }
+        return childContext.proceed();
     }
 }

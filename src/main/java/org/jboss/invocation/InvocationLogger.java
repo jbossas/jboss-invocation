@@ -22,8 +22,6 @@
 
 package org.jboss.invocation;
 
-import org.jboss.logging.Cause;
-
 /**
  * Invocation message logger.
  *
@@ -34,17 +32,10 @@ interface InvocationLogger {
 
 //    InvocationLogger log = Logger.getMessageLogger(InvocationLogger.class, "org.jboss.invocation");
     InvocationLogger log = new InvocationLogger() {
-        public InvocationException invocationException(@Cause final Throwable cause) {
-            return new InvocationException("Invocation failed", cause);
-        }
-
         public IllegalStateException cannotProceed() {
             return new IllegalStateException("Invocation cannot proceed (end of interceptor chain has been hit)");
         }
     };
-
-    // @Message(id = 1, value = "Invocation failed")
-    InvocationException invocationException(@Cause Throwable cause);
 
     // @Message(id = 2, value = "Invocation cannot proceed (end of interceptor chain has been hit)")
     IllegalStateException cannotProceed();

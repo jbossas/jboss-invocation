@@ -33,8 +33,6 @@ import org.jboss.marshalling.FieldSetter;
 
 import javax.interceptor.InvocationContext;
 
-import static org.jboss.invocation.InvocationLogger.log;
-
 /**
  * A method interceptor.  The target method should be non-final, must be non-static, and must accept a single
  * parameter of type {@link InvocationContext} (or any supertype thereof).  The method must belong to the given
@@ -72,15 +70,15 @@ public final class MethodInterceptor implements Interceptor, Serializable {
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
+    public Object processInvocation(final InvocationContext context) throws Exception {
         try {
             return interceptorMethod.invoke(interceptorInstance, context);
         } catch (IllegalAccessException e) {
             final IllegalAccessError n = new IllegalAccessError(e.getMessage());
             n.setStackTrace(e.getStackTrace());
-            throw log.invocationException(n);
+            throw n;
         } catch (InvocationTargetException e) {
-            throw log.invocationException(e.getCause());
+            throw Interceptors.rethrow(e.getCause());
         }
     }
 

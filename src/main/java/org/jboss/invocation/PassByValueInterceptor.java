@@ -57,20 +57,16 @@ public final class PassByValueInterceptor implements Interceptor, Serializable {
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
+    public Object processInvocation(final InvocationContext context) throws Exception {
+        new DelegatingInvocationContext(context) {};
+        final Method originalMethod = context.getMethod();
+        final Class<?> declaringClass = originalMethod.getDeclaringClass();
+        final Object[] parameters = context.getParameters();
+        context.setParameters((Object[]) clone(parameters, classCloner));
         try {
-            new DelegatingInvocationContext(context) {};
-            final Method originalMethod = context.getMethod();
-            final Class<?> declaringClass = originalMethod.getDeclaringClass();
-            final Object[] parameters = context.getParameters();
-            context.setParameters((Object[]) clone(parameters, classCloner));
-            try {
-                return clone(context.proceed(), new ClassLoaderClassCloner(declaringClass.getClassLoader()));
-            } finally {
-                context.setParameters(parameters);
-            }
-        } catch (Exception e) {
-            throw new InvocationException("Pass-by-value failed", e);
+            return clone(context.proceed(), new ClassLoaderClassCloner(declaringClass.getClassLoader()));
+        } finally {
+            context.setParameters(parameters);
         }
     }
 

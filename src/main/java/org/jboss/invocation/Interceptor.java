@@ -39,9 +39,7 @@ public interface Interceptor {
      *
      * @param context the invocation context
      * @return the result of the invocation
-     * @throws InvocationException If the underlying invocation resulted in some Exception; the original exception may be
-     * obtained via {@link InvocationException#getCause()}
-     * @throws IllegalArgumentException If the invocation or dispatcher is not specified (i.e. {@code null})
+     * @throws Exception If the underlying invocation resulted in some exception
      */
-    Object processInvocation(InvocationContext context) throws InvocationException, IllegalArgumentException;
+    Object processInvocation(InvocationContext context) throws Exception;
 }

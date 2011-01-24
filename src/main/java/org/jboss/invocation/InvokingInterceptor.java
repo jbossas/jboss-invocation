@@ -28,8 +28,6 @@ import java.lang.reflect.Method;
 
 import javax.interceptor.InvocationContext;
 
-import static org.jboss.invocation.InvocationLogger.log;
-
 /**
 * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
 */
@@ -40,7 +38,7 @@ class InvokingInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 175221411434392097L;
 
-    public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
+    public Object processInvocation(final InvocationContext context) throws Exception {
         final Method method = context.getMethod();
         if (method == null) {
             return null;
@@ -50,9 +48,9 @@ class InvokingInterceptor implements Interceptor, Serializable {
         } catch (IllegalAccessException e) {
             final IllegalAccessError n = new IllegalAccessError(e.getMessage());
             n.setStackTrace(e.getStackTrace());
-            throw log.invocationException(n);
+            throw n;
         } catch (InvocationTargetException e) {
-            throw log.invocationException(e.getCause());
+            throw Interceptors.rethrow(e.getCause());
         }
     }
 

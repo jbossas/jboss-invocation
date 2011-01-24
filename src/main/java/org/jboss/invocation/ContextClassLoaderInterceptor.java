@@ -24,12 +24,11 @@ package org.jboss.invocation;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import javax.interceptor.InvocationContext;
-
-import static org.jboss.invocation.InvocationLogger.log;
 
 /**
  * An interceptor which sets the thread context class loader for the duration of an invocation.
@@ -38,7 +37,7 @@ import static org.jboss.invocation.InvocationLogger.log;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class ContextClassLoaderInterceptor implements Interceptor {
+public final class ContextClassLoaderInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 3727922476337147374L;
     private static final RuntimePermission SET_CLASS_LOADER_PERMISSION = new RuntimePermission("setContextClassLoader");
@@ -59,7 +58,7 @@ public final class ContextClassLoaderInterceptor implements Interceptor {
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
+    public Object processInvocation(final InvocationContext context) throws Exception {
         final Thread thread = Thread.currentThread();
         final ClassLoader old;
         final SecurityManager sm = System.getSecurityManager();
@@ -71,8 +70,6 @@ public final class ContextClassLoaderInterceptor implements Interceptor {
         }
         try {
             return context.proceed();
-        } catch (Exception e) {
-            throw log.invocationException(e);
         } finally {
             if (sm != null) {
                 AccessController.doPrivileged(new ClassLoaderAction(old));

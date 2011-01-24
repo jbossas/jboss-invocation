@@ -26,8 +26,6 @@ import java.io.Serializable;
 
 import javax.interceptor.InvocationContext;
 
-import static org.jboss.invocation.InvocationLogger.log;
-
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -38,12 +36,8 @@ class NullInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = -2792151547173027051L;
 
-    public Object processInvocation(final InvocationContext context) throws InvocationException, IllegalArgumentException {
-        try {
-            return context.proceed();
-        } catch (Exception e) {
-            throw log.invocationException(e);
-        }
+    public Object processInvocation(final InvocationContext context) throws Exception {
+        return context.proceed();
     }
 
     protected Object readResolve() {

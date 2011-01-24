@@ -22,6 +22,7 @@
 
 package org.jboss.invocation;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
 
 /**
@@ -112,5 +113,22 @@ public final class Interceptors {
         return new ChainedInterceptorFactory(instances.toArray(new InterceptorFactory[instances.size()]));
     }
 
-
+    /**
+     * Convenience method to get a {@link Throwable} as an {@link Exception}.
+     *
+     * @param throwable the throwable
+     * @return the exception to throw
+     * @throws Error if the throwable is an error type
+     */
+    public static Exception rethrow(Throwable throwable) throws Error {
+        try {
+            throw throwable;
+        } catch (Error error) {
+            throw error;
+        } catch (Exception exception) {
+            return exception;
+        } catch (Throwable throwable2) {
+            throw new UndeclaredThrowableException(throwable2);
+        }
+    }
 }
