@@ -41,6 +41,9 @@ public class DelegatingInvocationContext implements InvocationContext {
      * @param delegate the delegate context
      */
     public DelegatingInvocationContext(final InvocationContext delegate) {
+        if (delegate == null) {
+            throw InvocationMessages.msg.nullParameter("delegate");
+        }
         this.delegate = delegate;
     }
 

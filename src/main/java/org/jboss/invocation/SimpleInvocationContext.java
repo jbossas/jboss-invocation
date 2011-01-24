@@ -28,7 +28,7 @@ import java.util.Map;
 
 import javax.interceptor.InvocationContext;
 
-import static org.jboss.invocation.InvocationLogger.log;
+import static org.jboss.invocation.InvocationMessages.msg;
 
 /**
  * A base class for invocation contexts.  Also can act as the last interceptor in a chain which
@@ -110,6 +110,6 @@ public class SimpleInvocationContext implements InvocationContext {
      * @throws Exception always (in particular, {@link IllegalStateException})
      */
     public Object proceed() throws Exception {
-        throw log.cannotProceed();
+        throw msg.cannotProceed();
     }
 }

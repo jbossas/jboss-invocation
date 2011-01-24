@@ -25,6 +25,8 @@ package org.jboss.invocation;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
 
+import static org.jboss.invocation.InvocationMessages.msg;
+
 /**
  * Interceptor utility and factory methods.
  *
@@ -128,7 +130,7 @@ public final class Interceptors {
         } catch (Exception exception) {
             return exception;
         } catch (Throwable throwable2) {
-            throw new UndeclaredThrowableException(throwable2);
+            return msg.undeclaredThrowable(throwable2);
         }
     }
 }

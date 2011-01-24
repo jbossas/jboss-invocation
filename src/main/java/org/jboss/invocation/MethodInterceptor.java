@@ -33,6 +33,8 @@ import org.jboss.marshalling.FieldSetter;
 
 import javax.interceptor.InvocationContext;
 
+import static org.jboss.invocation.InvocationMessages.msg;
+
 /**
  * A method interceptor.  The target method should be non-final, must be non-static, and must accept a single
  * parameter of type {@link InvocationContext} (or any supertype thereof).  The method must belong to the given
@@ -58,10 +60,10 @@ public final class MethodInterceptor implements Interceptor, Serializable {
      */
     public MethodInterceptor(final Object interceptorInstance, final MethodResolver methodResolver) {
         if (interceptorInstance == null) {
-            throw new IllegalArgumentException("interceptorInstance is null");
+            throw msg.nullParameter("interceptorInstance");
         }
         if (methodResolver == null) {
-            throw new IllegalArgumentException("methodResolver is null");
+            throw msg.nullParameter("methodResolver");
         }
         this.methodResolver = methodResolver;
         this.interceptorInstance = interceptorInstance;
@@ -85,10 +87,10 @@ public final class MethodInterceptor implements Interceptor, Serializable {
     private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
         ois.defaultReadObject();
         if (interceptorInstance == null) {
-            throw new InvalidObjectException("interceptorInstance is null");
+            throw msg.nullField("interceptorInstance");
         }
         if (methodResolver == null) {
-            throw new InvalidObjectException("methodResolver is null");
+            throw msg.nullField("methodResolver");
         }
         try {
             methodSetter.set(this, getMethod(methodResolver));
@@ -100,7 +102,7 @@ public final class MethodInterceptor implements Interceptor, Serializable {
 
     private void checkMethodType(final Object interceptorInstance) {
         if (! interceptorMethod.getDeclaringClass().isInstance(interceptorInstance)) {
-            throw new IllegalArgumentException("The given interceptor instance is of the wrong type");
+            throw msg.wrongInterceptorType();
         }
     }
 
@@ -108,23 +110,23 @@ public final class MethodInterceptor implements Interceptor, Serializable {
         final Method interceptorMethod = methodResolver.getMethod();
         final int modifiers = interceptorMethod.getModifiers();
         if (Modifier.isStatic(modifiers)) {
-            throw new IllegalArgumentException("Target method must not be static");
+            throw msg.targetIsStatic();
         }
         if (! Modifier.isPublic(modifiers) && ! interceptorMethod.isAccessible()) {
-            throw new SecurityException("Method interceptor for inaccessible method");
+            throw msg.interceptorInaccessible();
         }
         final Class<?>[] parameterTypes = interceptorMethod.getParameterTypes();
         if (parameterTypes.length != 1) {
-            throw new IllegalArgumentException("Target method must accept a single parameter");
+            throw msg.interceptorTargetOneParam();
         }
         // allow contravariant parameter types
         if (! parameterTypes[0].isAssignableFrom(InvocationContext.class)) {
-            throw new IllegalArgumentException("Target method's sole parameter must be assignable from " + InvocationContext.class);
+            throw msg.interceptorTargetAssignableFrom(InvocationContext.class);
         }
         // allow covariant return types (but not primitives, which are not Objects); also allow void for lifecycle interceptors
         final Class<?> returnType = interceptorMethod.getReturnType();
         if (returnType != void.class && ! Object.class.isAssignableFrom(returnType)) {
-            throw new IllegalArgumentException("Target method must have an Object return type");
+            throw msg.interceptorReturnObject();
         }
         return interceptorMethod;
     }

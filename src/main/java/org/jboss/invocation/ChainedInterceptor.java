@@ -26,6 +26,8 @@ import java.io.Serializable;
 
 import javax.interceptor.InvocationContext;
 
+import static org.jboss.invocation.InvocationMessages.msg;
+
 /**
  * An interceptor which passes invocations through a series of nested interceptors.
  *
@@ -45,7 +47,7 @@ class ChainedInterceptor implements Interceptor, Serializable {
      */
     ChainedInterceptor(final Interceptor... interceptors) {
         if (interceptors == null) {
-            throw new IllegalArgumentException("interceptors is null");
+            throw msg.nullParameter("interceptors");
         }
         this.interceptors = interceptors;
     }

@@ -29,8 +29,8 @@ import java.lang.reflect.Method;
 import javax.interceptor.InvocationContext;
 
 /**
-* @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
-*/
+ * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
+ */
 class InvokingInterceptor implements Interceptor, Serializable {
 
     static final Interceptor INSTANCE = new InvokingInterceptor();
