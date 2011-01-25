@@ -104,10 +104,12 @@ public class SimpleInvocationContext implements InvocationContext {
 
     /**
      * Throw an exception indicating that the end of the interceptor chain was reached without an invocation
-     * being performed.  This method should be overridden to provide a specific implementation.
+     * being performed.  This method should be overridden to provide a specific implementation.  Though this method
+     * always throws {@link CannotProceedException}, it is declared to throw {@code Exception} so that subclasses
+     * can override this method in a spec-compliant way.
      *
      * @return nothing
-     * @throws Exception always (in particular, {@link IllegalStateException})
+     * @throws Exception always (in particular, {@link CannotProceedException})
      */
     public Object proceed() throws Exception {
         throw msg.cannotProceed();

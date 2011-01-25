@@ -22,7 +22,6 @@
 
 package org.jboss.invocation;
 
-import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collection;
 
 import static org.jboss.invocation.InvocationMessages.msg;
