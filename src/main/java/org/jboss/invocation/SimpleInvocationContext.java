@@ -43,8 +43,25 @@ public class SimpleInvocationContext implements InvocationContext {
     private final Object target;
     private final Method method;
     private Object[] parameters;
-    private final Map<String, Object> contextData = new HashMap<String, Object>();
+    private final Map<String, Object> contextData;
     private final Object timer;
+
+    /**
+     * Construct a new instance.
+     *
+     * @param target the target object instance
+     * @param method the invocation method (may be {@code null})
+     * @param parameters the invocation parameters (may be {@code null})
+     * @param contextData the context data map to use
+     * @param timer the associated timer (may be {@code null})
+     */
+    public SimpleInvocationContext(final Object target, final Method method, final Object[] parameters, final Map<String, Object> contextData, final Object timer) {
+        this.target = target;
+        this.method = method;
+        this.parameters = parameters;
+        this.contextData = contextData;
+        this.timer = timer;
+    }
 
     /**
      * Construct a new instance.
@@ -55,10 +72,7 @@ public class SimpleInvocationContext implements InvocationContext {
      * @param timer the associated timer (may be {@code null})
      */
     public SimpleInvocationContext(final Object target, final Method method, final Object[] parameters, final Object timer) {
-        this.target = target;
-        this.method = method;
-        this.parameters = parameters == null ? NO_OBJECTS : parameters;
-        this.timer = timer;
+        this(target, method, parameters, new HashMap<String, Object>(), timer);
     }
 
     /**
@@ -89,7 +103,7 @@ public class SimpleInvocationContext implements InvocationContext {
 
     /** {@inheritDoc} */
     public void setParameters(final Object[] parameters) {
-        this.parameters = parameters;
+        this.parameters = parameters == null ? NO_OBJECTS : parameters;
     }
 
     /** {@inheritDoc} */
