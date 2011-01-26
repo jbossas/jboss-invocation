@@ -91,7 +91,7 @@ public final class InVMRemoteInterceptor implements Interceptor {
                 for (int i = 0; i < len; i++) {
                     final Object param = parameters[i];
                     if (param != null) {
-                        final Class<? extends Object> origClass = param.getClass();
+                        final Class<?> origClass = param.getClass();
                         final Class<?> newClass = classCloner.clone(origClass);
                         if (newClass != origClass) {
                             newParameters[i] = cloner.clone(param);
