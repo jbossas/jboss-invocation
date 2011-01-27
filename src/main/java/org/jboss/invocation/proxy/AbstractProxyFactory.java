@@ -22,7 +22,10 @@
 
 package org.jboss.invocation.proxy;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.util.HashMap;
 import java.util.Map;
@@ -93,6 +96,15 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
      */
     protected void finalizeStaticConstructor() {
         staticConstructor.getCodeAttribute().returnInstruction();
+    }
+
+    /**
+     * Sets the accessible flag on the cached methods
+     */
+    @Override
+    protected void afterClassLoad(Class<?> clazz) {
+        super.afterClassLoad(clazz);
+        AccessController.doPrivileged(new MethodAccessibilitySetter());
     }
 
     /** {@inheritDoc} */
@@ -194,6 +206,38 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
         }
         String fieldName = methodIdentifiers.get(methodToLoad);
         method.getCodeAttribute().getstatic(getClassName(), fieldName, METHOD_FIELD_DESCRIPTOR);
+    }
+
+    /**
+     * {@link PrivilegedAction} that sets all loaded {@link Method} objects to accessibile by calling
+     * {@link Method#setAccessible(boolean)} for every generated Method field on the proxy.
+     * 
+     * @see AbstractProxyFactory#loadMethodIdentifier(Method, ClassMethod)
+     * @author Stuart Douglas
+     * 
+     */
+    private class MethodAccessibilitySetter implements PrivilegedAction<Void> {
+
+        @Override
+        public Void run() {
+            Class<?> clazz = defineClass();
+            for (int i = 0; i < identifierCount; ++i) {
+                try {
+                    Field field = clazz.getDeclaredField(METHOD_FIELD_PREFIX + i);
+                    field.setAccessible(true);
+                    Method method = (Method) field.get(null);
+                    method.setAccessible(true);
+                } catch (NoSuchFieldException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException(e);
+                } catch (IllegalAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            return null;
+        }
+
     }
 
 }

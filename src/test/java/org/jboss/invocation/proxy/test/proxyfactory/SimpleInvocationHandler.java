@@ -24,6 +24,8 @@ package org.jboss.invocation.proxy.test.proxyfactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
+import junit.framework.Assert;
+
 public class SimpleInvocationHandler implements InvocationHandler {
 
     public static boolean invoked = false;
@@ -32,6 +34,7 @@ public class SimpleInvocationHandler implements InvocationHandler {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        Assert.assertTrue(method.isAccessible());
         return args;
     }
 

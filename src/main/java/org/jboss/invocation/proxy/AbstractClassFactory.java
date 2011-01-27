@@ -122,6 +122,15 @@ public abstract class AbstractClassFactory<T> {
     protected abstract void cleanup();
 
     /**
+     * Hook that is called after the class is loaded, before {@link #cleanup()} is called
+     * 
+     * @param clazz The newly loaded class
+     */
+    protected void afterClassLoad(Class<?> clazz) {
+
+    }
+
+    /**
      * Returns the {@link Class} object for the generated class, creating it if it does not exist
      *
      * @return the generated class
@@ -137,6 +146,7 @@ public abstract class AbstractClassFactory<T> {
                     } else {
                         generatedClass = (Class<? extends T>)classFile.define(classLoader, protectionDomain);
                     }
+                    afterClassLoad(generatedClass);
                     cleanup();
                     classFile = null;
                 }
