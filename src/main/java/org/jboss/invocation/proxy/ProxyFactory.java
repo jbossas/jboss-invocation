@@ -71,7 +71,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      * @author Stuart Douglas
      * 
      */
-    protected class ProxyMethodBodyCreator implements MethodBodyCreator {
+    public class ProxyMethodBodyCreator implements MethodBodyCreator {
 
         /**
          * Override a method by forwarding all calls to the dispatcher.
@@ -174,7 +174,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      * @author Stuart Douglas
      * 
      */
-    protected class ProxyConstructorBodyCreator implements ConstructorBodyCreator {
+    public class ProxyConstructorBodyCreator implements ConstructorBodyCreator {
 
         /**
          * Override the given constructor.
@@ -204,7 +204,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      * @author Stuart Douglas
      * 
      */
-    protected class WriteReplaceBodyCreator implements MethodBodyCreator {
+    public class WriteReplaceBodyCreator implements MethodBodyCreator {
 
         /**
          * Generate the writeReplace method body.
