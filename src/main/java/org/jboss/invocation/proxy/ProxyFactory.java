@@ -23,6 +23,7 @@
 package org.jboss.invocation.proxy;
 
 import java.io.ObjectStreamException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -336,6 +337,9 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         overrideHashcode(creator);
         createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
+        for (Annotation annotation : this.getSuperClass().getDeclaredAnnotations()) {
+            classFile.getRuntimeVisibleAnnotationsAttribute().addAnnotation(annotation);
+        }
     }
 
     private void createWriteReplace() {
