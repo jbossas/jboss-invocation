@@ -33,6 +33,10 @@ public class AbstractSubclassFactoryTest {
                 OverridenClass.class, getClass().getClassLoader());
         OverridenClass instance = factory.newInstance();
         Assert.assertEquals(0, instance.value());
+        SimpleClassFactory<OverridenClass> factory2 = new SimpleClassFactory<OverridenClass>(getClass().getName() + "$$Test",
+                OverridenClass.class, getClass().getClassLoader());
+        Assert.assertEquals(factory2.defineClass(), factory.defineClass());
+
     }
 
 

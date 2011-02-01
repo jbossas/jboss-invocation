@@ -135,20 +135,26 @@ public abstract class AbstractClassFactory<T> {
      *
      * @return the generated class
      */
+    @SuppressWarnings("unchecked")
     public Class<? extends T> defineClass() {
         if (generatedClass == null) {
             synchronized (this) {
                 if (generatedClass == null) {
-                    generateClass();
+                    try {
+                        // first check that the proxy has not already been created
+                        generatedClass = (Class<? extends T>) classLoader.loadClass(this.className);
+                    } catch (ClassNotFoundException e) {
+                        generateClass();
 
-                    if (protectionDomain == null) {
-                        generatedClass = (Class<? extends T>)classFile.define(classLoader);
-                    } else {
-                        generatedClass = (Class<? extends T>)classFile.define(classLoader, protectionDomain);
+                        if (protectionDomain == null) {
+                            generatedClass = (Class<? extends T>) classFile.define(classLoader);
+                        } else {
+                            generatedClass = (Class<? extends T>) classFile.define(classLoader, protectionDomain);
+                        }
+                        afterClassLoad(generatedClass);
+                        cleanup();
+                        classFile = null;
                     }
-                    afterClassLoad(generatedClass);
-                    cleanup();
-                    classFile = null;
                 }
             }
         }
