@@ -327,7 +327,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         if (serializableProxyClass != null) {
             createWriteReplace();
         }
-        ProxyMethodBodyCreator creator = new ProxyMethodBodyCreator();
+        MethodBodyCreator creator = getDefaultMethodOverride();
         overrideAllMethods(creator);
         for (Class<?> iface : additionalInterfaces) {
             addInterface(creator, iface);
@@ -382,6 +382,11 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             }
         }
         return invocationHandlerField;
+    }
+
+    @Override
+    public MethodBodyCreator getDefaultMethodOverride() {
+        return new ProxyMethodBodyCreator();
     }
 
     /**

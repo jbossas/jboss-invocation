@@ -83,6 +83,11 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     private final Set<MethodIdentifier> overriddenMethods = new HashSet<MethodIdentifier>();
 
     /**
+     * Interfaces that have been added
+     */
+    private final Set<Class<?>> interfaces = new HashSet<Class<?>>();
+
+    /**
      * Methods that should not be overridden by default
      */
     private static final Set<MethodIdentifier> SKIP_BY_DEFAULT;
@@ -121,7 +126,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param method The method to override
      * @param identifier The identifier of the method to override
      * @param creator The {@link MethodBodyCreator} used to create the method body
-     * @return {@code false} if the method has already been overriden
+     * @return {@code false} if the method has already been overridden
      */
     protected boolean overrideMethod(ClassMethod method, MethodIdentifier identifier, MethodBodyCreator creator) {
         if (!overriddenMethods.contains(identifier)) {
@@ -136,7 +141,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Overrides all public methods on the superclass. The default {@link MethodBodyCreator} is used to generate the class body.
      * <p>
      * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
-     * <code>toString()</code>, these should be overriden separately using {@link #overrideEquals(MethodBodyCreator)}
+     * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
      * {@link #overrideHashcode(MethodBodyCreator)}{@link #overrideToString(MethodBodyCreator)}
      * {@link #overrideFinalize(MethodBodyCreator)}
      * 
@@ -155,7 +160,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Overrides all public methods on the superclass. The given {@link MethodBodyCreator} is used to generate the class body.
      * <p>
      * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
-     * <code>toString()</code>, these should be overriden separately using {@link #overrideEquals(MethodBodyCreator)}
+     * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
      * {@link #overrideHashcode(MethodBodyCreator)},{@link #overrideToString(MethodBodyCreator)} and
      * {@link #overrideFinalize(MethodBodyCreator)}
      * 
@@ -215,77 +220,88 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     /**
      * Override the equals method using the default {@link MethodBodyCreator}.
      * 
+     * @return true if the method was not already overridden
      */
-    protected void overrideEquals() {
-        overrideEquals(getDefaultMethodOverride());
+    protected boolean overrideEquals() {
+        return overrideEquals(getDefaultMethodOverride());
     }
 
     /**
      * Override the equals method using the given {@link MethodBodyCreator}.
      * 
      * @param creator the method body creator to use
+     * @return true if the method was not already overridden
      */
-    protected void overrideEquals(MethodBodyCreator creator) {
+    protected boolean overrideEquals(MethodBodyCreator creator) {
         Method equals = null;
         try {
             equals = getSuperClass().getMethod("equals", Object.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        creator.overrideMethod(classFile.addMethod(equals), equals);
+        return overrideMethod(equals, MethodIdentifier.getIdentifierForMethod(equals), creator);
     }
 
     /**
      * Override the hashCode method using the default {@link MethodBodyCreator}.
      * 
+     * @return true if the method was not already overridden
+     * 
      */
-    protected void overrideHashcode() {
-        overrideHashcode(getDefaultMethodOverride());
+    protected boolean overrideHashcode() {
+        return overrideHashcode(getDefaultMethodOverride());
     }
 
     /**
      * Override the hashCode method using the given {@link MethodBodyCreator}.
      * 
      * @param creator the method body creator to use
+     * @return true if the method was not already overridden
      */
-    protected void overrideHashcode(MethodBodyCreator creator) {
+    protected boolean overrideHashcode(MethodBodyCreator creator) {
+
         Method hashCode = null;
         try {
             hashCode = getSuperClass().getMethod("hashCode");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        creator.overrideMethod(classFile.addMethod(hashCode), hashCode);
+        return overrideMethod(hashCode, MethodIdentifier.getIdentifierForMethod(hashCode), creator);
     }
 
     /**
      * Override the toString method using the default {@link MethodBodyCreator}
+     * 
+     * @return true if the method was not already overridden
      */
-    protected void overrideToString() {
-        overrideToString(getDefaultMethodOverride());
+    protected boolean overrideToString() {
+        return overrideToString(getDefaultMethodOverride());
     }
 
     /**
      * Override the toString method using the given {@link MethodBodyCreator}.
-     *
+     * 
      * @param creator the method body creator to use
+     * @return true if the method was not already overridden
      */
-    protected void overrideToString(MethodBodyCreator creator) {
+    protected boolean overrideToString(MethodBodyCreator creator) {
         Method toString = null;
         try {
             toString = getSuperClass().getMethod("toString");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        creator.overrideMethod(classFile.addMethod(toString), toString);
+        return overrideMethod(toString, MethodIdentifier.getIdentifierForMethod(toString), creator);
     }
 
     /**
      * Override the finalize method using the default {@link MethodBodyCreator}.
      * 
+     * @return true if the method was not already overridden
+     * 
      */
-    protected void overrideFinalize() {
-        overrideFinalize(getDefaultMethodOverride());
+    protected boolean overrideFinalize() {
+        return overrideFinalize(getDefaultMethodOverride());
     }
 
     /**
@@ -293,14 +309,14 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * 
      * @param creator the method body creator to use
      */
-    protected void overrideFinalize(MethodBodyCreator creator) {
+    protected boolean overrideFinalize(MethodBodyCreator creator) {
         Method finalize = null;
         try {
             finalize = Object.class.getDeclaredMethod("finalize");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        creator.overrideMethod(classFile.addMethod(finalize), finalize);
+        return overrideMethod(finalize, MethodIdentifier.getIdentifierForMethod(finalize), creator);
     }
 
     /**
@@ -308,21 +324,27 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      *
      * @param interfaceClass the interface to add
      */
-    protected void addInterface(Class<?> interfaceClass) {
-        addInterface(getDefaultMethodOverride(), interfaceClass);
+    protected boolean addInterface(Class<?> interfaceClass) {
+        return addInterface(getDefaultMethodOverride(), interfaceClass);
     }
 
     /**
      * Adds an interface to the generated subclass, using the given {@link MethodBodyCreator} to generate the method bodies
-     *
+     * 
      * @param override the method body creator to use
      * @param interfaceClass the interface to add
+     * @return true if the interface was not already overridden
      */
-    protected void addInterface(MethodBodyCreator override, Class<?> interfaceClass) {
+    protected boolean addInterface(MethodBodyCreator override, Class<?> interfaceClass) {
+        if (interfaces.contains(interfaceClass)) {
+            return false;
+        }
+        interfaces.add(interfaceClass);
         classFile.addInterface(interfaceClass.getName());
         for (Method method : interfaceClass.getMethods()) {
-            override.overrideMethod(classFile.addMethod(method), method);
+            overrideMethod(method, MethodIdentifier.getIdentifierForMethod(method), override);
         }
+        return true;
     }
 
     /**
