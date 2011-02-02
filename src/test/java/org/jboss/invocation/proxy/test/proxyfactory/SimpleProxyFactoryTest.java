@@ -21,6 +21,8 @@
  */
 package org.jboss.invocation.proxy.test.proxyfactory;
 
+import java.lang.reflect.Method;
+
 import junit.framework.Assert;
 
 import org.jboss.invocation.proxy.ProxyFactory;
@@ -55,6 +57,23 @@ public class SimpleProxyFactoryTest {
         Class<?> otherProxy = proxyFactory.defineClass(cl2);
         Assert.assertEquals(otherProxy.getName(), instance.getClass().getName());
         Assert.assertNotSame(otherProxy, instance.getClass());
+    }
+
+    @Test
+    public void testRetrievingCachedMethods() {
+        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
+        Method[] methods = proxyFactory.getCachedMethods();
+        Assert.assertEquals(5, methods.length);
+        Method method1 = null;
+        for (Method m : methods) {
+            if (m.getName().equals("method1")) {
+                method1 = m;
+                break;
+            }
+        }
+        Assert.assertNotNull(method1);
+        Assert.assertEquals(SimpleClass.class, method1.getDeclaringClass());
+
     }
 
 }
