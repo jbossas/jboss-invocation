@@ -102,7 +102,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
      * Sets the accessible flag on the cached methods
      */
     @Override
-    protected void afterClassLoad(Class<?> clazz) {
+    public void afterClassLoad(Class<?> clazz) {
         super.afterClassLoad(clazz);
         AccessController.doPrivileged(new MethodAccessibilitySetter());
     }

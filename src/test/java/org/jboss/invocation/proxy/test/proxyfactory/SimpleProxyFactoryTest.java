@@ -37,6 +37,24 @@ public class SimpleProxyFactoryTest {
         Object[] array = (Object[]) result;
         Assert.assertEquals(10L, array[0]);
         Assert.assertEquals(0.0, array[1]);
+
+    }
+
+    @Test
+    public void testMultipleClassLoaders() throws InstantiationException, IllegalAccessException {
+
+        ClassLoader cl1 = new ClassLoader() {
+
+        };
+        ClassLoader cl2 = new ClassLoader() {
+
+        };
+        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(
+                "org.jboss.invocation.proxy.test.proxyfactory.SimpleClass$$Proxy", SimpleClass.class, cl1);
+        SimpleClass instance = proxyFactory.newInstance(new SimpleInvocationHandler());
+        Class<?> otherProxy = proxyFactory.defineClass(cl2);
+        Assert.assertEquals(otherProxy.getName(), instance.getClass().getName());
+        Assert.assertNotSame(otherProxy, instance.getClass());
     }
 
 }

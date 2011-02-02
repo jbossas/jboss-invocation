@@ -31,7 +31,7 @@ import org.jboss.classfilewriter.ClassFile;
  * <p>
  * Sub classes should override {@link #generateClass()} to perform the actual class generation. The class will only be generated
  * once at most
- * 
+ *
  * @author Stuart Douglas
  *
  * @param <T> the type of the superclass
@@ -69,10 +69,13 @@ public abstract class AbstractClassFactory<T> {
      * Note that this object is not thread safe, so care should be taken by subclasses to ensure that no more than one thread
      * accesses this at once. In normal use this should not be an issue, as {@link #generateClass()} will only be called once
      * by a single thread.
-     * <p>
-     * This is set to null after the class is generated
      */
     protected ClassFile classFile;
+
+    /**
+     * Flag that records if the class is generated
+     */
+    private volatile boolean classGenerated;
 
     /**
      * Construct a new instance.
@@ -122,11 +125,13 @@ public abstract class AbstractClassFactory<T> {
     protected abstract void cleanup();
 
     /**
-     * Hook that is called after the class is loaded, before {@link #cleanup()} is called
-     * 
+     * Hook that is called after the class is loaded, before {@link #cleanup()} is called.
+     * <p>
+     * This method may be called mutiple times, if the proxy is definined in multiple class loaders
+     *
      * @param clazz The newly loaded class
      */
-    protected void afterClassLoad(Class<?> clazz) {
+    public void afterClassLoad(Class<?> clazz) {
 
     }
 
@@ -144,21 +149,92 @@ public abstract class AbstractClassFactory<T> {
                         // first check that the proxy has not already been created
                         generatedClass = (Class<? extends T>) classLoader.loadClass(this.className);
                     } catch (ClassNotFoundException e) {
-                        generateClass();
-
+                        buildClassDefinition();
                         if (protectionDomain == null) {
                             generatedClass = (Class<? extends T>) classFile.define(classLoader);
                         } else {
                             generatedClass = (Class<? extends T>) classFile.define(classLoader, protectionDomain);
                         }
                         afterClassLoad(generatedClass);
-                        cleanup();
-                        classFile = null;
                     }
                 }
             }
         }
         return generatedClass;
+    }
+
+    /**
+     * Defines the proxy class in the given class loader, if it does not already exist
+     *
+     * @return the generated class
+     */
+    @SuppressWarnings("unchecked")
+    public synchronized Class<? extends T> defineClass(ClassLoader cl) {
+        Class<? extends T> clazz;
+        try {
+            // first check that the proxy has not already been created
+            clazz = (Class<? extends T>) cl.loadClass(this.className);
+        } catch (ClassNotFoundException e) {
+            buildClassDefinition();
+            if (protectionDomain == null) {
+                clazz = (Class<? extends T>) classFile.define(cl);
+            } else {
+                clazz = (Class<? extends T>) classFile.define(cl, protectionDomain);
+            }
+            afterClassLoad(clazz);
+            classFile = null;
+        }
+        return clazz;
+    }
+
+    /**
+     * Returns the bytes that make up the proxy class definition
+     *
+     * @return The proxy class bytes
+     */
+    public byte[] getProxyBytes() {
+        buildClassDefinition();
+        return classFile.toBytecode();
+    }
+
+    /**
+     * Checks if the proxy class is defined in the factories class loader
+     *
+     * @return true if the proxy class already exists
+     */
+    public boolean isProxyClassDefined() {
+        return isProxyClassDefined(classLoader);
+    }
+
+    /**
+     * Checks if the proxy class has been defined in the given class loader
+     *
+     * @param classLoader The class loader to check
+     * @return true if the proxy is defined in the class loader
+     */
+    public boolean isProxyClassDefined(ClassLoader classLoader) {
+        try {
+            // first check that the proxy has not already been created
+            classLoader.loadClass(this.className);
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    /**
+     * Generates the class
+     */
+    public void buildClassDefinition() {
+        if (!classGenerated) {
+            synchronized (this) {
+                if (!classGenerated) {
+                    generateClass();
+                    cleanup();
+                    classGenerated = true;
+                }
+            }
+        }
     }
 
     /**
