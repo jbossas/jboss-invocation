@@ -192,7 +192,7 @@ public abstract class AbstractClassFactory<T> {
      *
      * @return The proxy class bytes
      */
-    public byte[] getProxyBytes() {
+    public synchronized byte[] getProxyBytes() {
         buildClassDefinition();
         return classFile.toBytecode();
     }
