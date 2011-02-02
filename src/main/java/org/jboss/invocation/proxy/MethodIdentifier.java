@@ -30,7 +30,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jboss.marshalling.FieldSetter;
 
 /**
  * A unique identification of a method within some class or interface which is class loader-agnostic.  Suitable for
@@ -42,12 +41,10 @@ public final class MethodIdentifier implements Serializable {
 
     private static final long serialVersionUID = -4303462176794600579L;
 
-    private static final FieldSetter hashCodeSetter = FieldSetter.get(MethodIdentifier.class, "hashCode");
-
     private final String returnType;
     private final String name;
     private final String[] parameterTypes;
-    private final transient int hashCode;
+    private final int hashCode;
     private static final String[] NO_STRINGS = new String[0];
     private static final Map<String, Class<?>> PRIMITIVES;
 
@@ -194,7 +191,6 @@ public final class MethodIdentifier implements Serializable {
 
     private void readObject(final ObjectInputStream ois) throws ClassNotFoundException, IOException {
         ois.defaultReadObject();
-        hashCodeSetter.setInt(this, calculateHash(name, name, parameterTypes));
     }
 
     /**
