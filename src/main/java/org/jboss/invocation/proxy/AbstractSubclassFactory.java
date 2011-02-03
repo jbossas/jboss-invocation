@@ -30,7 +30,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.util.DescriptorUtils;
 
 /**
  * Class factory for classes that override superclass methods.
@@ -363,7 +365,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     protected void createConstructorDelegates(ConstructorBodyCreator creator) {
         for (Constructor<?> constructor : getSuperClass().getDeclaredConstructors()) {
             if (!Modifier.isPrivate(constructor.getModifiers())) {
-                creator.overrideConstructor(classFile.addConstructor(constructor), constructor);
+                creator.overrideConstructor(classFile.addMethod(AccessFlag.PUBLIC, "<init>", "V", DescriptorUtils
+                        .parameterDescriptors(constructor.getParameterTypes())), constructor);
             }
         }
     }
