@@ -241,7 +241,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      * dispatcher until the constructor has finished. This prevents virtual methods called from the constructor being delegated
      * to a handler that is null.
      */
-    private static final String CONSTRUCTED_GUARD = "proxy$$Constructor$$finished";
+    public static final String CONSTRUCTED_GUARD = "proxy$$Constructor$$finished";
 
     /**
      * A list of additional interfaces that should be added to the proxy, and should have invocations delegated to the
