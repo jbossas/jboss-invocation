@@ -26,8 +26,6 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import javax.interceptor.InvocationContext;
-
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -38,7 +36,7 @@ class InvokingInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 175221411434392097L;
 
-    public Object processInvocation(final InvocationContext context) throws Exception {
+    public Object processInvocation(final InterceptorContext context) throws Exception {
         final Method method = context.getMethod();
         if (method == null) {
             return null;

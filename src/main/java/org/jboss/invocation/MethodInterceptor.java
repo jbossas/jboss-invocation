@@ -61,9 +61,9 @@ public final class MethodInterceptor implements Interceptor {
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws Exception {
+    public Object processInvocation(final InterceptorContext context) throws Exception {
         try {
-            return method.invoke(interceptorInstance, context);
+            return method.invoke(interceptorInstance, context.getInvocationContext());
         } catch (IllegalAccessException e) {
             final IllegalAccessError n = new IllegalAccessError(e.getMessage());
             n.setStackTrace(e.getStackTrace());

@@ -23,8 +23,9 @@
 package org.jboss.invocation;
 
 import java.io.Serializable;
-
-import javax.interceptor.InvocationContext;
+import java.util.Arrays;
+import java.util.List;
+import java.util.ListIterator;
 
 import static org.jboss.invocation.InvocationMessages.msg;
 
@@ -38,7 +39,7 @@ class ChainedInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 7951017996430287249L;
 
-    private final Interceptor[] interceptors;
+    private final List<Interceptor> interceptors;
 
     /**
      * Construct a new instance.
@@ -49,26 +50,17 @@ class ChainedInterceptor implements Interceptor, Serializable {
         if (interceptors == null) {
             throw msg.nullParameter("interceptors");
         }
-        this.interceptors = interceptors;
+        this.interceptors = Arrays.asList(interceptors);
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws Exception {
-        final InvocationContext childContext = new DelegatingInvocationContext(context) {
-            private int index = 0;
-
-            public Object proceed() throws Exception {
-                if (index < interceptors.length) {
-                    try {
-                        return interceptors[index++].processInvocation(this);
-                    } finally {
-                        index--;
-                    }
-                } else {
-                    return super.proceed();
-                }
-            }
-        };
-        return childContext.proceed();
+    public Object processInvocation(final InterceptorContext context) throws Exception {
+        final ListIterator<Interceptor> old = context.getInterceptorIterator();
+        context.setInterceptorIterator(new ConcatenatedIterator<Interceptor>(interceptors.listIterator(), old));
+        try {
+            return context.proceed();
+        } finally {
+            context.setInterceptorIterator(old);
+        }
     }
 }

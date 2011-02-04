@@ -27,8 +27,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
-import javax.interceptor.InvocationContext;
-
 /**
  * A {@link Proxy} {@code InvocationHandler} which delegates invocations to an {@code Interceptor}.
  *
@@ -64,19 +62,10 @@ public class InterceptorInvocationHandler implements InvocationHandler, Serializ
      * @throws Throwable the exception to thrown from the method invocation on the proxy instance, if any
      */
     public Object invoke(final Object proxy, final Method method, final Object[] args) throws Throwable {
-        return interceptor.processInvocation(createInvocationContext(proxy, method, args));
-    }
-
-    /**
-     * Get the invocation context to use.
-     *
-     * @param proxy the proxy object
-     * @param method the invoked method
-     * @param args the method parameters
-     * @return the invocation context
-     */
-    protected InvocationContext createInvocationContext(final Object proxy, final Method method, final Object[] args) {
-        return new SimpleInvocationContext(proxy, method, args, null);
+        InterceptorContext context = new InterceptorContext();
+        context.setParameters(args);
+        context.setMethod(method);
+        return interceptor.processInvocation(context);
     }
 
     /** {@inheritDoc} */

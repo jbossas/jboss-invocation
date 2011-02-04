@@ -22,7 +22,6 @@
 
 package org.jboss.invocation;
 
-import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import org.jboss.marshalling.cloner.ClassLoaderClassCloner;
@@ -30,8 +29,6 @@ import org.jboss.marshalling.cloner.ClonerConfiguration;
 import org.jboss.marshalling.cloner.ObjectCloner;
 import org.jboss.marshalling.cloner.ObjectClonerFactory;
 import org.jboss.marshalling.cloner.ObjectCloners;
-
-import javax.interceptor.InvocationContext;
 
 /**
  * An invocation processor which passes the invocation (possibly by value) to a target class loader.  Invocations will be
@@ -49,99 +46,41 @@ public final class InVMRemoteInterceptor implements Interceptor {
         }
     };
 
-    private final Interceptor targetInterceptor;
-    private final Method targetMethod;
-    private final ClassLoaderClassCloner classCloner;
-    private final PassMode passMode;
-    private final Object targetInstance;
     private final ClonerConfiguration configuration;
 
     /**
      * Construct a new instance.
      *
-     * @param targetInterceptor the target interceptor
-     * @param targetMethod the target method
      * @param targetClassLoader the target class loader
-     * @param passMode the parameter pass mode
-     * @param targetInstance the target invocation instance
+     *
      */
-    public InVMRemoteInterceptor(final Interceptor targetInterceptor, final Method targetMethod, final ClassLoader targetClassLoader, final PassMode passMode, final Object targetInstance) {
-        this.targetInterceptor = targetInterceptor;
-        this.targetMethod = targetMethod;
-        this.passMode = passMode;
-        this.targetInstance = targetInstance;
+    public InVMRemoteInterceptor(final ClassLoader targetClassLoader) {
         configuration = new ClonerConfiguration();
-        configuration.setClassCloner(classCloner = new ClassLoaderClassCloner(targetClassLoader));
+        configuration.setClassCloner(new ClassLoaderClassCloner(targetClassLoader));
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws Exception {
+    public Object processInvocation(final InterceptorContext context) throws Exception {
         final Object[] parameters = context.getParameters();
         final ObjectClonerFactory clonerFactory = ObjectCloners.getSerializingObjectClonerFactory();
         final ObjectCloner cloner = clonerFactory.createCloner(configuration);
         final Object[] newParameters;
-        switch (passMode) {
-            case REFERENCE_ONLY: {
-                newParameters = parameters;
-                break;
-            }
-            case SAME_CLASS_LOADER: {
-                newParameters = parameters.clone();
-                final int len = newParameters.length;
-                for (int i = 0; i < len; i++) {
-                    final Object param = parameters[i];
-                    if (param != null) {
-                        final Class<?> origClass = param.getClass();
-                        final Class<?> newClass = classCloner.clone(origClass);
-                        if (newClass != origClass) {
-                            newParameters[i] = cloner.clone(param);
-                        }
-                    }
-                }
-                break;
-            }
-            case VALUE_ONLY: {
-                final int len = parameters.length;
-                newParameters = new Object[len];
-                for (int i = 0; i < len; i++) {
-                     newParameters[i] = cloner.clone(parameters[i]);
-                }
-                break;
-            }
-            default: {
-                // not reachable
-                throw new IllegalStateException();
-            }
+        final int len = parameters.length;
+        newParameters = new Object[len];
+        for (int i = 0; i < len; i++) {
+             newParameters[i] = cloner.clone(parameters[i]);
         }
-        final InvocationContext newContext = new SimpleInvocationContext(targetInstance, targetMethod, newParameters, context.getContextData(), null);
-        final Object result = targetInterceptor.processInvocation(newContext);
-        switch (passMode) {
-            case REFERENCE_ONLY: {
-                return result;
+        context.setParameters(newParameters);
+        try {
+            final Object result = context.proceed();
+            if (result == null) {
+                return null;
             }
-            case SAME_CLASS_LOADER: {
-                if (result == null) {
-                    return null;
-                }
-                final ClassLoaderClassCloner classCloner = new ClassLoaderClassCloner(getContextClassLoader());
-                final Class<?> classClone = classCloner.clone(result.getClass());
-                if (classClone == result.getClass()) {
-                    return result;
-                }
-                // fall through
-            }
-            case VALUE_ONLY: {
-                if (result == null) {
-                    return null;
-                }
-                final ClonerConfiguration copyBackConfiguration = new ClonerConfiguration();
-                copyBackConfiguration.setClassCloner(new ClassLoaderClassCloner(getContextClassLoader()));
-                return clonerFactory.createCloner(copyBackConfiguration).clone(result);
-            }
-            default: {
-                // not reachable
-                throw new IllegalStateException();
-            }
+            final ClonerConfiguration copyBackConfiguration = new ClonerConfiguration();
+            copyBackConfiguration.setClassCloner(new ClassLoaderClassCloner(getContextClassLoader()));
+            return clonerFactory.createCloner(copyBackConfiguration).clone(result);
+        } finally {
+            context.setParameters(parameters);
         }
     }
 
@@ -152,23 +91,5 @@ public final class InVMRemoteInterceptor implements Interceptor {
         } else {
             return Thread.currentThread().getContextClassLoader();
         }
-    }
-
-    /**
-     * The mode to use for parameter and result passing to the target.
-     */
-    public enum PassMode {
-        /**
-         * Pass all items by reference always.
-         */
-        REFERENCE_ONLY,
-        /**
-         * Pass items by reference which are of the same type and class loader.
-         */
-        SAME_CLASS_LOADER,
-        /**
-         * Pass all items by value always.
-         */
-        VALUE_ONLY,
     }
 }

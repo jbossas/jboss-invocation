@@ -24,8 +24,6 @@ package org.jboss.invocation;
 
 import java.io.Serializable;
 
-import javax.interceptor.InvocationContext;
-
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -36,7 +34,7 @@ class NullInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = -2792151547173027051L;
 
-    public Object processInvocation(final InvocationContext context) throws Exception {
+    public Object processInvocation(final InterceptorContext context) throws Exception {
         return context.proceed();
     }
 

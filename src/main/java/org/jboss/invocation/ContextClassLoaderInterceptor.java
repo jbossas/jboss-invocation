@@ -28,8 +28,6 @@ import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import javax.interceptor.InvocationContext;
-
 /**
  * An interceptor which sets the thread context class loader for the duration of an invocation.
  * <p>
@@ -58,7 +56,7 @@ public final class ContextClassLoaderInterceptor implements Interceptor, Seriali
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws Exception {
+    public Object processInvocation(final InterceptorContext context) throws Exception {
         final Thread thread = Thread.currentThread();
         final ClassLoader old;
         final SecurityManager sm = System.getSecurityManager();

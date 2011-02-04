@@ -24,8 +24,6 @@ package org.jboss.invocation;
 
 import java.lang.reflect.Method;
 
-import javax.interceptor.InvocationContext;
-
 /**
  * An interceptor which always invokes one specific method on one specific object given the parameters from
  * the invocation context.
@@ -48,7 +46,7 @@ public final class MethodInvokingInterceptor implements Interceptor {
     }
 
     /** {@inheritDoc} */
-    public Object processInvocation(final InvocationContext context) throws Exception {
+    public Object processInvocation(final InterceptorContext context) throws Exception {
         return method.invoke(target, (Object[]) context.getParameters());
     }
 }

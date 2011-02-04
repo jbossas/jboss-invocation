@@ -22,8 +22,6 @@
 
 package org.jboss.invocation;
 
-import javax.interceptor.InvocationContext;
-
 /**
  * A processor for invocations.  May perform some action, including but not limited to handling the invocation, before
  * or in lieu of passing it on to the dispatcher or another processor.
@@ -35,11 +33,11 @@ public interface Interceptor {
 
     /**
      * Process an invocation.  The invocation can be handled directly, or passed on to the next processor in the
-     * chain via {@code context}.
+     * chain.
      *
-     * @param context the invocation context
+     * @param context the interceptor context
      * @return the result of the invocation
      * @throws Exception If the underlying invocation resulted in some exception
      */
-    Object processInvocation(InvocationContext context) throws Exception;
+    Object processInvocation(InterceptorContext context) throws Exception;
 }
