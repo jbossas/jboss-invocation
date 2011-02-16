@@ -55,4 +55,33 @@ public class ChainedInterceptorTestCase {
         String expected = "3#4#1#2#Echo test1";
         assertEquals(expected, result);
     }
+
+    /**
+     * A cluster interceptor might invoke again down the chain.
+     */
+    @Test
+    public void testAgain() throws Exception {
+        Method method = ChainedInterceptorTestCase.class.getMethod("echo", String.class);
+        InterceptorContext context = new InterceptorContext();
+        context.setMethod(method);
+        context.setTarget(this);
+        context.setParameters(new Object[] { "testAgain" });
+
+        Interceptor again = new Interceptor() {
+            private int num = 2;
+            @Override
+            public Object processInvocation(InterceptorContext context) throws Exception {
+                StringBuilder result = new StringBuilder();
+                while ((num--) > 0)
+                    result.append(context.proceed());
+                return result;
+            }
+        };
+        Interceptor interceptor1 = Interceptors.getChainedInterceptor(again, createMyInterceptor("1"), createMyInterceptor("2"), Interceptors.getInvokingInterceptor());
+        Interceptor interceptor2 = Interceptors.getChainedInterceptor(createMyInterceptor("3"), createMyInterceptor("4"), interceptor1);
+
+        String result = (String) interceptor2.processInvocation(context);
+        String expected = "3#4#1#2#Echo testAgain1#2#Echo testAgain";
+        assertEquals(expected, result);
+    }
 }
