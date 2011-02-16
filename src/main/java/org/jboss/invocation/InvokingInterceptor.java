@@ -26,6 +26,8 @@ import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import static org.jboss.invocation.InvocationMessages.msg;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -42,7 +44,11 @@ class InvokingInterceptor implements Interceptor, Serializable {
             return null;
         }
         try {
-            return method.invoke(context.getTarget(), context.getParameters());
+            Object target = context.getTarget();
+            if (target == null) {
+                throw msg.nullProperty("target", context);
+            }
+            return method.invoke(target, context.getParameters());
         } catch (IllegalAccessException e) {
             final IllegalAccessError n = new IllegalAccessError(e.getMessage());
             n.setStackTrace(e.getStackTrace());

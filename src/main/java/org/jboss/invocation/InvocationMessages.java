@@ -22,12 +22,13 @@
 
 package org.jboss.invocation;
 
-import java.io.InvalidObjectException;
-import java.lang.reflect.UndeclaredThrowableException;
 import org.jboss.logging.Cause;
 import org.jboss.logging.Message;
 import org.jboss.logging.MessageBundle;
 import org.jboss.logging.Messages;
+
+import java.io.InvalidObjectException;
+import java.lang.reflect.UndeclaredThrowableException;
 
 /**
  * Invocation message logger.
@@ -68,4 +69,7 @@ interface InvocationMessages {
 
     @Message(id = 10, value = "Target method must return an object type")
     IllegalArgumentException interceptorReturnObject();
+
+    @Message(id = 11, value = "Null value for property %s of %s")
+    NullPointerException nullProperty(String propertyName, Object obj);
 }
