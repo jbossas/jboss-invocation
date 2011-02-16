@@ -114,6 +114,10 @@ public final class Interceptors {
         return new ChainedInterceptorFactory(instances.toArray(new InterceptorFactory[instances.size()]));
     }
 
+    public static Interceptor getWeavedInterceptor(final Interceptor... interceptors) {
+        return new WeavedInterceptor(interceptors);
+    }
+
     /**
      * Convenience method to get a {@link Throwable} as an {@link Exception}.
      *

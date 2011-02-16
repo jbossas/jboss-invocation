@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2011, Red Hat, Inc., and individual contributors
+ * Copyright (c) 2011, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -27,39 +27,26 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
 
-import static org.jboss.invocation.InvocationMessages.msg;
-
 /**
- * An interceptor which passes invocations through a series of nested interceptors.
+ * Weaves a series of interceptors into an existing interceptor chain.
  *
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
- * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-class ChainedInterceptor implements Interceptor, Serializable {
-
-    private static final long serialVersionUID = 7951017996430287249L;
-
+class WeavedInterceptor implements Interceptor, Serializable {
     private final List<Interceptor> interceptors;
 
-    /**
-     * Construct a new instance.
-     *
-     * @param interceptors the child interceptors
-     */
-    ChainedInterceptor(final Interceptor... interceptors) {
-        if (interceptors == null) {
-            throw msg.nullParameter("interceptors");
-        }
+    WeavedInterceptor(final Interceptor... interceptors) {
         this.interceptors = Arrays.asList(interceptors);
     }
 
-    /** {@inheritDoc} */
-    public Object processInvocation(final InterceptorContext context) throws Exception {
+    @Override
+    public Object processInvocation(InterceptorContext context) throws Exception {
         final ListIterator<Interceptor> old = context.getInterceptorIterator();
-        context.setInterceptorIterator(interceptors.listIterator());
+        context.setInterceptorIterator(new ConcatenatedIterator<Interceptor>(interceptors.listIterator(), old));
         try {
             return context.proceed();
-        } finally {
+        }
+        finally {
             context.setInterceptorIterator(old);
         }
     }
