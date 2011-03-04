@@ -106,7 +106,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     /**
      * Creates a new method on the generated class that overrides the given methods, unless a method with the same signature has
      * already been overridden.
-     * 
+     *
      * @param method The method to override
      * @param identifier The identifier of the method to override
      * @param creator The {@link MethodBodyCreator} used to create the method body
@@ -124,7 +124,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     /**
      * Creates a new method on the generated class that overrides the given methods, unless a method with the same signature has
      * already been overridden.
-     * 
+     *
      * @param method The method to override
      * @param identifier The identifier of the method to override
      * @param creator The {@link MethodBodyCreator} used to create the method body
@@ -146,7 +146,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
      * {@link #overrideHashcode(MethodBodyCreator)}{@link #overrideToString(MethodBodyCreator)}
      * {@link #overrideFinalize(MethodBodyCreator)}
-     * 
+     *
      */
     protected void overridePublicMethods() {
         overridePublicMethods(getDefaultMethodOverride());
@@ -165,7 +165,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
      * {@link #overrideHashcode(MethodBodyCreator)},{@link #overrideToString(MethodBodyCreator)} and
      * {@link #overrideFinalize(MethodBodyCreator)}
-     * 
+     *
      * @param override the method body creator to use
      */
     protected void overridePublicMethods(MethodBodyCreator override) {
@@ -200,8 +200,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      */
     protected void overrideAllMethods(MethodBodyCreator override) {
         Class<?> currentClass = getSuperClass();
-        while (currentClass != null) {
-            for (Method method : getSuperClass().getDeclaredMethods()) {
+        while (currentClass != null && currentClass != Object.class) {
+            for (Method method : currentClass.getDeclaredMethods()) {
                 // do not override static or private methods
                 if (Modifier.isStatic(method.getModifiers()) || Modifier.isPrivate(method.getModifiers())) {
                     continue;
@@ -221,7 +221,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the equals method using the default {@link MethodBodyCreator}.
-     * 
+     *
      * @return true if the method was not already overridden
      */
     protected boolean overrideEquals() {
@@ -230,7 +230,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the equals method using the given {@link MethodBodyCreator}.
-     * 
+     *
      * @param creator the method body creator to use
      * @return true if the method was not already overridden
      */
@@ -246,9 +246,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the hashCode method using the default {@link MethodBodyCreator}.
-     * 
+     *
      * @return true if the method was not already overridden
-     * 
+     *
      */
     protected boolean overrideHashcode() {
         return overrideHashcode(getDefaultMethodOverride());
@@ -256,7 +256,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the hashCode method using the given {@link MethodBodyCreator}.
-     * 
+     *
      * @param creator the method body creator to use
      * @return true if the method was not already overridden
      */
@@ -273,7 +273,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the toString method using the default {@link MethodBodyCreator}
-     * 
+     *
      * @return true if the method was not already overridden
      */
     protected boolean overrideToString() {
@@ -282,7 +282,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the toString method using the given {@link MethodBodyCreator}.
-     * 
+     *
      * @param creator the method body creator to use
      * @return true if the method was not already overridden
      */
@@ -298,9 +298,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the finalize method using the default {@link MethodBodyCreator}.
-     * 
+     *
      * @return true if the method was not already overridden
-     * 
+     *
      */
     protected boolean overrideFinalize() {
         return overrideFinalize(getDefaultMethodOverride());
@@ -308,7 +308,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Override the finalize method using the given {@link MethodBodyCreator}.
-     * 
+     *
      * @param creator the method body creator to use
      */
     protected boolean overrideFinalize(MethodBodyCreator creator) {
@@ -332,7 +332,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Adds an interface to the generated subclass, using the given {@link MethodBodyCreator} to generate the method bodies
-     * 
+     *
      * @param override the method body creator to use
      * @param interfaceClass the interface to add
      * @return true if the interface was not already overridden
