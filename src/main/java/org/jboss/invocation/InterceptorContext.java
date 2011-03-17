@@ -24,6 +24,7 @@ package org.jboss.invocation;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.ListIterator;
 import java.util.Map;
@@ -43,7 +44,7 @@ public final class InterceptorContext {
     private Object target;
     private Method method;
     private Object[] parameters;
-    private Map<String, Object> contextData;
+    private Map<String, Object> contextData = new HashMap<String, Object>();
     private Object timer;
     private ListIterator<Interceptor> interceptorIterator = EMPTY;
     private final Map<Class<?>, Object> privateData = new IdentityHashMap<Class<?>, Object>();
@@ -116,8 +117,12 @@ public final class InterceptorContext {
      * Set the context data which is reported to the interceptor invocation context.
      *
      * @param contextData the context data
+     * @throws IllegalArgumentException If the passed <code>contextData</code> is null.
      */
     public void setContextData(final Map<String, Object> contextData) {
+        if (contextData == null) {
+            throw new IllegalArgumentException("Cannot set a null context data");
+        }
         this.contextData = contextData;
     }
 
