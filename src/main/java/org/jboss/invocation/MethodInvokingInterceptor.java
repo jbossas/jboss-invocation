@@ -22,7 +22,10 @@
 
 package org.jboss.invocation;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+
+import static org.jboss.invocation.Interceptors.rethrow;
 
 /**
  * An interceptor which always invokes one specific method on one specific object given the parameters from
@@ -47,6 +50,11 @@ public final class MethodInvokingInterceptor implements Interceptor {
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
-        return method.invoke(target, (Object[]) context.getParameters());
+        try {
+            return method.invoke(target, (Object[]) context.getParameters());
+        }
+        catch (InvocationTargetException e) {
+            throw rethrow(e.getCause());
+        }
     }
 }
