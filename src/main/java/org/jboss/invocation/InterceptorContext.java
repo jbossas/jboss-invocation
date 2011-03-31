@@ -23,8 +23,8 @@
 package org.jboss.invocation;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -42,7 +42,6 @@ import static org.jboss.invocation.InvocationMessages.msg;
 public final class InterceptorContext implements Cloneable {
     private static final List<Interceptor> EMPTY = Collections.<Interceptor>emptyList();
     private static final ListIterator<Interceptor> EMPTY_ITR = EMPTY.listIterator();
-
 
     private Object target;
     private Method method;
@@ -223,7 +222,7 @@ public final class InterceptorContext implements Cloneable {
             throw new IllegalArgumentException("interceptors is null");
         }
         this.interceptors = interceptors;
-        this.interceptorIterator = interceptors.listIterator(nextIndex);
+        interceptorIterator = interceptors.listIterator(nextIndex);
     }
 
     /**
@@ -246,16 +245,25 @@ public final class InterceptorContext implements Cloneable {
         }
     }
 
+    /**
+     * Clone this interceptor context instance.  The cloned context will resume execution at the same point that
+     * this context would have at the moment it was cloned.
+     *
+     * @return the copied context
+     */
     public InterceptorContext clone() {
         final InterceptorContext clone = new InterceptorContext();
-        clone.contextData.putAll(this.contextData);
+        final Map<String, Object> contextData = this.contextData;
+        if (contextData != null) {
+            clone.contextData = new HashMap<String, Object>(contextData);
+        }
         clone.privateData.putAll(privateData);
-        clone.target = this.target;
-        clone.method = this.method;
-        clone.parameters = this.parameters;
-        clone.timer = this.timer;
-        int next = interceptorIterator.nextIndex();
-        clone.setInterceptors(this.interceptors.subList(next, this.interceptors.size()));
+        clone.target = target;
+        clone.method = method;
+        clone.parameters = parameters;
+        clone.timer = timer;
+        final int next = interceptorIterator.nextIndex();
+        clone.setInterceptors(interceptors.subList(next, interceptors.size()));
         return clone;
     }
 
