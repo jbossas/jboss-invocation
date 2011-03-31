@@ -107,8 +107,13 @@ public final class InterceptorContext {
      * Get the context data which is reported to the interceptor invocation context.
      *
      * @return the context data
+     * @throws IllegalStateException if the context data was never initialized
      */
-    public Map<String, Object> getContextData() {
+    public Map<String, Object> getContextData() throws IllegalStateException {
+        Map<String, Object> contextData = this.contextData;
+        if (contextData == null) {
+            throw new IllegalStateException("The context data was not set");
+        }
         return contextData;
     }
 
