@@ -23,6 +23,7 @@
 package org.jboss.invocation;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ListIterator;
@@ -41,13 +42,16 @@ class WeavedInterceptor implements Interceptor, Serializable {
 
     @Override
     public Object processInvocation(InterceptorContext context) throws Exception {
-        final ListIterator<Interceptor> old = context.getInterceptorIterator();
-        context.setInterceptorIterator(new ConcatenatedIterator<Interceptor>(interceptors.listIterator(), old));
+        final int oldNext = context.getNextInterceptorIndex();
+        final List<Interceptor> old = context.getInterceptors();
+        final List<Interceptor> interceptors = new ArrayList<Interceptor>(this.interceptors);
+        interceptors.addAll(old.subList(oldNext, old.size()));
+        context.setInterceptors(interceptors);
         try {
             return context.proceed();
         }
         finally {
-            context.setInterceptorIterator(old);
+            context.setInterceptors(old, oldNext);
         }
     }
 }

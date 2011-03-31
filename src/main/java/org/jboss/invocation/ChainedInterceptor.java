@@ -55,12 +55,13 @@ class ChainedInterceptor implements Interceptor, Serializable {
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
-        final ListIterator<Interceptor> old = context.getInterceptorIterator();
-        context.setInterceptorIterator(interceptors.listIterator());
+        final int oldNext = context.getNextInterceptorIndex();
+        final List<Interceptor> old = context.getInterceptors();
+        context.setInterceptors(interceptors);
         try {
             return context.proceed();
         } finally {
-            context.setInterceptorIterator(old);
+            context.setInterceptors(old, oldNext);
         }
     }
 }

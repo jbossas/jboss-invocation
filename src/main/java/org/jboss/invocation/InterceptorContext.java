@@ -23,8 +23,10 @@
 package org.jboss.invocation;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
@@ -37,15 +39,18 @@ import static org.jboss.invocation.InvocationMessages.msg;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class InterceptorContext {
-    private static final ListIterator<Interceptor> EMPTY = Collections.<Interceptor>emptyList().listIterator();
+public final class InterceptorContext implements Cloneable {
+    private static final List<Interceptor> EMPTY = Collections.<Interceptor>emptyList();
+    private static final ListIterator<Interceptor> EMPTY_ITR = EMPTY.listIterator();
+
 
     private Object target;
     private Method method;
     private Object[] parameters;
     private Map<String, Object> contextData;
     private Object timer;
-    private ListIterator<Interceptor> interceptorIterator = EMPTY;
+    private List<Interceptor> interceptors = EMPTY;
+    private ListIterator<Interceptor> interceptorIterator = EMPTY_ITR;
     private final Map<Class<?>, Object> privateData = new IdentityHashMap<Class<?>, Object>();
     private final InvocationContext invocationContext = new Invocation();
 
@@ -181,24 +186,44 @@ public final class InterceptorContext {
     }
 
     /**
-     * Get the current interceptor iterator; guaranteed to be non-{@code null}.
+     * Get the current interceptors.
      *
-     * @return the interceptor iterator
+     * @return the interceptors
      */
-    public ListIterator<Interceptor> getInterceptorIterator() {
-        return interceptorIterator;
+    public List<Interceptor> getInterceptors() {
+        return interceptors;
+    }
+
+    /**
+     * Returns the next interceptor index.
+     *
+     * @return
+     */
+    public int getNextInterceptorIndex() {
+        return interceptorIterator.nextIndex();
     }
 
     /**
      * Set the interceptor iterator.
      *
-     * @param interceptorIterator the interceptor iterator
+     * @param interceptors the interceptor list
      */
-    public void setInterceptorIterator(final ListIterator<Interceptor> interceptorIterator) {
-        if (interceptorIterator == null) {
-            throw new IllegalArgumentException("interceptorIterator is null");
+    public void setInterceptors(final List<Interceptor> interceptors) {
+        setInterceptors(interceptors, 0);
+    }
+
+    /**
+     * Set the interceptors.  With a starting index to proceed from.
+     *
+     * @param interceptors the interceptor list
+     * @param nextIndex the next index to proceed
+     */
+    public void setInterceptors(final List<Interceptor> interceptors, int nextIndex) {
+        if (interceptors == null) {
+            throw new IllegalArgumentException("interceptors is null");
         }
-        this.interceptorIterator = interceptorIterator;
+        this.interceptors = interceptors;
+        this.interceptorIterator = interceptors.listIterator(nextIndex);
     }
 
     /**
@@ -219,6 +244,19 @@ public final class InterceptorContext {
         } else {
             throw msg.cannotProceed();
         }
+    }
+
+    public InterceptorContext clone() {
+        final InterceptorContext clone = new InterceptorContext();
+        clone.contextData.putAll(this.contextData);
+        clone.privateData.putAll(privateData);
+        clone.target = this.target;
+        clone.method = this.method;
+        clone.parameters = this.parameters;
+        clone.timer = this.timer;
+        int next = interceptorIterator.nextIndex();
+        clone.setInterceptors(this.interceptors.subList(next, this.interceptors.size()));
+        return clone;
     }
 
     private class Invocation implements InvocationContext {
