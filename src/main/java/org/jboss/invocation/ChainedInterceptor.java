@@ -25,7 +25,6 @@ package org.jboss.invocation;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ListIterator;
 
 import static org.jboss.invocation.InvocationMessages.msg;
 

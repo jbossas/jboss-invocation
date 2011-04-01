@@ -31,7 +31,7 @@ import javax.interceptor.InvocationContext;
 import static org.jboss.invocation.InvocationMessages.msg;
 
 /**
- * A method interceptor.  The target method should be non-final, must be non-static, and must accept a single
+ * A method interceptor.  The target method should be non-final and must accept a single
  * parameter of type {@link InvocationContext} (or any supertype thereof).  The method must belong to the given
  * interceptor object's class or one of its supertypes.
  *
@@ -79,9 +79,6 @@ public final class MethodInterceptor implements Interceptor {
             throw msg.wrongInterceptorType();
         }
         final int modifiers = method.getModifiers();
-        if (Modifier.isStatic(modifiers)) {
-            throw msg.targetIsStatic();
-        }
         if (! Modifier.isPublic(modifiers) && ! method.isAccessible()) {
             throw msg.interceptorInaccessible();
         }

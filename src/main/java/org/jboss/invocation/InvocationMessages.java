@@ -55,8 +55,8 @@ interface InvocationMessages {
     @Message(id = 5, value = "The given interceptor instance is of the wrong type")
     IllegalArgumentException wrongInterceptorType();
 
-    @Message(id = 6, value = "Target method must not be static")
-    IllegalArgumentException targetIsStatic();
+    // id = 6
+    // unused
 
     @Message(id = 7, value = "Method interceptor for inaccessible method")
     SecurityException interceptorInaccessible();

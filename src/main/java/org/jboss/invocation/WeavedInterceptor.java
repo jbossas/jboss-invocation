@@ -26,7 +26,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ListIterator;
 
 /**
  * Weaves a series of interceptors into an existing interceptor chain.
@@ -34,6 +33,9 @@ import java.util.ListIterator;
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  */
 class WeavedInterceptor implements Interceptor, Serializable {
+
+    private static final long serialVersionUID = -2015905619563503718L;
+
     private final List<Interceptor> interceptors;
 
     WeavedInterceptor(final Interceptor... interceptors) {
