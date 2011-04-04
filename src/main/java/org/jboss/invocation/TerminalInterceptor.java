@@ -27,15 +27,15 @@ import java.io.Serializable;
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-class NullInterceptor implements Interceptor, Serializable {
+class TerminalInterceptor implements Interceptor, Serializable {
 
-    static final Interceptor INSTANCE = new NullInterceptor();
+    static final Interceptor INSTANCE = new TerminalInterceptor();
     static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
     private static final long serialVersionUID = -2792151547173027051L;
 
     public Object processInvocation(final InterceptorContext context) throws Exception {
-        return context.proceed();
+        return null;
     }
 
     protected Object readResolve() {
@@ -43,6 +43,6 @@ class NullInterceptor implements Interceptor, Serializable {
     }
 
     public String toString() {
-        return "null interceptor";
+        return "terminal interceptor";
     }
 }

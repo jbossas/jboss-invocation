@@ -37,21 +37,21 @@ public final class Interceptors {
     }
 
     /**
-     * Get a no-operation interceptor which always proceeds.
+     * Get an interceptor which always returns {@code null}.
      *
      * @return the interceptor
      */
-    public static Interceptor getNullInterceptor() {
-        return NullInterceptor.INSTANCE;
+    public static Interceptor getTerminalInterceptor() {
+        return TerminalInterceptor.INSTANCE;
     }
 
     /**
-     * Get a factory which returns the no-operation interceptor.
+     * Get a factory which returns the terminal interceptor.
      *
      * @return the factory
      */
-    public static InterceptorFactory getNullInterceptorFactory() {
-        return NullInterceptor.FACTORY;
+    public static InterceptorFactory getTerminalInterceptorFactory() {
+        return TerminalInterceptor.FACTORY;
     }
 
     /**

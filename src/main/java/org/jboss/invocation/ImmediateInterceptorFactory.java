@@ -48,4 +48,8 @@ public final class ImmediateInterceptorFactory implements InterceptorFactory, Se
     public Interceptor create(final InterceptorFactoryContext context) {
         return interceptor;
     }
+
+    public String toString() {
+        return "immediate factory for " + interceptor;
+    }
 }

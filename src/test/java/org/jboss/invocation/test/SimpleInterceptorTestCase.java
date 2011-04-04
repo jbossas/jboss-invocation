@@ -30,6 +30,7 @@ import org.junit.Test;
 import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 /**
@@ -48,7 +49,7 @@ public class SimpleInterceptorTestCase {
         context.setMethod(method);
         context.setTarget(this);
 
-        Interceptor interceptor = Interceptors.getChainedInterceptor(Interceptors.getNullInterceptor(), Interceptors.getNullInterceptor(), Interceptors.getInvokingInterceptor());
+        Interceptor interceptor = Interceptors.getChainedInterceptor(Interceptors.getInvokingInterceptor());
         try {
             interceptor.processInvocation(context);
             fail("Should have thrown an Exception");
@@ -56,6 +57,17 @@ public class SimpleInterceptorTestCase {
         catch(Exception e) {
             assertEquals("Hello world", e.getMessage());
         }
+    }
+
+    @Test
+    public void test2() throws Exception {
+        Method method = SimpleInterceptorTestCase.class.getMethod("throwException");
+        InterceptorContext context = new InterceptorContext();
+        context.setMethod(method);
+        context.setTarget(this);
+
+        Interceptor interceptor = Interceptors.getChainedInterceptor(Interceptors.getTerminalInterceptor());
+        assertNull(interceptor.processInvocation(context));
     }
 
     public void throwException() throws Exception {
