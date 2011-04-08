@@ -50,7 +50,7 @@ public final class InterceptorContext implements Cloneable {
     private Object timer;
     private List<Interceptor> interceptors = EMPTY;
     private ListIterator<Interceptor> interceptorIterator = EMPTY_ITR;
-    private final Map<Class<?>, Object> privateData = new IdentityHashMap<Class<?>, Object>();
+    private final Map<Object, Object> privateData = new IdentityHashMap<Object, Object>();
     private final InvocationContext invocationContext = new Invocation();
 
     /**
@@ -169,6 +169,16 @@ public final class InterceptorContext implements Cloneable {
     }
 
     /**
+     * Get a private data item.  The key will be looked up by object identity, not by value.
+     *
+     * @param key the object key
+     * @return the private data object
+     */
+    public Object getPrivateData(Object key) {
+        return privateData.get(key);
+    }
+
+    /**
      * Insert a private data item.
      *
      * @param type the data type class object
@@ -181,6 +191,31 @@ public final class InterceptorContext implements Cloneable {
             return type.cast(privateData.remove(type));
         } else {
             return type.cast(privateData.put(type, type.cast(value)));
+        }
+    }
+
+    /**
+     * Insert a private data item.  The key is used by object identity, not by value; in addition, if the key is
+     * a {@code Class} then the value given must be assignable to that class.
+     *
+     * @param key the data key
+     * @param value the data item value, or {@code null} to remove the mapping
+     * @return the data item which was previously mapped to this position, or {@code null} if no such item exists
+     */
+    public Object putPrivateData(Object key, Object value) {
+        if (key instanceof Class) {
+            final Class<?> type = (Class<?>) key;
+            if (value == null) {
+                return type.cast(privateData.remove(type));
+            } else {
+                return type.cast(privateData.put(type, type.cast(value)));
+            }
+        } else {
+            if (value == null) {
+                return privateData.remove(key);
+            } else {
+                return privateData.put(key, value);
+            }
         }
     }
 
