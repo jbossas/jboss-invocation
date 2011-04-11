@@ -21,12 +21,11 @@
  */
 package org.jboss.invocation.proxy.test.proxyfactory;
 
-import java.lang.reflect.Method;
-
 import junit.framework.Assert;
-
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
+
+import java.lang.reflect.Method;
 
 public class BridgeMethodTest {
 
@@ -44,6 +43,12 @@ public class BridgeMethodTest {
         Method result = (Method) parent.getResult();
         Assert.assertEquals(Object.class, result.getReturnType());
         Assert.assertTrue(result.isBridge());
+    }
+
+    public void testParentMethodProxied() throws IllegalAccessException, InstantiationException {
+        ProxyFactory<BridgeMethodChild> proxyFactory = new ProxyFactory<BridgeMethodChild>(BridgeMethodChild.class);
+        BridgeMethodChild instance = proxyFactory.newInstance(new BridgeMethodInvocationHandler());
+        Assert.assertEquals(20,instance.proxyMethod());
     }
 
 }

@@ -27,4 +27,8 @@ public class BridgeMethodParent {
         return null;
     }
 
+    public int proxyMethod() {
+        return 10;
+    }
+
 }

@@ -26,9 +26,11 @@ import java.lang.reflect.Method;
 
 public class BridgeMethodInvocationHandler implements InvocationHandler {
 
-    @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        return method;
+        if(method.getName().equals("getResult")) {
+            return method;
+        }
+        return 20;
     }
 
 }
