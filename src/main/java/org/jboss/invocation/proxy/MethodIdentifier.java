@@ -128,6 +128,15 @@ public final class MethodIdentifier implements Serializable {
     }
 
     /**
+     * Get the method return type name, as a string.
+     *
+     * @return the method return type name
+     */
+    public String getReturnType() {
+        return returnType;
+    }
+
+    /**
      * Determine whether this object is equal to another.
      *
      * @param other the other object
