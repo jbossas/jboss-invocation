@@ -31,7 +31,7 @@ import javax.interceptor.InvocationContext;
 import static org.jboss.invocation.InvocationMessages.msg;
 
 /**
- * A method interceptor.  The target method should be non-final and must accept a single
+ * A method interceptor.  The target method should be non-final and must accept no parameters or a single
  * parameter of type {@link InvocationContext} (or any supertype thereof).  The method must belong to the given
  * interceptor object's class or one of its supertypes.
  *
@@ -41,14 +41,18 @@ public final class MethodInterceptor implements Interceptor {
 
     private final Object interceptorInstance;
     private final Method method;
+    private final boolean withContext;
+    private final boolean changeMethod;
 
     /**
      * Construct a new instance.  The given method should be a proper interceptor method; otherwise invocation may fail.
      *
      * @param interceptorInstance the interceptor object instance
      * @param method the interceptor method
+     * @param changeMethod {@code true} to change the method on the context to equal the given method, {@code false} to leave it as-is
      */
-    public MethodInterceptor(final Object interceptorInstance, final Method method) {
+    public MethodInterceptor(final Object interceptorInstance, final Method method, final boolean changeMethod) {
+        this.changeMethod = changeMethod;
         if (interceptorInstance == null) {
             throw msg.nullParameter("interceptorInstance");
         }
@@ -58,12 +62,39 @@ public final class MethodInterceptor implements Interceptor {
         this.method = method;
         this.interceptorInstance = interceptorInstance;
         checkMethodType(interceptorInstance);
+        withContext = method.getParameterTypes().length == 1;
+    }
+
+    /**
+     * Construct a new instance.  The given method should be a proper interceptor method; otherwise invocation may fail.
+     *
+     * @param interceptorInstance the interceptor object instance
+     * @param method the interceptor method
+     */
+    public MethodInterceptor(final Object interceptorInstance, final Method method) {
+        this(interceptorInstance, method, false);
     }
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
         try {
-            return method.invoke(interceptorInstance, context.getInvocationContext());
+            Method method = this.method;
+            if (withContext) {
+                if (changeMethod) {
+                    final Method oldMethod = context.getMethod();
+                    context.setMethod(method);
+                    try {
+                        return method.invoke(interceptorInstance, context.getInvocationContext());
+                    } finally {
+                        context.setMethod(oldMethod);
+                    }
+                } else {
+                    return method.invoke(interceptorInstance, context.getInvocationContext());
+                }
+            } else {
+                method.invoke(interceptorInstance, null);
+                return context.proceed();
+            }
         } catch (IllegalAccessException e) {
             final IllegalAccessError n = new IllegalAccessError(e.getMessage());
             n.setStackTrace(e.getStackTrace());
@@ -83,11 +114,12 @@ public final class MethodInterceptor implements Interceptor {
             throw msg.interceptorInaccessible();
         }
         final Class<?>[] parameterTypes = method.getParameterTypes();
-        if (parameterTypes.length != 1) {
+        final int length = parameterTypes.length;
+        if (length > 1) {
             throw msg.interceptorTargetOneParam();
         }
         // allow contravariant parameter types
-        if (! parameterTypes[0].isAssignableFrom(InvocationContext.class)) {
+        if (length == 1 && ! parameterTypes[0].isAssignableFrom(InvocationContext.class)) {
             throw msg.interceptorTargetAssignableFrom(InvocationContext.class);
         }
         // allow covariant return types (but not primitives, which are not Objects); also allow void for lifecycle interceptors

@@ -34,6 +34,20 @@ import java.util.Map;
 public final class MethodInterceptorFactory implements InterceptorFactory {
     private final InterceptorInstanceFactory instanceFactory;
     private final Method interceptorMethod;
+    private final boolean changeMethod;
+
+    /**
+     * Construct a new instance.
+     *
+     * @param instanceFactory the instance factory for the interceptor instance
+     * @param interceptorMethod the interceptor method
+     * @param changeMethod {@code true} to change the method on the context to equal the given method, {@code false} to leave it as-is
+     */
+    public MethodInterceptorFactory(final InterceptorInstanceFactory instanceFactory, final Method interceptorMethod, final boolean changeMethod) {
+        this.instanceFactory = instanceFactory;
+        this.interceptorMethod = interceptorMethod;
+        this.changeMethod = changeMethod;
+    }
 
     /**
      * Construct a new instance.
@@ -42,8 +56,7 @@ public final class MethodInterceptorFactory implements InterceptorFactory {
      * @param interceptorMethod the interceptor method
      */
     public MethodInterceptorFactory(final InterceptorInstanceFactory instanceFactory, final Method interceptorMethod) {
-        this.instanceFactory = instanceFactory;
-        this.interceptorMethod = interceptorMethod;
+        this(instanceFactory, interceptorMethod, false);
     }
 
     /** {@inheritDoc} */
@@ -52,7 +65,7 @@ public final class MethodInterceptorFactory implements InterceptorFactory {
         if (map.containsKey(this)) {
             return (Interceptor) map.get(this);
         } else {
-            final MethodInterceptor interceptor = new MethodInterceptor(instanceFactory.createInstance(context), interceptorMethod);
+            final MethodInterceptor interceptor = new MethodInterceptor(instanceFactory.createInstance(context), interceptorMethod, changeMethod);
             map.put(this, interceptor);
             return interceptor;
         }
