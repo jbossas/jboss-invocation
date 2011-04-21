@@ -373,8 +373,9 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             synchronized (this) {
                 if (invocationHandlerField == null) {
                     try {
-                        invocationHandlerField = defineClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
-                        AccessController.doPrivileged(new SetAccessiblePrivilege(invocationHandlerField));
+                        final Field field = defineClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
+                        AccessController.doPrivileged(new SetAccessiblePrivilege(field));
+                        invocationHandlerField = field;
                     } catch (NoSuchFieldException e) {
                         throw new RuntimeException("Could not find invocation handler on generated proxy", e);
                     }
