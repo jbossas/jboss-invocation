@@ -37,6 +37,25 @@ public final class Interceptors {
     }
 
     /**
+     * Get an interceptor that is always invoked first.  This interceptor is responsible for correctly handling any initialization
+     * and cleanup for the interceptor chain.  For example, this interceptor is responsible for handling undeclared checked exceptions.
+     *
+     * @return the interceptor
+     */
+    public static Interceptor getInitialInterceptor() {
+        return InitialInterceptor.INSTANCE;
+    }
+
+    /**
+     * Get the interceptor factory for the initial interceptor.
+     *
+     * @return the factory
+     */
+    public static InterceptorFactory getInitialInterceptorFactory() {
+        return InitialInterceptor.FACTORY;
+    }
+
+    /**
      * Get an interceptor which always returns {@code null}.
      *
      * @return the interceptor
