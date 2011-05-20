@@ -22,6 +22,7 @@
 
 package org.jboss.invocation;
 
+import javax.interceptor.InvocationContext;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,8 +30,6 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
-
-import javax.interceptor.InvocationContext;
 
 import static org.jboss.invocation.InvocationMessages.msg;
 
@@ -42,6 +41,20 @@ import static org.jboss.invocation.InvocationMessages.msg;
 public final class InterceptorContext implements Cloneable {
     private static final List<Interceptor> EMPTY = Collections.<Interceptor>emptyList();
     private static final ListIterator<Interceptor> EMPTY_ITR = EMPTY.listIterator();
+    private static final Map<Class<?>, Class<?>> PRIMITIVES;
+
+    static {
+        final HashMap<Class<?>, Class<?>> map = new HashMap<Class<?>, Class<?>>();
+        map.put(Boolean.TYPE, Boolean.class);
+        map.put(Character.TYPE, Character.class);
+        map.put(Byte.TYPE, Byte.class);
+        map.put(Short.TYPE, Short.class);
+        map.put(Integer.TYPE, Integer.class);
+        map.put(Long.TYPE, Long.class);
+        map.put(Float.TYPE, Float.class);
+        map.put(Double.TYPE, Double.class);
+        PRIMITIVES = map;
+    }
 
     private Object target;
     private Method method;
@@ -316,7 +329,7 @@ public final class InterceptorContext implements Cloneable {
         }
 
         public void setParameters(final Object[] params) {
-            if(params == null) {
+            if (params == null) {
                 throw new IllegalArgumentException("Parameters must not be null");
             }
             if (method != null) {
@@ -325,9 +338,17 @@ public final class InterceptorContext implements Cloneable {
                     throw new IllegalArgumentException("Number of parameters must match number of method arguments");
                 }
                 for (int i = 0; i < params.length; ++i) {
+                    final Object param = params[i];
                     final Class<?> type = parameterTypes[i];
-                    if (!type.isAssignableFrom(params[i].getClass())) {
-                        throw new IllegalArgumentException("Parameter " + i + " (" + params[i] + ") is not assignable to method parameter type " + parameterTypes[i]);
+                    if (param == null) {
+                        if (type.isPrimitive()) {
+                            throw new IllegalArgumentException("Null cannot be assigned to primitive parameter " + i + " (" + parameterTypes[i] + ")");
+                        }
+                    } else {
+                        final Class<?> wrappedType = type.isPrimitive() ? PRIMITIVES.get(type) : type;
+                        if (!wrappedType.isAssignableFrom(param.getClass())) {
+                            throw new IllegalArgumentException("Parameter " + i + " (" + param + ") is not assignable to method parameter type " + parameterTypes[i]);
+                        }
                     }
                 }
             }
