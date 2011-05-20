@@ -316,6 +316,9 @@ public final class InterceptorContext implements Cloneable {
         }
 
         public void setParameters(final Object[] params) {
+            if(params == null) {
+                throw new IllegalArgumentException("Parameters must not be null");
+            }
             if (method != null) {
                 final Class<?>[] parameterTypes = method.getParameterTypes();
                 if (params.length != parameterTypes.length) {
