@@ -316,6 +316,18 @@ public final class InterceptorContext implements Cloneable {
         }
 
         public void setParameters(final Object[] params) {
+            if (method != null) {
+                final Class<?>[] parameterTypes = method.getParameterTypes();
+                if (params.length != parameterTypes.length) {
+                    throw new IllegalArgumentException("Number of parameters must match number of method arguments");
+                }
+                for (int i = 0; i < params.length; ++i) {
+                    final Class<?> type = parameterTypes[i];
+                    if (!type.isAssignableFrom(params[i].getClass())) {
+                        throw new IllegalArgumentException("Parameter " + i + " (" + params[i] + ") is not assignable to method parameter type " + parameterTypes[i]);
+                    }
+                }
+            }
             parameters = params;
         }
 
