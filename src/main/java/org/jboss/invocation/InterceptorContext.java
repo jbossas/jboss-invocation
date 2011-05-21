@@ -325,6 +325,9 @@ public final class InterceptorContext implements Cloneable {
         }
 
         public Object[] getParameters() {
+            if(parameters == null) {
+                throw new IllegalStateException("Cannot call InvocationContext.getParameters() in a lifecycle interceptor method");
+            }
             return parameters;
         }
 
