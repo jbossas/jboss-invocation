@@ -103,4 +103,11 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <scm>
+        <connection>scm:git:git://github.com/jbossas/jboss-invocation.git</connection>
+        <developerConnection>scm:git:git@github.com:jbossas/jboss-invocation.git</developerConnection>
+        <url>scm:git:git://github.com/jbossas/jboss-invocation.git</url>
+    </scm>
+
 </project>
