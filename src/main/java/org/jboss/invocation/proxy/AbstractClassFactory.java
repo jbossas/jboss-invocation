@@ -22,19 +22,18 @@
 
 package org.jboss.invocation.proxy;
 
-import java.security.ProtectionDomain;
-
 import org.jboss.classfilewriter.ClassFile;
+
+import java.security.ProtectionDomain;
 
 /**
  * Base class for all class factories.
- * <p>
+ * <p/>
  * Sub classes should override {@link #generateClass()} to perform the actual class generation. The class will only be generated
  * once at most
  *
- * @author Stuart Douglas
- *
  * @param <T> the type of the superclass
+ * @author Stuart Douglas
  */
 public abstract class AbstractClassFactory<T> {
 
@@ -65,7 +64,7 @@ public abstract class AbstractClassFactory<T> {
 
     /**
      * The class file that is used to generate the class.
-     * <p>
+     * <p/>
      * Note that this object is not thread safe, so care should be taken by subclasses to ensure that no more than one thread
      * accesses this at once. In normal use this should not be an issue, as {@link #generateClass()} will only be called once
      * by a single thread.
@@ -80,12 +79,21 @@ public abstract class AbstractClassFactory<T> {
     /**
      * Construct a new instance.
      *
-     * @param className the generated class name
-     * @param superClass the superclass of the generated class
-     * @param classLoader the class loader used to load the class
+     * @param className        the generated class name
+     * @param superClass       the superclass of the generated class
+     * @param classLoader      the class loader used to load the class
      * @param protectionDomain the protection domain of the class
      */
     protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
+        if (classLoader == null) {
+            throw new IllegalArgumentException("ClassLoader cannot be null when attempting to proxy " + superClass + ". If you are trying to proxy a JDK class you must specify the class loader explicitly to prevent memory leaks");
+        }
+        if(superClass == null) {
+            throw new IllegalArgumentException("Superclass cannot be null for proxy " + className);
+        }
+        if(className == null) {
+            throw new IllegalArgumentException("Class name cannot be null");
+        }
         this.className = className;
         this.superClass = superClass;
         this.classLoader = classLoader;
@@ -96,8 +104,8 @@ public abstract class AbstractClassFactory<T> {
     /**
      * Construct a new instance with a {@code null} protection domain.
      *
-     * @param className the generated class name
-     * @param superClass the superclass of the generated class
+     * @param className   the generated class name
+     * @param superClass  the superclass of the generated class
      * @param classLoader the class loader used to load the class
      */
     protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
@@ -107,7 +115,7 @@ public abstract class AbstractClassFactory<T> {
     /**
      * Construct a new instance with a {@code null} protection domain.
      *
-     * @param className the generated class name
+     * @param className  the generated class name
      * @param superClass the superclass of the generated class
      */
     protected AbstractClassFactory(String className, Class<T> superClass) {
@@ -126,7 +134,7 @@ public abstract class AbstractClassFactory<T> {
 
     /**
      * Hook that is called after the class is loaded, before {@link #cleanup()} is called.
-     * <p>
+     * <p/>
      * This method may be called mutiple times, if the proxy is definined in multiple class loaders
      *
      * @param clazz The newly loaded class
@@ -239,7 +247,7 @@ public abstract class AbstractClassFactory<T> {
 
     /**
      * Creates a new instance of the generated class by invoking the default constructor.
-     * <p>
+     * <p/>
      * If the generated class has not been defined it will be created.
      *
      * @return the new instance
