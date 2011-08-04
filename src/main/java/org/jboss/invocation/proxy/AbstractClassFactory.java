@@ -165,44 +165,11 @@ public abstract class AbstractClassFactory<T> {
                         }
                         afterClassLoad(generatedClass);
                     }
+                    classFile = null;
                 }
             }
         }
         return generatedClass;
-    }
-
-    /**
-     * Defines the proxy class in the given class loader, if it does not already exist
-     *
-     * @return the generated class
-     */
-    @SuppressWarnings("unchecked")
-    public synchronized Class<? extends T> defineClass(ClassLoader cl) {
-        Class<? extends T> clazz;
-        try {
-            // first check that the proxy has not already been created
-            clazz = (Class<? extends T>) cl.loadClass(this.className);
-        } catch (ClassNotFoundException e) {
-            buildClassDefinition();
-            if (protectionDomain == null) {
-                clazz = (Class<? extends T>) classFile.define(cl);
-            } else {
-                clazz = (Class<? extends T>) classFile.define(cl, protectionDomain);
-            }
-            afterClassLoad(clazz);
-            classFile = null;
-        }
-        return clazz;
-    }
-
-    /**
-     * Returns the bytes that make up the proxy class definition
-     *
-     * @return The proxy class bytes
-     */
-    public synchronized byte[] getProxyBytes() {
-        buildClassDefinition();
-        return classFile.toBytecode();
     }
 
     /**

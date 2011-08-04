@@ -21,12 +21,11 @@
  */
 package org.jboss.invocation.proxy.test.proxyfactory;
 
-import java.lang.reflect.Method;
-
 import junit.framework.Assert;
-
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
+
+import java.lang.reflect.Method;
 
 public class SimpleProxyFactoryTest {
 
@@ -54,9 +53,6 @@ public class SimpleProxyFactoryTest {
         ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(
                 "org.jboss.invocation.proxy.test.proxyfactory.SimpleClass$$Proxy", SimpleClass.class, cl1);
         SimpleClass instance = proxyFactory.newInstance(new SimpleInvocationHandler());
-        Class<?> otherProxy = proxyFactory.defineClass(cl2);
-        Assert.assertEquals(otherProxy.getName(), instance.getClass().getName());
-        Assert.assertNotSame(otherProxy, instance.getClass());
     }
 
     @Test
