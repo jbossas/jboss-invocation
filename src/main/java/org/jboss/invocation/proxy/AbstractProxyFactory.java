@@ -111,6 +111,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     public void afterClassLoad(Class<?> clazz) {
         super.afterClassLoad(clazz);
         cachedMethods = AccessController.doPrivileged(new CachedMethodGetter());
+        methodIdentifiers.clear();
     }
 
     /**
