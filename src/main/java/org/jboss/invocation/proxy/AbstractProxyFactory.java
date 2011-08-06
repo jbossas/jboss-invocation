@@ -238,7 +238,6 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
 
         @Override
         public Method[] run() {
-            System.out.println("COUNT: " + count.incrementAndGet());
             Method[] methods = new Method[identifierCount];
             Class<?> clazz = defineClass();
             int i = 0;
