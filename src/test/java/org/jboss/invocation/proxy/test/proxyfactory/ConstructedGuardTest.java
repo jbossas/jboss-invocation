@@ -23,6 +23,7 @@ package org.jboss.invocation.proxy.test.proxyfactory;
 
 import junit.framework.Assert;
 
+import org.jboss.invocation.proxy.ProxyConfiguration;
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
 
@@ -30,7 +31,11 @@ public class ConstructedGuardTest {
 
     @Test
     public void testConstructedGuard() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<ConstructedGuardClass> proxyFactory = new ProxyFactory<ConstructedGuardClass>(ConstructedGuardClass.class);
+        final ProxyConfiguration<ConstructedGuardClass> proxyConfiguration = new ProxyConfiguration<ConstructedGuardClass>()
+                .setSuperClass(ConstructedGuardClass.class)
+                .setProxyName(getClass().getPackage(),"ConstructedGuardClassProxy")
+                .setClassLoader(ConstructedGuardClass.class.getClassLoader());
+        ProxyFactory<ConstructedGuardClass> proxyFactory = new ProxyFactory<ConstructedGuardClass>(proxyConfiguration);
         // if there is no guard we will get a NPE here
         // as the proxy attempts to delegate to a null method
         ConstructedGuardClass instance = proxyFactory.newInstance();

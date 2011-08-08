@@ -22,6 +22,10 @@
 
 package org.jboss.invocation.proxy;
 
+import org.jboss.classfilewriter.AccessFlag;
+import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.util.DescriptorUtils;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -30,54 +34,16 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.jboss.classfilewriter.AccessFlag;
-import org.jboss.classfilewriter.ClassMethod;
-import org.jboss.classfilewriter.util.DescriptorUtils;
-
 /**
  * Class factory for classes that override superclass methods.
- * <p>
+ * <p/>
  * This class extends {@link AbstractClassFactory} by adding convenience methods to override methods on the superclass.
  *
- * @author Stuart Douglas
- *
  * @param <T> the superclass type
+ * @author Stuart Douglas
  */
 public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T> {
 
-    /**
-     * Construct a new instance.
-     *
-     * @param className the class name
-     * @param superClass the superclass
-     * @param classLoader the defining class loader
-     * @param protectionDomain the protection domain
-     */
-    protected AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader,
-            ProtectionDomain protectionDomain) {
-        super(className, superClass, classLoader, protectionDomain);
-    }
-
-    /**
-     * Construct a new instance.
-     *
-     * @param className the class name
-     * @param superClass the superclass
-     * @param classLoader the defining class loader
-     */
-    protected AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
-        super(className, superClass, classLoader);
-    }
-
-    /**
-     * Construct a new instance.
-     *
-     * @param className the class name
-     * @param superClass the superclass
-     */
-    protected AbstractSubclassFactory(String className, Class<T> superClass) {
-        super(className, superClass);
-    }
 
     /**
      * Tracks methods that have already been overridden
@@ -88,6 +54,11 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Interfaces that have been added
      */
     private final Set<Class<?>> interfaces = new HashSet<Class<?>>();
+
+    /**
+     * The metadata source used to generate the proxy
+     */
+    protected final ReflectionMetadataSource reflectionMetadataSource;
 
     /**
      * Methods that should not be overridden by default
@@ -104,12 +75,26 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
+     * Construct a new instance.
+     *
+     * @param className        the class name
+     * @param superClass       the superclass
+     * @param classLoader      the defining class loader
+     * @param protectionDomain the protection domain
+     */
+    protected AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader,
+                                      ProtectionDomain protectionDomain, final ReflectionMetadataSource reflectionMetadataSource) {
+        super(className, superClass, classLoader, protectionDomain);
+        this.reflectionMetadataSource = reflectionMetadataSource;
+    }
+
+    /**
      * Creates a new method on the generated class that overrides the given methods, unless a method with the same signature has
      * already been overridden.
      *
-     * @param method The method to override
+     * @param method     The method to override
      * @param identifier The identifier of the method to override
-     * @param creator The {@link MethodBodyCreator} used to create the method body
+     * @param creator    The {@link MethodBodyCreator} used to create the method body
      * @return {@code true} if the method was successfully overridden, {@code false} otherwise
      */
     protected boolean overrideMethod(Method method, MethodIdentifier identifier, MethodBodyCreator creator) {
@@ -125,9 +110,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Creates a new method on the generated class that overrides the given methods, unless a method with the same signature has
      * already been overridden.
      *
-     * @param method The method to override
+     * @param method     The method to override
      * @param identifier The identifier of the method to override
-     * @param creator The {@link MethodBodyCreator} used to create the method body
+     * @param creator    The {@link MethodBodyCreator} used to create the method body
      * @return {@code false} if the method has already been overridden
      */
     protected boolean overrideMethod(ClassMethod method, MethodIdentifier identifier, MethodBodyCreator creator) {
@@ -141,18 +126,19 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Overrides all public methods on the superclass. The default {@link MethodBodyCreator} is used to generate the class body.
-     * <p>
+     * <p/>
      * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
      * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
      * {@link #overrideHashcode(MethodBodyCreator)}{@link #overrideToString(MethodBodyCreator)}
      * {@link #overrideFinalize(MethodBodyCreator)}
-     *
      */
     protected void overridePublicMethods() {
         overridePublicMethods(getDefaultMethodOverride());
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void cleanup() {
         overriddenMethods.clear();
@@ -160,7 +146,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     /**
      * Overrides all public methods on the superclass. The given {@link MethodBodyCreator} is used to generate the class body.
-     * <p>
+     * <p/>
      * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
      * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
      * {@link #overrideHashcode(MethodBodyCreator)},{@link #overrideToString(MethodBodyCreator)} and
@@ -169,7 +155,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param override the method body creator to use
      */
     protected void overridePublicMethods(MethodBodyCreator override) {
-        for (Method method : getSuperClass().getMethods()) {
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
+        for (Method method : data.getMethods()) {
             MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
             if (Modifier.isFinal(method.getModifiers())) {
                 continue;
@@ -191,7 +178,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Overrides all methods on the superclass with the exception of <code>equals(Object)</code>, <code>hashCode()</code>,
      * <code>toString()</code> and <code>finalize()</code>. The given {@link MethodBodyCreator} is used to generate the class
      * body.
-     * <p>
+     * <p/>
      * Note that private methods are not actually overridden, and if the sub-class is loaded by a different ClassLoader to the
      * parent class then neither will package-private methods. These methods will still be present on the new class however, and
      * can be accessed via reflection
@@ -201,7 +188,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     protected void overrideAllMethods(MethodBodyCreator override) {
         Class<?> currentClass = getSuperClass();
         while (currentClass != null && currentClass != Object.class) {
-            for (Method method : currentClass.getDeclaredMethods()) {
+            ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(currentClass);
+            for (Method method : data.getDeclaredMethods()) {
                 // do not override static or private methods
                 if (Modifier.isStatic(method.getModifiers()) || Modifier.isPrivate(method.getModifiers())) {
                     continue;
@@ -236,8 +224,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      */
     protected boolean overrideEquals(MethodBodyCreator creator) {
         Method equals = null;
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
         try {
-            equals = getSuperClass().getMethod("equals", Object.class);
+            equals = data.getMethod("equals", Boolean.TYPE, Object.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -248,7 +237,6 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Override the hashCode method using the default {@link MethodBodyCreator}.
      *
      * @return true if the method was not already overridden
-     *
      */
     protected boolean overrideHashcode() {
         return overrideHashcode(getDefaultMethodOverride());
@@ -263,8 +251,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     protected boolean overrideHashcode(MethodBodyCreator creator) {
 
         Method hashCode = null;
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
         try {
-            hashCode = getSuperClass().getMethod("hashCode");
+            hashCode = data.getMethod("hashCode", Integer.TYPE);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -288,8 +277,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      */
     protected boolean overrideToString(MethodBodyCreator creator) {
         Method toString = null;
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
         try {
-            toString = getSuperClass().getMethod("toString");
+            toString = data.getMethod("toString", String.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -300,7 +290,6 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Override the finalize method using the default {@link MethodBodyCreator}.
      *
      * @return true if the method was not already overridden
-     *
      */
     protected boolean overrideFinalize() {
         return overrideFinalize(getDefaultMethodOverride());
@@ -333,7 +322,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     /**
      * Adds an interface to the generated subclass, using the given {@link MethodBodyCreator} to generate the method bodies
      *
-     * @param override the method body creator to use
+     * @param override       the method body creator to use
      * @param interfaceClass the interface to add
      * @return true if the interface was not already overridden
      */
@@ -343,7 +332,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
         }
         interfaces.add(interfaceClass);
         classFile.addInterface(interfaceClass.getName());
-        for (Method method : interfaceClass.getMethods()) {
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(interfaceClass);
+        for (Method method : data.getMethods()) {
             overrideMethod(method, MethodIdentifier.getIdentifierForMethod(method), override);
         }
         return true;
@@ -363,7 +353,8 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param creator the constructor body creator to use
      */
     protected void createConstructorDelegates(ConstructorBodyCreator creator) {
-        for (Constructor<?> constructor : getSuperClass().getDeclaredConstructors()) {
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
+        for (Constructor<?> constructor : data.getConstructors()) {
             if (!Modifier.isPrivate(constructor.getModifiers())) {
                 creator.overrideConstructor(classFile.addMethod(AccessFlag.PUBLIC, "<init>", "V", DescriptorUtils
                         .parameterDescriptors(constructor.getParameterTypes())), constructor);

@@ -60,17 +60,6 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
 
     private static final AtomicInteger count = new AtomicInteger();
 
-    /**
-     * Construct a new instance.
-     *
-     * @param className   the class name
-     * @param superClass  the superclass
-     * @param classLoader the defining class loader
-     */
-    protected AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader) {
-        super(className, superClass, classLoader);
-        staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
-    }
 
     /**
      * Construct a new instance.
@@ -81,19 +70,8 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
      * @param protectionDomain the protection domain
      */
     protected AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader,
-                                   ProtectionDomain protectionDomain) {
-        super(className, superClass, classLoader, protectionDomain);
-        staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
-    }
-
-    /**
-     * Construct a new instance.
-     *
-     * @param className  the class name
-     * @param superClass the superclass
-     */
-    protected AbstractProxyFactory(String className, Class<T> superClass) {
-        super(className, superClass);
+                                   ProtectionDomain protectionDomain, final ReflectionMetadataSource reflectionMetadataSource) {
+        super(className, superClass, classLoader, protectionDomain,reflectionMetadataSource);
         staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
     }
 
@@ -111,7 +89,6 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     public void afterClassLoad(Class<?> clazz) {
         super.afterClassLoad(clazz);
         cachedMethods = AccessController.doPrivileged(new CachedMethodGetter());
-        methodIdentifiers.clear();
     }
 
     /**
@@ -131,6 +108,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     @Override
     protected void cleanup() {
         staticConstructor = null;
+        methodIdentifiers.clear();
         super.cleanup();
     }
 

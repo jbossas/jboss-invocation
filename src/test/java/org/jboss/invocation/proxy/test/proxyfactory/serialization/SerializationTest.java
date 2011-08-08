@@ -21,6 +21,12 @@
  */
 package org.jboss.invocation.proxy.test.proxyfactory.serialization;
 
+import junit.framework.Assert;
+import org.jboss.invocation.proxy.DefaultSerializableProxy;
+import org.jboss.invocation.proxy.ProxyConfiguration;
+import org.jboss.invocation.proxy.ProxyFactory;
+import org.junit.Test;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,18 +34,17 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 
-import junit.framework.Assert;
-
-import org.jboss.invocation.proxy.DefaultSerializableProxy;
-import org.jboss.invocation.proxy.ProxyFactory;
-import org.junit.Test;
-
 public class SerializationTest {
 
     @Test
     public void simpleSerializationTest() throws InstantiationException, IllegalAccessException, IOException,
             ClassNotFoundException {
-        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(SerializableClass.class);
+        final ProxyConfiguration<SerializableClass> proxyConfiguration = new ProxyConfiguration<SerializableClass>()
+                .setSuperClass(SerializableClass.class)
+                .setProxyName(getClass().getPackage(),"SerializableClassProxy")
+                .setClassLoader(SerializableClass.class.getClassLoader());
+
+        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(proxyConfiguration);
         SerializableInvocationHandler handler = new SerializableInvocationHandler();
         SerializableClass proxy = proxyFactory.newInstance(handler);
         proxy.invoke(10);
@@ -59,7 +64,12 @@ public class SerializationTest {
     @Test
     public void defaultSerializableProxyTest() throws InstantiationException, IllegalAccessException, IOException,
             ClassNotFoundException {
-        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(SerializableClass.class);
+        final ProxyConfiguration<SerializableClass> proxyConfiguration = new ProxyConfiguration<SerializableClass>()
+                .setSuperClass(SerializableClass.class)
+                .setProxyName(getClass().getPackage(),"SerializableClassProxy2")
+                .setClassLoader(SerializableClass.class.getClassLoader());
+
+        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(proxyConfiguration);
         proxyFactory.setSerializableProxyClass(DefaultSerializableProxy.class);
         SerializableInvocationHandler dispatcher = new SerializableInvocationHandler();
         SerializableClass proxy = proxyFactory.newInstance(dispatcher);
@@ -83,9 +93,12 @@ public class SerializationTest {
 
         ClassLoader classLoader = new ClassLoader(getClass().getClassLoader()) {
         };
+        final ProxyConfiguration<SerializableClass> proxyConfiguration = new ProxyConfiguration<SerializableClass>()
+                .setSuperClass(SerializableClass.class)
+                .setProxyName("org.jboss.proxy.test.SomeProxy")
+                .setClassLoader(classLoader);
 
-        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>("org.jboss.proxy.test.SomeProxy",
-                SerializableClass.class, classLoader);
+        ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(proxyConfiguration);
         proxyFactory.setSerializableProxyClass(TestSerializableProxy.class);
         SerializableInvocationHandler dispatcher = new SerializableInvocationHandler();
         SerializableClass proxy = proxyFactory.newInstance(dispatcher);
@@ -109,8 +122,13 @@ public class SerializationTest {
     public static class TestSerializableProxy extends DefaultSerializableProxy {
         @Override
         protected Class<?> getProxyClass() throws ClassNotFoundException {
-            ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(
-                    "org.jboss.proxy.test.SomeProxy", SerializableClass.class, getClass().getClassLoader());
+
+            final ProxyConfiguration<SerializableClass> proxyConfiguration = new ProxyConfiguration<SerializableClass>()
+                    .setSuperClass(SerializableClass.class)
+                    .setProxyName("org.jboss.proxy.test.SomeProxy")
+                    .setClassLoader(getClass().getClassLoader());
+
+            ProxyFactory<SerializableClass> proxyFactory = new ProxyFactory<SerializableClass>(proxyConfiguration);
             return proxyFactory.defineClass();
         }
 

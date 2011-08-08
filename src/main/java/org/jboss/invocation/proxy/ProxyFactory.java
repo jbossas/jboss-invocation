@@ -22,6 +22,12 @@
 
 package org.jboss.invocation.proxy;
 
+import org.jboss.classfilewriter.AccessFlag;
+import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.code.BranchEnd;
+import org.jboss.classfilewriter.code.CodeAttribute;
+import org.jboss.classfilewriter.util.Boxing;
+
 import java.io.ObjectStreamException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -31,14 +37,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import java.security.ProtectionDomain;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import org.jboss.classfilewriter.AccessFlag;
-import org.jboss.classfilewriter.ClassMethod;
-import org.jboss.classfilewriter.code.BranchEnd;
-import org.jboss.classfilewriter.code.CodeAttribute;
-import org.jboss.classfilewriter.util.Boxing;
 
 /**
  * Proxy Factory that generates proxies that delegate all calls to an {@link InvocationHandler}.
@@ -232,11 +230,6 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     public static final String INVOCATION_HANDLER_FIELD = "invocation$$dispatcher";
 
     /**
-     * atomic integer used to generate proxy names
-     */
-    private static final AtomicInteger nameCount = new AtomicInteger();
-
-    /**
      * this field on the generated class stores if the constructor has been completed yet. No methods will be delegated to the
      * dispatcher until the constructor has finished. This prevents virtual methods called from the constructor being delegated
      * to a handler that is null.
@@ -257,52 +250,12 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
     /**
      * Construct a new instance.
      *
-     * @param className the name of the generated proxy
-     * @param superClass the superclass of the generated proxy
-     * @param classLoader the classloader to load the proxy with
-     * @param protectionDomain the ProtectionDomain to define the class with
-     * @param additionalInterfaces additional interfaces that should be implemented by the proxy class
+     * @param proxyConfiguration The configuration to use to build the proxy
      */
-    public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain,
-            Class<?>... additionalInterfaces) {
-        super(className, superClass, classLoader, protectionDomain);
-        this.additionalInterfaces = additionalInterfaces;
-    }
-
-    /**
-     * Construct a new instance.
-     *
-     * @param className the name of the generated proxy
-     * @param superClass the superclass of the generated proxy
-     * @param classLoader the classloader to load the proxy with
-     * @param additionalInterfaces additional interfaces that should be implemented by the proxy class
-     */
-    public ProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, Class<?>... additionalInterfaces) {
-        super(className, superClass, classLoader);
-        this.additionalInterfaces = additionalInterfaces;
-    }
-
-    /**
-     * Construct a new instance.
-     *
-     * @param className the name of the proxy class
-     * @param superClass the name of proxies superclass
-     * @param additionalInterfaces additional interfaces that should be implemented by the proxy class
-     */
-    public ProxyFactory(String className, Class<T> superClass, Class<?>... additionalInterfaces) {
-        super(className, superClass);
-        this.additionalInterfaces = additionalInterfaces;
-    }
-
-    /**
-     * Create a ProxyFactory for the given superclass, using the default name and the classloader of the superClass.
-     * 
-     * @param superClass the superclass of the generated proxy
-     * @param additionalInterfaces Additional interfaces that should be implemented by the proxy class
-     */
-    public ProxyFactory(Class<T> superClass, Class<?>... additionalInterfaces) {
-        super(superClass.getName() + "$$Proxy" + nameCount.incrementAndGet(), superClass);
-        this.additionalInterfaces = additionalInterfaces;
+    public ProxyFactory(ProxyConfiguration<T> proxyConfiguration) {
+        super(proxyConfiguration.getProxyName(), proxyConfiguration.getSuperClass(), proxyConfiguration.getClassLoader(), proxyConfiguration.getProtectionDomain(), proxyConfiguration.getMetadataSource());
+        this.additionalInterfaces = new Class<?>[proxyConfiguration.getAdditionalInterfaces().size()];
+        proxyConfiguration.getAdditionalInterfaces().toArray(additionalInterfaces);
     }
 
     /**

@@ -22,6 +22,7 @@
 package org.jboss.invocation.proxy.test.proxyfactory;
 
 import junit.framework.Assert;
+import org.jboss.invocation.proxy.ProxyConfiguration;
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
 
@@ -31,7 +32,11 @@ public class SimpleProxyFactoryTest {
 
     @Test
     public void testSimpleProxy() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
+        final ProxyConfiguration<SimpleClass> proxyConfiguration = new ProxyConfiguration<SimpleClass>()
+                .setSuperClass(SimpleClass.class)
+                .setProxyName(SimpleClass.class.getPackage(), "SimpleClass$$Proxy3")
+                .setClassLoader(SimpleClass.class.getClassLoader());
+        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(proxyConfiguration);
         SimpleClass instance = proxyFactory.newInstance(new SimpleInvocationHandler());
         Object result = instance.method2(10, 0, this, new int[0]);
         Assert.assertTrue(result.getClass().isArray());
@@ -50,14 +55,21 @@ public class SimpleProxyFactoryTest {
         ClassLoader cl2 = new ClassLoader() {
 
         };
-        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(
-                "org.jboss.invocation.proxy.test.proxyfactory.SimpleClass$$Proxy", SimpleClass.class, cl1);
+        final ProxyConfiguration<SimpleClass> proxyConfiguration = new ProxyConfiguration<SimpleClass>()
+                .setSuperClass(SimpleClass.class)
+                .setProxyName(SimpleClass.class.getPackage(), "SimpleClass$$Proxy")
+                .setClassLoader(cl1);
+        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(proxyConfiguration);
         SimpleClass instance = proxyFactory.newInstance(new SimpleInvocationHandler());
     }
 
     @Test
     public void testRetrievingCachedMethods() {
-        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(SimpleClass.class);
+        final ProxyConfiguration<SimpleClass> proxyConfiguration = new ProxyConfiguration<SimpleClass>()
+                .setSuperClass(SimpleClass.class)
+                .setProxyName(SimpleClass.class.getPackage(), "SimpleClass$$Proxy2")
+                .setClassLoader(SimpleClass.class.getClassLoader());
+        ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(proxyConfiguration);
         Method[] methods = proxyFactory.getCachedMethods();
         Assert.assertEquals(5, methods.length);
         Method method1 = null;

@@ -22,6 +22,7 @@
 package org.jboss.invocation.proxy.test.proxyfactory;
 
 import junit.framework.Assert;
+import org.jboss.invocation.proxy.ProxyConfiguration;
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
 
@@ -31,7 +32,11 @@ public class BridgeMethodTest {
 
     @Test
     public void testBridgeMethods() throws InstantiationException, IllegalAccessException {
-        ProxyFactory<BridgeMethodChild> proxyFactory = new ProxyFactory<BridgeMethodChild>(BridgeMethodChild.class);
+        final ProxyConfiguration<BridgeMethodChild> proxyConfiguration = new ProxyConfiguration<BridgeMethodChild>()
+                .setSuperClass(BridgeMethodChild.class)
+                .setProxyName(getClass().getPackage(),"BridgeMethodChildProxy")
+                .setClassLoader(BridgeMethodChild.class.getClassLoader());
+        ProxyFactory<BridgeMethodChild> proxyFactory = new ProxyFactory<BridgeMethodChild>(proxyConfiguration);
         BridgeMethodChild instance = proxyFactory.newInstance(new BridgeMethodInvocationHandler());
         Method result = instance.getResult();
         Assert.assertEquals(Method.class, result.getReturnType());
@@ -46,9 +51,13 @@ public class BridgeMethodTest {
     }
 
     public void testParentMethodProxied() throws IllegalAccessException, InstantiationException {
-        ProxyFactory<BridgeMethodChild> proxyFactory = new ProxyFactory<BridgeMethodChild>(BridgeMethodChild.class);
+        final ProxyConfiguration<BridgeMethodChild> proxyConfiguration = new ProxyConfiguration<BridgeMethodChild>()
+                .setSuperClass(BridgeMethodChild.class)
+                .setProxyName(getClass().getPackage(),"BridgeMethodChildProxy2")
+                .setClassLoader(BridgeMethodChild.class.getClassLoader());
+        ProxyFactory<BridgeMethodChild> proxyFactory = new ProxyFactory<BridgeMethodChild>(proxyConfiguration);
         BridgeMethodChild instance = proxyFactory.newInstance(new BridgeMethodInvocationHandler());
-        Assert.assertEquals(20,instance.proxyMethod());
+        Assert.assertEquals(20, instance.proxyMethod());
     }
 
 }

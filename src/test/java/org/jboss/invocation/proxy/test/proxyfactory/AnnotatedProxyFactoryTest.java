@@ -21,19 +21,23 @@
  */
 package org.jboss.invocation.proxy.test.proxyfactory;
 
-import java.lang.reflect.Method;
-
 import junit.framework.Assert;
-
+import org.jboss.invocation.proxy.ProxyConfiguration;
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
+
+import java.lang.reflect.Method;
 
 public class AnnotatedProxyFactoryTest {
 
     @Test
     public void testSimpleProxy() throws InstantiationException, IllegalAccessException, SecurityException,
             NoSuchMethodException {
-        ProxyFactory<AnnotatedClass> proxyFactory = new ProxyFactory<AnnotatedClass>(AnnotatedClass.class);
+        final ProxyConfiguration<AnnotatedClass> proxyConfiguration = new ProxyConfiguration<AnnotatedClass>()
+                .setSuperClass(AnnotatedClass.class)
+                .setProxyName(getClass().getPackage(),"AnnotatedClassProxy")
+                .setClassLoader(AnnotatedClass.class.getClassLoader());
+        ProxyFactory<AnnotatedClass> proxyFactory = new ProxyFactory<AnnotatedClass>(proxyConfiguration);
         Assert.assertTrue(proxyFactory.defineClass().isAnnotationPresent(MyAnnotation.class));
         Method method = proxyFactory.defineClass().getDeclaredMethod("method");
         Assert.assertTrue(method.isAnnotationPresent(MyAnnotation.class));

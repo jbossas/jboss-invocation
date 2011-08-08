@@ -21,22 +21,23 @@
  */
 package org.jboss.invocation.proxy.test.abstractsubclassfactory;
 
-import java.security.ProtectionDomain;
-
 import org.jboss.invocation.proxy.AbstractSubclassFactory;
+import org.jboss.invocation.proxy.DefaultReflectionMetadataSource;
+
+import java.security.ProtectionDomain;
 
 public class SimpleClassFactory<T> extends AbstractSubclassFactory<T> {
 
     public SimpleClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
-        super(className, superClass, classLoader, protectionDomain);
+        super(className, superClass, classLoader, protectionDomain, DefaultReflectionMetadataSource.INSTANCE);
     }
 
     public SimpleClassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
-        super(className, superClass, classLoader);
+        this(className, superClass, classLoader, null);
     }
 
     public SimpleClassFactory(String className, Class<T> superClass) {
-        super(className, superClass);
+        this(className, superClass, superClass.getClassLoader());
     }
 
     // simply overrides public methods and constructors using the default method builder
