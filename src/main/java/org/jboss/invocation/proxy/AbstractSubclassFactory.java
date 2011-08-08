@@ -25,6 +25,8 @@ package org.jboss.invocation.proxy;
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.util.DescriptorUtils;
+import org.jboss.invocation.proxy.reflection.ClassMetadataSource;
+import org.jboss.invocation.proxy.reflection.ReflectionMetadataSource;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -32,6 +34,7 @@ import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -155,15 +158,20 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param override the method body creator to use
      */
     protected void overridePublicMethods(MethodBodyCreator override) {
-        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
-        for (Method method : data.getMethods()) {
-            MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
-            if (Modifier.isFinal(method.getModifiers())) {
-                continue;
+        Class<?> c = getSuperClass();
+        while (c != null) {
+            ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(c);
+
+            for (Method method : data.getDeclaredMethods()) {
+                MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
+                if (!Modifier.isPublic(method.getModifiers()) || Modifier.isFinal(method.getModifiers())) {
+                    continue;
+                }
+                if (!SKIP_BY_DEFAULT.contains(identifier)) {
+                    overrideMethod(method, identifier, override);
+                }
             }
-            if (!SKIP_BY_DEFAULT.contains(identifier)) {
-                overrideMethod(method, identifier, override);
-            }
+            c = c.getSuperclass();
         }
     }
 
@@ -224,7 +232,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      */
     protected boolean overrideEquals(MethodBodyCreator creator) {
         Method equals = null;
-        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
         try {
             equals = data.getMethod("equals", Boolean.TYPE, Object.class);
         } catch (Exception e) {
@@ -251,7 +259,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     protected boolean overrideHashcode(MethodBodyCreator creator) {
 
         Method hashCode = null;
-        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
+        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
         try {
             hashCode = data.getMethod("hashCode", Integer.TYPE);
         } catch (Exception e) {
@@ -277,7 +285,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      */
     protected boolean overrideToString(MethodBodyCreator creator) {
         Method toString = null;
-        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(getSuperClass());
+        final ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
         try {
             toString = data.getMethod("toString", String.class);
         } catch (Exception e) {
@@ -302,8 +310,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      */
     protected boolean overrideFinalize(MethodBodyCreator creator) {
         Method finalize = null;
+        final ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
         try {
-            finalize = Object.class.getDeclaredMethod("finalize");
+            finalize = data.getMethod("finalize", void.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -332,9 +341,27 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
         }
         interfaces.add(interfaceClass);
         classFile.addInterface(interfaceClass.getName());
-        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(interfaceClass);
-        for (Method method : data.getMethods()) {
-            overrideMethod(method, MethodIdentifier.getIdentifierForMethod(method), override);
+        final Set<Class<?>> interfaces = new HashSet<Class<?>>();
+        final Set<Class<?>> toProcess = new HashSet<Class<?>>();
+        toProcess.add(interfaceClass);
+
+        //walk the interface hierarchy and get all methods
+        while(!toProcess.isEmpty()) {
+            Iterator<Class<?>> it = toProcess.iterator();
+            final Class<?> c = it.next();
+            it.remove();
+            interfaces.add(c);
+            for(Class<?> i : c.getInterfaces()) {
+                if(!interfaces.contains(i)) {
+                    toProcess.add(i);
+                }
+            }
+        }
+        for(final Class<?> c : interfaces) {
+            ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(c);
+            for (Method method : data.getDeclaredMethods()) {
+                overrideMethod(method, MethodIdentifier.getIdentifierForMethod(method), override);
+            }
         }
         return true;
     }

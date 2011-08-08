@@ -19,20 +19,18 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.invocation.proxy;
+package org.jboss.invocation.proxy.reflection;
+
+import org.jboss.invocation.proxy.reflection.ClassMetadataSource;
 
 /**
+ *
+ * Provides reflection information for Classes
+ *
  * @author Stuart Douglas
  */
-public class DefaultReflectionMetadataSource implements ReflectionMetadataSource {
+public interface ReflectionMetadataSource {
 
+   public ClassMetadataSource getClassMetadata(final Class<?> clazz);
 
-    public static final DefaultReflectionMetadataSource INSTANCE = new DefaultReflectionMetadataSource();
-
-    private DefaultReflectionMetadataSource() {
-    }
-
-    public ClassMetadataSource getClassMetadata(final Class<?> clazz) {
-        return new DefaultClassMetadataSource(clazz);
-    }
 }

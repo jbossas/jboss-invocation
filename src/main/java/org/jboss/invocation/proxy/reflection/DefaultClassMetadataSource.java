@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.invocation.proxy;
+package org.jboss.invocation.proxy.reflection;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -34,13 +34,11 @@ public class DefaultClassMetadataSource implements ClassMetadataSource {
 
     private final Class<?> clazz;
     private final List<Method> declaredMethods;
-    private final List<Method> methods;
     private final List<Constructor<?>> constructors;
 
     public DefaultClassMetadataSource(final Class<?> clazz) {
         this.clazz = clazz;
         this.declaredMethods = Arrays.asList(clazz.getDeclaredMethods());
-        this.methods = Arrays.asList(clazz.getMethods());
         this.constructors = Arrays.asList(clazz.getConstructors());
     }
 
@@ -50,14 +48,14 @@ public class DefaultClassMetadataSource implements ClassMetadataSource {
     }
 
     @Override
-    public Collection<Method> getMethods() {
-        return methods;
-    }
-
-    @Override
     public Method getMethod(final String methodName, final Class<?> returnType, final Class<?>... parameters) throws NoSuchMethodException {
-        return clazz.getMethod(methodName, parameters);
-    }
+        for(Method method : declaredMethods ) {
+            if(method.getName().equals(methodName) && returnType.equals(method.getReturnType()) && Arrays.equals(method.getParameterTypes(), parameters)) {
+                return method;
+            }
+        }
+        throw new NoSuchMethodException("Could not find method " + methodName + " on " + clazz);
+    }       
 
     @Override
     public Collection<Constructor<?>> getConstructors() {

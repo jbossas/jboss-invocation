@@ -21,6 +21,9 @@
  */
 package org.jboss.invocation.proxy;
 
+import org.jboss.invocation.proxy.reflection.DefaultReflectionMetadataSource;
+import org.jboss.invocation.proxy.reflection.ReflectionMetadataSource;
+
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.Collections;

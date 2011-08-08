@@ -27,6 +27,7 @@ import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
+import java.util.List;
 
 public class SimpleProxyFactoryTest {
 
@@ -70,8 +71,8 @@ public class SimpleProxyFactoryTest {
                 .setProxyName(SimpleClass.class.getPackage(), "SimpleClass$$Proxy2")
                 .setClassLoader(SimpleClass.class.getClassLoader());
         ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(proxyConfiguration);
-        Method[] methods = proxyFactory.getCachedMethods();
-        Assert.assertEquals(5, methods.length);
+        List<Method> methods = proxyFactory.getCachedMethods();
+        Assert.assertEquals(5, methods.size());
         Method method1 = null;
         for (Method m : methods) {
             if (m.getName().equals("method1")) {

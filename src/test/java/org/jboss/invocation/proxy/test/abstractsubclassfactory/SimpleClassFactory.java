@@ -22,7 +22,7 @@
 package org.jboss.invocation.proxy.test.abstractsubclassfactory;
 
 import org.jboss.invocation.proxy.AbstractSubclassFactory;
-import org.jboss.invocation.proxy.DefaultReflectionMetadataSource;
+import org.jboss.invocation.proxy.reflection.DefaultReflectionMetadataSource;
 
 import java.security.ProtectionDomain;
 

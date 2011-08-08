@@ -19,25 +19,19 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.invocation.proxy;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.util.Collection;
+package org.jboss.invocation.proxy.reflection;
 
 /**
- * Interface that provides reflection data for a given class
- *
  * @author Stuart Douglas
  */
-public interface ClassMetadataSource {
+public class DefaultReflectionMetadataSource implements ReflectionMetadataSource {
 
-    Collection<Method> getDeclaredMethods();
+    public static final DefaultReflectionMetadataSource INSTANCE = new DefaultReflectionMetadataSource();
 
-    Collection<Method> getMethods();
+    private DefaultReflectionMetadataSource() {
+    }
 
-    Method getMethod(String methodName, Class<?> returnType,  Class<?> ... parameters) throws NoSuchMethodException;
-
-    Collection<Constructor<?>> getConstructors();
-
+    public ClassMetadataSource getClassMetadata(final Class<?> clazz) {
+        return new DefaultClassMetadataSource(clazz);
+    }
 }

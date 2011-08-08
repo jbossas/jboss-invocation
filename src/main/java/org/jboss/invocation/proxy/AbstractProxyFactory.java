@@ -24,10 +24,9 @@ package org.jboss.invocation.proxy;
 
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassMethod;
-import org.jboss.classfilewriter.code.BranchEnd;
 import org.jboss.classfilewriter.code.CodeAttribute;
-import org.jboss.classfilewriter.code.CodeLocation;
-import org.jboss.classfilewriter.util.DescriptorUtils;
+import org.jboss.invocation.proxy.classloading.MethodStore;
+import org.jboss.invocation.proxy.reflection.ReflectionMetadataSource;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
@@ -35,9 +34,10 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A subclass factory specializing in proxy generation.
@@ -50,15 +50,13 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
 
     private static final String METHOD_FIELD_DESCRIPTOR = "Ljava/lang/reflect/Method;";
 
-    private final Map<Method, String> methodIdentifiers = new HashMap<Method, String>();
+    private final Map<Method, Integer> methodIdentifiers = new HashMap<Method, Integer>();
 
     private int identifierCount = 0;
 
     private ClassMethod staticConstructor;
 
-    private volatile Method[] cachedMethods;
-
-    private static final AtomicInteger count = new AtomicInteger();
+    private final List<Method> cachedMethods = new ArrayList<Method>(0);
 
 
     /**
@@ -71,7 +69,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
      */
     protected AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader,
                                    ProtectionDomain protectionDomain, final ReflectionMetadataSource reflectionMetadataSource) {
-        super(className, superClass, classLoader, protectionDomain,reflectionMetadataSource);
+        super(className, superClass, classLoader, protectionDomain, reflectionMetadataSource);
         staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
     }
 
@@ -79,6 +77,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
      * This method must be called by subclasses after they have finished generating the class.
      */
     protected void finalizeStaticConstructor() {
+        setupCachedProxyFields();
         staticConstructor.getCodeAttribute().returnInstruction();
     }
 
@@ -88,7 +87,54 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     @Override
     public void afterClassLoad(Class<?> clazz) {
         super.afterClassLoad(clazz);
-        cachedMethods = AccessController.doPrivileged(new CachedMethodGetter());
+        //we create a new instance of the proxy class
+        //this forces <clinit> to be run, while the correct ThreadLocal is set
+        //if we do not run this then <clinit> may be run later, perhaps even in
+        //another thread
+        try {
+            clazz.newInstance();
+        } catch (InstantiationException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+        MethodStore.METHODS.remove();
+    }
+
+    private void setupCachedProxyFields() {
+        cachedMethods.addAll(methodIdentifiers.keySet());
+
+        //set the methods to be accessible
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                for(Method method : cachedMethods) {
+                    method.setAccessible(true);
+                }
+                return null;
+            }
+        });
+
+        //store the Method objects in a thread local, so that
+        //the proxies <clinit> method can access them
+        //this removes the need for reflection in the proxy <clinit> method
+        final Method[] methods = new Method[identifierCount];
+        for (Map.Entry<Method, Integer> entry : methodIdentifiers.entrySet()) {
+            methods[entry.getValue()] = entry.getKey();
+        }
+        MethodStore.METHODS.set(methods);
+
+        //add the bytecode to load the cached fields in the static constructor
+        CodeAttribute ca = staticConstructor.getCodeAttribute();
+        ca.getstatic(MethodStore.class.getName(), "METHODS", "Ljava/lang/ThreadLocal;");
+        ca.invokevirtual(ThreadLocal.class.getName(), "get", "()Ljava/lang/Object;");
+        ca.checkcast("[Ljava/lang/reflect/Method;");
+        for(int i = 0; i < identifierCount; ++i) {
+            ca.dup();
+            ca.ldc(i);
+            ca.aaload();
+            ca.putstatic(getClassName(), METHOD_FIELD_PREFIX + i, METHOD_FIELD_DESCRIPTOR);
+        }
     }
 
     /**
@@ -97,7 +143,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
      *
      * @return The cached methods
      */
-    public Method[] getCachedMethods() {
+    public List<Method> getCachedMethods() {
         defineClass();
         return cachedMethods;
     }
@@ -126,84 +172,11 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
             int identifierNo = identifierCount++;
             String fieldName = METHOD_FIELD_PREFIX + identifierNo;
             classFile.addField(AccessFlag.PRIVATE | AccessFlag.STATIC, fieldName, Method.class);
-            methodIdentifiers.put(methodToLoad, fieldName);
-            // we need to create the method in the static constructor
-            CodeAttribute ca = staticConstructor.getCodeAttribute();
-            // we need to call getDeclaredMethods and then iterate
-            ca.loadClass(methodToLoad.getDeclaringClass().getName());
-            ca.invokevirtual("java.lang.Class", "getDeclaredMethods", "()[Ljava/lang/reflect/Method;");
-            ca.dup();
-            ca.arraylength();
-            ca.dup();
-            ca.istore(0);
-            ca.aconstNull();
-            ca.astore(1);
-            ca.aconstNull();
-            ca.astore(2);
-            ca.aconstNull();
-            ca.astore(3);
-            // so here we have the array index on top of the stack, followed by the array
-            CodeLocation loopBegin = ca.mark();
-            BranchEnd loopEnd = ca.ifeq();
-            ca.dup();
-            ca.iinc(0, -1);
-            ca.iload(0); // load the array index into the stack
-            ca.dupX1(); // index, array, index, array
-            ca.aaload();
-            ca.checkcast("java.lang.reflect.Method");
-            ca.dup();
-            ca.astore(2); // Method, index, array
-            // compare method names
-            ca.invokevirtual("java.lang.reflect.Method", "getName", "()Ljava/lang/String;");
-            ca.ldc(methodToLoad.getName());
-            ca.invokevirtual("java.lang.Object", "equals", "(Ljava/lang/Object;)Z"); // int,index,array
-            ca.ifEq(loopBegin);
-            // compare return types
-            ca.aload(2);
-            ca.invokevirtual("java.lang.reflect.Method", "getReturnType", "()Ljava/lang/Class;");
-            ca.loadType(DescriptorUtils.makeDescriptor(methodToLoad.getReturnType()));
-            ca.invokevirtual("java.lang.Object", "equals", "(Ljava/lang/Object;)Z"); // int,index,array
-            ca.ifEq(loopBegin);
-            // load the method parameters
-            Class<?>[] parameters = methodToLoad.getParameterTypes();
-            ca.aload(2);
-            ca.invokevirtual("java.lang.reflect.Method", "getParameterTypes", "()[Ljava/lang/Class;");
-            ca.dup();
-            ca.astore(3);
-            ca.arraylength();
-            ca.iconst(parameters.length);
-            ca.ifIcmpne(loopBegin); // compare parameter array length
-
-            for (int i = 0; i < parameters.length; ++i) {
-                ca.aload(3);
-                ca.iconst(i);
-                ca.aaload();
-                ca.loadType(DescriptorUtils.makeDescriptor(parameters[i]));
-                ca.invokevirtual("java.lang.Object", "equals", "(Ljava/lang/Object;)Z"); // int,index,array
-                ca.ifEq(loopBegin);
-            }
-            ca.pop();
-
-            BranchEnd gotoEnd = ca.gotoInstruction(); // we have found the method, goto the pointwhere we write it to a static
-            // field
-
-            // throw runtime exception as we could not find the method.
-            // this will only happen if the proxy isloaded into the wrong classloader
-            ca.branchEnd(loopEnd);
-            ca.newInstruction("java.lang.RuntimeException");
-            ca.dup();
-            ca.ldc("Could not find method " + methodToLoad);
-            ca.invokespecial("java.lang.RuntimeException", "<init>", "(Ljava/lang/String;)V");
-            ca.athrow();
-            ca.branchEnd(gotoEnd);
-            ca.pop();
-            ca.aload(2);
-            ca.checkcast("java.lang.reflect.Method");
-            ca.putstatic(getClassName(), fieldName, METHOD_FIELD_DESCRIPTOR);
+            methodIdentifiers.put(methodToLoad, identifierNo);
 
         }
-        String fieldName = methodIdentifiers.get(methodToLoad);
-        method.getCodeAttribute().getstatic(getClassName(), fieldName, METHOD_FIELD_DESCRIPTOR);
+        final Integer fieldNo = methodIdentifiers.get(methodToLoad);
+        method.getCodeAttribute().getstatic(getClassName(), METHOD_FIELD_PREFIX + fieldNo, METHOD_FIELD_DESCRIPTOR);
     }
 
     /**
