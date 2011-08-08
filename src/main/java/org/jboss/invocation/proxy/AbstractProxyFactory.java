@@ -87,17 +87,15 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
     @Override
     public void afterClassLoad(Class<?> clazz) {
         super.afterClassLoad(clazz);
-        //we create a new instance of the proxy class
-        //this forces <clinit> to be run, while the correct ThreadLocal is set
+        //force <clinit> to be run, while the correct ThreadLocal is set
         //if we do not run this then <clinit> may be run later, perhaps even in
         //another thread
         try {
-            clazz.newInstance();
-        } catch (InstantiationException e) {
-            throw new RuntimeException(e);
-        } catch (IllegalAccessException e) {
+            Class.forName(clazz.getName(), true, clazz.getClassLoader());
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+
         MethodStore.METHODS.remove();
     }
 
@@ -108,7 +106,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
-                for(Method method : cachedMethods) {
+                for (Method method : cachedMethods) {
                     method.setAccessible(true);
                 }
                 return null;
@@ -129,7 +127,7 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
         ca.getstatic(MethodStore.class.getName(), "METHODS", "Ljava/lang/ThreadLocal;");
         ca.invokevirtual(ThreadLocal.class.getName(), "get", "()Ljava/lang/Object;");
         ca.checkcast("[Ljava/lang/reflect/Method;");
-        for(int i = 0; i < identifierCount; ++i) {
+        for (int i = 0; i < identifierCount; ++i) {
             ca.dup();
             ca.ldc(i);
             ca.aaload();
