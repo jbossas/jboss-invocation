@@ -22,7 +22,8 @@
 
 package org.jboss.invocation;
 
-import javax.interceptor.InvocationContext;
+import static org.jboss.invocation.InvocationMessages.msg;
+
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import static org.jboss.invocation.InvocationMessages.msg;
+import javax.interceptor.InvocationContext;
 
 /**
  * An interceptor/invocation context object.
@@ -332,6 +333,9 @@ public final class InterceptorContext implements Cloneable {
         }
 
         public void setParameters(final Object[] params) {
+            if(parameters == null) {
+                throw new IllegalStateException("Cannot call InvocationContext.setParameters() in a lifecycle interceptor method");
+            }
             if (params == null) {
                 throw new IllegalArgumentException("Parameters must not be null");
             }
