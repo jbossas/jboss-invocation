@@ -25,6 +25,7 @@ package org.jboss.invocation;
 import static org.jboss.invocation.InvocationMessages.msg;
 
 import java.lang.reflect.Method;
+import java.security.PrivilegedExceptionAction;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
@@ -39,7 +40,7 @@ import javax.interceptor.InvocationContext;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class InterceptorContext implements Cloneable {
+public final class InterceptorContext implements Cloneable, PrivilegedExceptionAction<Object> {
     private static final List<Interceptor> EMPTY = Collections.<Interceptor>emptyList();
     private static final ListIterator<Interceptor> EMPTY_ITR = EMPTY.listIterator();
     private static final Map<Class<?>, Class<?>> PRIMITIVES;
@@ -292,6 +293,16 @@ public final class InterceptorContext implements Cloneable {
         } else {
             throw msg.cannotProceed();
         }
+    }
+
+    /**
+     * Synonymous with {@link #proceed()}; exists to implement {@link PrivilegedExceptionAction}.
+     *
+     * @return the result of {@link #proceed()}
+     * @throws Exception if {@link #proceed()} threw an exception
+     */
+    public Object run() throws Exception {
+        return proceed();
     }
 
     /**
