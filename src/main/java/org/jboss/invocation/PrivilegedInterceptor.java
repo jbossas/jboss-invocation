@@ -27,35 +27,42 @@ import java.security.AccessController;
 import java.security.PrivilegedActionException;
 
 /**
- * An interceptor which runs the invocation in a privileged or privileged and restricted access control context.
+ * An interceptor which runs the invocation in a privileged or privileged and restricted access control context.  If
+ * an {@link AccessControlContext} is attached to the interceptor context, it is used; otherwise, the invocation proceeds
+ * normally.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public final class PrivilegedInterceptor implements Interceptor {
-    private final AccessControlContext context;
+
+    private static final PrivilegedInterceptor INSTANCE = new PrivilegedInterceptor();
+    private static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
     /**
-     * Construct a new instance.  No additional restrictions will apply to the invocation beyond those imposed by
-     * subsequent interceptors and the invocation target.
+     * Get the singleton instance.
+     *
+     * @return the singleton instance
      */
-    public PrivilegedInterceptor() {
-        this(null);
+    public static PrivilegedInterceptor getInstance() {
+        return INSTANCE;
     }
 
     /**
-     * Construct a new instance.  The invocation target will run under the intersection of its own restrictions, those
-     * of subsequent interceptors, and the given access control context.
+     * Get a factory which returns the singleton instance.
      *
-     * @param context the access control context
+     * @return a factory which returns the singleton instance
      */
-    public PrivilegedInterceptor(final AccessControlContext context) {
-        this.context = context;
+    public static InterceptorFactory getFactory() {
+        return FACTORY;
+    }
+
+    private PrivilegedInterceptor() {
     }
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
         try {
-            return AccessController.doPrivileged(context, this.context);
+            return AccessController.doPrivileged(context, context.getPrivateData(AccessControlContext.class));
         } catch (PrivilegedActionException e) {
             throw e.getException();
         }

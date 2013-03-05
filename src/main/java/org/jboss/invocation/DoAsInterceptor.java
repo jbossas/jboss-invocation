@@ -33,6 +33,7 @@ import javax.security.auth.Subject;
  */
 public final class DoAsInterceptor implements Interceptor {
     private static final DoAsInterceptor INSTANCE = new DoAsInterceptor();
+    private static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
     private DoAsInterceptor() {
     }
@@ -44,6 +45,15 @@ public final class DoAsInterceptor implements Interceptor {
      */
     public static DoAsInterceptor getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Get a factory which returns the singleton instance.
+     *
+     * @return a factory which returns the singleton instance
+     */
+    public static InterceptorFactory getFactory() {
+        return FACTORY;
     }
 
     /** {@inheritDoc} */
