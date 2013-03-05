@@ -22,11 +22,7 @@
 
 package org.jboss.invocation;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 /**
  * An interceptor which sets the thread context class loader for the duration of an invocation.
@@ -38,7 +34,6 @@ import java.security.PrivilegedAction;
 public final class ContextClassLoaderInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 3727922476337147374L;
-    private static final RuntimePermission SET_CLASS_LOADER_PERMISSION = new RuntimePermission("setContextClassLoader");
 
     private final ClassLoader classLoader;
 
@@ -48,58 +43,18 @@ public final class ContextClassLoaderInterceptor implements Interceptor, Seriali
      * @param classLoader the class loader to use
      */
     public ContextClassLoaderInterceptor(final ClassLoader classLoader) {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(SET_CLASS_LOADER_PERMISSION);
-        }
         this.classLoader = classLoader;
     }
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
         final Thread thread = Thread.currentThread();
-        final ClassLoader old;
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            old = AccessController.doPrivileged(new ClassLoaderAction(classLoader));
-        } else {
-            old = thread.getContextClassLoader();
-            thread.setContextClassLoader(classLoader);
-        }
+        final ClassLoader old = thread.getContextClassLoader();
+        thread.setContextClassLoader(classLoader);
         try {
             return context.proceed();
         } finally {
-            if (sm != null) {
-                AccessController.doPrivileged(new ClassLoaderAction(old));
-            } else {
-                thread.setContextClassLoader(old);
-            }
-        }
-    }
-
-    private void readObject(ObjectInputStream ois) throws ClassNotFoundException, IOException {
-        ois.defaultReadObject();
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(SET_CLASS_LOADER_PERMISSION);
-        }
-    }
-
-    private static class ClassLoaderAction implements PrivilegedAction<ClassLoader> {
-
-        private ClassLoader classLoader;
-
-        public ClassLoaderAction(final ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
-
-        public ClassLoader run() {
-            final Thread thread = Thread.currentThread();
-            try {
-                return thread.getContextClassLoader();
-            } finally {
-                thread.setContextClassLoader(classLoader);
-            }
+            thread.setContextClassLoader(old);
         }
     }
 }
