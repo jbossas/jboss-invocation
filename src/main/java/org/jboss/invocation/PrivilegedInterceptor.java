@@ -38,12 +38,18 @@ public final class PrivilegedInterceptor implements Interceptor {
     private static final PrivilegedInterceptor INSTANCE = new PrivilegedInterceptor();
     private static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
+    private static final RuntimePermission PERMISSION = new RuntimePermission("getPrivilegedInterceptor");
+
     /**
      * Get the singleton instance.
      *
      * @return the singleton instance
      */
     public static PrivilegedInterceptor getInstance() {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(PERMISSION);
+        }
         return INSTANCE;
     }
 
@@ -53,6 +59,10 @@ public final class PrivilegedInterceptor implements Interceptor {
      * @return a factory which returns the singleton instance
      */
     public static InterceptorFactory getFactory() {
+        final SecurityManager sm = System.getSecurityManager();
+        if (sm != null) {
+            sm.checkPermission(PERMISSION);
+        }
         return FACTORY;
     }
 
