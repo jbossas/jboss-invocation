@@ -24,6 +24,7 @@ package org.jboss.invocation;
 
 import static org.jboss.invocation.InvocationMessages.msg;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.PrivilegedExceptionAction;
 import java.util.Collections;
@@ -60,6 +61,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
 
     private Object target;
     private Method method;
+    private Constructor<?> constructor;
     private Object[] parameters;
     private Map<String, Object> contextData;
     private Object timer;
@@ -102,6 +104,24 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      */
     public void setMethod(final Method method) {
         this.method = method;
+    }
+
+    /**
+     * Get the intercepted constructor.
+     *
+     * @return the constructor
+     */
+    public Constructor<?> getConstructor() {
+        return constructor;
+    }
+
+    /**
+     * Set the intercepted constructor.
+     *
+     * @param constructor the constructor
+     */
+    public void setConstructor(Constructor<?> constructor) {
+        this.constructor = constructor;
     }
 
     /**
@@ -320,6 +340,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
         clone.privateData.putAll(privateData);
         clone.target = target;
         clone.method = method;
+        clone.constructor = constructor;
         clone.parameters = parameters;
         clone.timer = timer;
         final int next = interceptorIterator.nextIndex();
@@ -383,6 +404,11 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
 
         public Object proceed() throws Exception {
             return InterceptorContext.this.proceed();
+        }
+
+        @Override
+        public Constructor<?> getConstructor() {
+            return constructor;
         }
     }
 }
