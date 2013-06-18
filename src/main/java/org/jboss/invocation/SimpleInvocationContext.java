@@ -22,13 +22,14 @@
 
 package org.jboss.invocation;
 
+import static org.jboss.invocation.InvocationMessages.msg;
+
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.interceptor.InvocationContext;
-
-import static org.jboss.invocation.InvocationMessages.msg;
 
 /**
  * A base class for invocation contexts.  Also can act as the last interceptor in a chain which
@@ -42,6 +43,7 @@ public class SimpleInvocationContext implements InvocationContext {
 
     private final Object target;
     private final Method method;
+    private final Constructor<?> constructor;
     private Object[] parameters;
     private final Map<String, Object> contextData;
     private final Object timer;
@@ -55,12 +57,13 @@ public class SimpleInvocationContext implements InvocationContext {
      * @param contextData the context data map to use
      * @param timer the associated timer (may be {@code null})
      */
-    public SimpleInvocationContext(final Object target, final Method method, final Object[] parameters, final Map<String, Object> contextData, final Object timer) {
+    public SimpleInvocationContext(final Object target, final Method method, final Object[] parameters, final Map<String, Object> contextData, final Object timer, Constructor<?> constructor) {
         this.target = target;
         this.method = method;
         this.parameters = parameters;
         this.contextData = contextData;
         this.timer = timer;
+        this.constructor = constructor;
     }
 
     /**
@@ -72,7 +75,7 @@ public class SimpleInvocationContext implements InvocationContext {
      * @param timer the associated timer (may be {@code null})
      */
     public SimpleInvocationContext(final Object target, final Method method, final Object[] parameters, final Object timer) {
-        this(target, method, parameters, new HashMap<String, Object>(), timer);
+        this(target, method, parameters, new HashMap<String, Object>(), timer, null);
     }
 
     /**
@@ -127,5 +130,11 @@ public class SimpleInvocationContext implements InvocationContext {
      */
     public Object proceed() throws Exception {
         throw msg.cannotProceed();
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Constructor<?> getConstructor() {
+        return constructor;
     }
 }
