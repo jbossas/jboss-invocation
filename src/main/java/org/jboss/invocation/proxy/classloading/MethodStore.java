@@ -22,12 +22,15 @@
 package org.jboss.invocation.proxy.classloading;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Stuart Douglas
  */
 public class MethodStore {
 
-    public static final ThreadLocal<Method[]> METHODS = new ThreadLocal<Method[]>();
+    public static final Map<ClassIdentifier, Method[]> METHODS = Collections.synchronizedMap(new HashMap<ClassIdentifier, Method[]>());
 
 }

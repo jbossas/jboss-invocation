@@ -25,6 +25,7 @@ package org.jboss.invocation.proxy;
 import org.jboss.classfilewriter.AccessFlag;
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.code.CodeAttribute;
+import org.jboss.invocation.proxy.classloading.ClassIdentifier;
 import org.jboss.invocation.proxy.classloading.MethodStore;
 import org.jboss.invocation.proxy.reflection.ReflectionMetadataSource;
 
@@ -95,8 +96,6 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-
-        MethodStore.METHODS.remove();
     }
 
     private void setupCachedProxyFields() {
@@ -120,12 +119,18 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
         for (Map.Entry<Method, Integer> entry : methodIdentifiers.entrySet()) {
             methods[entry.getValue()] = entry.getKey();
         }
-        MethodStore.METHODS.set(methods);
+        MethodStore.METHODS.put(new ClassIdentifier(classFile.getName(), getClassLoader()), methods);
 
         //add the bytecode to load the cached fields in the static constructor
         CodeAttribute ca = staticConstructor.getCodeAttribute();
-        ca.getstatic(MethodStore.class.getName(), "METHODS", "Ljava/lang/ThreadLocal;");
-        ca.invokevirtual(ThreadLocal.class.getName(), "get", "()Ljava/lang/Object;");
+        ca.getstatic(MethodStore.class.getName(), "METHODS", "Ljava/util/Map;");
+        ca.newInstruction(ClassIdentifier.class);
+        ca.dup();
+        ca.ldc(classFile.getName());
+        ca.loadClass(classFile.getName());
+        ca.invokevirtual("java.lang.Class", "getClassLoader", "()Ljava/lang/ClassLoader;");
+        ca.invokespecial(ClassIdentifier.class.getName(), "<init>", "(Ljava/lang/String;Ljava/lang/ClassLoader;)V");
+        ca.invokeinterface(Map.class.getName(), "remove", "(Ljava/lang/Object;)Ljava/lang/Object;");
         ca.checkcast("[Ljava/lang/reflect/Method;");
         for (int i = 0; i < identifierCount; ++i) {
             ca.dup();
