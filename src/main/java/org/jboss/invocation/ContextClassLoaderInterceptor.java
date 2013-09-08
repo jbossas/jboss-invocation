@@ -23,10 +23,12 @@
 package org.jboss.invocation;
 
 import java.io.Serializable;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * An interceptor which sets the thread context class loader for the duration of an invocation.
- * <p>
+ * <p/>
  * Note that this interceptor is only serializable if the given class loader is serializable.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
@@ -46,15 +48,44 @@ public final class ContextClassLoaderInterceptor implements Interceptor, Seriali
         this.classLoader = classLoader;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     public Object processInvocation(final InterceptorContext context) throws Exception {
-        final Thread thread = Thread.currentThread();
-        final ClassLoader old = thread.getContextClassLoader();
-        thread.setContextClassLoader(classLoader);
+        final ClassLoader old;
+        Thread thread = Thread.currentThread();
+        if (System.getSecurityManager() == null) {
+            old = thread.getContextClassLoader();
+            thread.setContextClassLoader(classLoader);
+        } else {
+            old = AccessController.doPrivileged(new SetContextClassLoader(classLoader));
+        }
         try {
             return context.proceed();
         } finally {
-            thread.setContextClassLoader(old);
+            if (System.getSecurityManager() == null) {
+                thread.setContextClassLoader(old);
+            } else {
+                AccessController.doPrivileged(new SetContextClassLoader(old));
+            }
+        }
+    }
+
+
+    private static class SetContextClassLoader implements PrivilegedAction<ClassLoader> {
+
+        private final ClassLoader classLoader;
+
+        private SetContextClassLoader(ClassLoader classLoader) {
+            this.classLoader = classLoader;
+        }
+
+        @Override
+        public ClassLoader run() {
+            Thread thread = Thread.currentThread();
+            ClassLoader old = thread.getContextClassLoader();
+            thread.setContextClassLoader(classLoader);
+            return old;
         }
     }
 }
