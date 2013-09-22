@@ -22,8 +22,9 @@
 
 package org.jboss.invocation;
 
+import org.wildfly.security.manager.WildFlySecurityManager;
+
 import java.security.AccessControlContext;
-import java.security.AccessController;
 import java.security.PrivilegedActionException;
 
 /**
@@ -71,10 +72,14 @@ public final class PrivilegedInterceptor implements Interceptor {
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
-        try {
-            return AccessController.doPrivileged(context, context.getPrivateData(AccessControlContext.class));
-        } catch (PrivilegedActionException e) {
-            throw e.getException();
+        if(System.getSecurityManager() != null) {
+            try {
+                return WildFlySecurityManager.doChecked(context, context.getPrivateData(AccessControlContext.class));
+            } catch (PrivilegedActionException e) {
+                throw e.getException();
+            }
+        } else {
+            return context.run();
         }
     }
 }
