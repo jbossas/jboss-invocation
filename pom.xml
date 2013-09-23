@@ -48,6 +48,7 @@
         <jboss.logging.version>3.0.0.GA</jboss.logging.version>
         <jboss.logging.tools.version>1.0.0.Beta3</jboss.logging.tools.version>
         <junit.version>4.8.2</junit.version>
+        <org.wildfly.security.manager.version>1.0.0.Beta2</org.wildfly.security.manager.version>
     </properties>
 
     <!-- Build Information -->
@@ -94,6 +95,12 @@
             <artifactId>jboss-classfilewriter</artifactId>
             <version>${classfilewriter.version}</version>
             <type>jar</type>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.security</groupId>
+            <artifactId>wildfly-security-manager</artifactId>
+            <version>${org.wildfly.security.manager.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

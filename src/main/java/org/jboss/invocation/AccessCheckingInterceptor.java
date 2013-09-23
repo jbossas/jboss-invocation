@@ -22,64 +22,45 @@
 
 package org.jboss.invocation;
 
-import java.security.AccessControlContext;
-import java.security.AccessController;
+import org.wildfly.security.manager.WildFlySecurityManager;
+
 import java.security.PrivilegedActionException;
 
 /**
- * An interceptor which runs the invocation in a privileged or privileged and restricted access control context.  If
- * an {@link AccessControlContext} is attached to the interceptor context, it is used; otherwise, the invocation proceeds
- * normally.
+ * An interceptor which enables access checking for the duration of the invocation.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class PrivilegedInterceptor implements Interceptor {
-
-    private static final PrivilegedInterceptor INSTANCE = new PrivilegedInterceptor();
+public final class AccessCheckingInterceptor implements Interceptor {
+    private static final AccessCheckingInterceptor INSTANCE = new AccessCheckingInterceptor();
     private static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
-    private static final RuntimePermission PERMISSION = new RuntimePermission("getPrivilegedInterceptor");
+    private AccessCheckingInterceptor() {
+    }
 
     /**
      * Get the singleton instance.
      *
      * @return the singleton instance
      */
-    public static PrivilegedInterceptor getInstance() {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(PERMISSION);
-        }
+    public static AccessCheckingInterceptor getInstance() {
         return INSTANCE;
     }
 
     /**
-     * Get a factory which returns the singleton instance.
+     * Get the singleton factory instance.
      *
-     * @return a factory which returns the singleton instance
+     * @return the singleton factory instance
      */
     public static InterceptorFactory getFactory() {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(PERMISSION);
-        }
         return FACTORY;
     }
 
-    private PrivilegedInterceptor() {
-    }
-
-    /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            try {
-                return AccessController.doPrivileged(context, context.getPrivateData(AccessControlContext.class));
-            } catch (PrivilegedActionException e) {
-                throw e.getException();
-            }
-        } else {
-            return context.run();
+        try {
+            return WildFlySecurityManager.doChecked(context);
+        } catch (PrivilegedActionException e) {
+            throw e.getException();
         }
     }
 }
