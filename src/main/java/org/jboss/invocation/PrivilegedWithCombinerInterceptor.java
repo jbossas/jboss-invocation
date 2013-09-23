@@ -26,23 +26,24 @@ import java.security.AccessController;
 import java.security.PrivilegedActionException;
 
 /**
- * An interceptor which runs the invocation in a privileged access control context.
+ * An interceptor which runs the invocation in a privileged access control context while preserving any domain
+ * combiner that is set on the caller access control context.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class PrivilegedInterceptor implements Interceptor {
+public final class PrivilegedWithCombinerInterceptor implements Interceptor {
 
-    private static final PrivilegedInterceptor INSTANCE = new PrivilegedInterceptor();
+    private static final PrivilegedWithCombinerInterceptor INSTANCE = new PrivilegedWithCombinerInterceptor();
     private static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
 
-    private static final RuntimePermission PERMISSION = new RuntimePermission("getPrivilegedInterceptor");
+    private static final RuntimePermission PERMISSION = new RuntimePermission("getPrivilegedWithCombinerInterceptor");
 
     /**
      * Get the singleton instance.
      *
      * @return the singleton instance
      */
-    public static PrivilegedInterceptor getInstance() {
+    public static PrivilegedWithCombinerInterceptor getInstance() {
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             sm.checkPermission(PERMISSION);
@@ -63,7 +64,7 @@ public final class PrivilegedInterceptor implements Interceptor {
         return FACTORY;
     }
 
-    private PrivilegedInterceptor() {
+    private PrivilegedWithCombinerInterceptor() {
     }
 
     /** {@inheritDoc} */
@@ -71,7 +72,7 @@ public final class PrivilegedInterceptor implements Interceptor {
         final SecurityManager sm = System.getSecurityManager();
         if (sm != null) {
             try {
-                return AccessController.doPrivileged(context);
+                return AccessController.doPrivilegedWithCombiner(context);
             } catch (PrivilegedActionException e) {
                 throw e.getException();
             }
