@@ -281,12 +281,13 @@ public final class InterceptorContext implements Cloneable {
      * @throws Exception if an invocation throws an exception
      */
     public Object proceed() throws Exception {
-        final ListIterator<Interceptor> iterator = interceptorIterator;
+        ListIterator<Interceptor> iterator = interceptorIterator;
         if (iterator.hasNext()) {
             Interceptor next = iterator.next();
             try {
                 return next.processInvocation(this);
             } finally {
+                iterator = interceptorIterator;
                 if (iterator.hasPrevious()) iterator.previous();
             }
         } else {
