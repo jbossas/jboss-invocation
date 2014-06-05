@@ -37,6 +37,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 
 /**
  * Proxy Factory that generates proxies that delegate all calls to an {@link InvocationHandler}.
@@ -326,10 +328,16 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             synchronized (this) {
                 if (invocationHandlerField == null) {
                     try {
-                        final Field field = defineClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
-                        AccessController.doPrivileged(new SetAccessiblePrivilege(field));
-                        invocationHandlerField = field;
-                    } catch (NoSuchFieldException e) {
+                        invocationHandlerField = AccessController.doPrivileged(new PrivilegedExceptionAction<Field>() {
+                            @Override
+                            public Field run() throws NoSuchFieldException {
+                                final Field field = defineClass().getDeclaredField(INVOCATION_HANDLER_FIELD);
+                                field.setAccessible(true);
+                                return field;
+                            }
+                        });
+
+                    } catch (PrivilegedActionException e) {
                         throw new RuntimeException("Could not find invocation handler on generated proxy", e);
                     }
                 }
