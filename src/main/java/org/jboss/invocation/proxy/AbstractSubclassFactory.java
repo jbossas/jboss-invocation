@@ -360,7 +360,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
         for(final Class<?> c : interfaces) {
             ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(c);
             for (Method method : data.getDeclaredMethods()) {
-                overrideMethod(method, MethodIdentifier.getIdentifierForMethod(method), override);
+                if (!Modifier.isStatic(method.getModifiers())) {
+                    overrideMethod(method, MethodIdentifier.getIdentifierForMethod(method), override);
+                }
             }
         }
         return true;
