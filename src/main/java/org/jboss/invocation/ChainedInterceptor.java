@@ -38,7 +38,7 @@ class ChainedInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = 7951017996430287249L;
 
-    private final List<Interceptor> interceptors;
+    private final Interceptor[] interceptors;
 
     /**
      * Construct a new instance.
@@ -49,13 +49,13 @@ class ChainedInterceptor implements Interceptor, Serializable {
         if (interceptors == null) {
             throw msg.nullParameter("interceptors");
         }
-        this.interceptors = Arrays.asList(interceptors);
+        this.interceptors = interceptors;
     }
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
         final int oldNext = context.getNextInterceptorIndex();
-        final List<Interceptor> old = context.getInterceptors();
+        final Interceptor[] old = context.getInterceptors();
         context.setInterceptors(interceptors);
         try {
             return context.proceed();

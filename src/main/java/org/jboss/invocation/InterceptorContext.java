@@ -42,8 +42,7 @@ import javax.interceptor.InvocationContext;
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
 public final class InterceptorContext implements Cloneable, PrivilegedExceptionAction<Object> {
-    private static final List<Interceptor> EMPTY = Collections.<Interceptor>emptyList();
-    private static final ListIterator<Interceptor> EMPTY_ITR = EMPTY.listIterator();
+    private static final Interceptor[] EMPTY = new Interceptor[0];
     private static final Map<Class<?>, Class<?>> PRIMITIVES;
 
     static {
@@ -65,10 +64,10 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
     private Object[] parameters;
     private Map<String, Object> contextData;
     private Object timer;
-    private List<Interceptor> interceptors = EMPTY;
-    private ListIterator<Interceptor> interceptorIterator = EMPTY_ITR;
+    private Interceptor[] interceptors = EMPTY;
+    private int interceptorPosition = 0;
     private final Map<Object, Object> privateData = new IdentityHashMap<Object, Object>();
-    private final InvocationContext invocationContext = new Invocation();
+    private InvocationContext invocationContext;
 
     /**
      * Get the invocation target which is reported to the interceptor invocation context.
@@ -189,6 +188,11 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      * @return the invocation context
      */
     public InvocationContext getInvocationContext() {
+        if(invocationContext == null) {
+            //we lazily allocate the context
+            //as if there are no user level interceptors it may not be required
+            invocationContext = new Invocation();
+        }
         return invocationContext;
     }
 
@@ -259,7 +263,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      *
      * @return the interceptors
      */
-    public List<Interceptor> getInterceptors() {
+    public Interceptor[] getInterceptors() {
         return interceptors;
     }
 
@@ -269,7 +273,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      * @return
      */
     public int getNextInterceptorIndex() {
-        return interceptorIterator.nextIndex();
+        return interceptorPosition;
     }
 
     /**
@@ -277,7 +281,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      *
      * @param interceptors the interceptor list
      */
-    public void setInterceptors(final List<Interceptor> interceptors) {
+    public void setInterceptors(final Interceptor[]interceptors) {
         setInterceptors(interceptors, 0);
     }
 
@@ -287,12 +291,12 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      * @param interceptors the interceptor list
      * @param nextIndex the next index to proceed
      */
-    public void setInterceptors(final List<Interceptor> interceptors, int nextIndex) {
+    public void setInterceptors(final Interceptor[] interceptors, int nextIndex) {
         if (interceptors == null) {
             throw new IllegalArgumentException("interceptors is null");
         }
         this.interceptors = interceptors;
-        interceptorIterator = interceptors.listIterator(nextIndex);
+        this.interceptorPosition = nextIndex;
     }
 
     /**
@@ -302,14 +306,12 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      * @throws Exception if an invocation throws an exception
      */
     public Object proceed() throws Exception {
-        ListIterator<Interceptor> iterator = interceptorIterator;
-        if (iterator.hasNext()) {
-            Interceptor next = iterator.next();
+        if (interceptorPosition < interceptors.length) {
+            Interceptor next = interceptors[interceptorPosition++];
             try {
                 return next.processInvocation(this);
             } finally {
-                iterator = interceptorIterator;
-                if (iterator.hasPrevious()) iterator.previous();
+                interceptorPosition--;
             }
         } else {
             throw msg.cannotProceed();
@@ -344,8 +346,8 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
         clone.constructor = constructor;
         clone.parameters = parameters;
         clone.timer = timer;
-        final int next = interceptorIterator.nextIndex();
-        clone.setInterceptors(interceptors.subList(next, interceptors.size()));
+        clone.interceptors = interceptors;
+        clone.interceptorPosition = interceptorPosition;
         return clone;
     }
 
