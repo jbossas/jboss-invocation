@@ -58,7 +58,7 @@ public class InterceptorContextCloneTestCase {
         final DeferredInterceptor deferred = new DeferredInterceptor();
 
 
-        context.setInterceptors(Arrays.asList(interceptor1, interceptor2, deferred, interceptor3, invoking));
+        context.setInterceptors(new Interceptor[]{interceptor1, interceptor2, deferred, interceptor3, invoking});
 
         String result = (String)context.proceed();
         assertEquals("1#2#Deferred#", result);

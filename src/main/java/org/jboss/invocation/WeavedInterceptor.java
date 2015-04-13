@@ -30,24 +30,28 @@ import java.util.List;
 /**
  * Weaves a series of interceptors into an existing interceptor chain.
  *
+ * This interceptor is not very memory efficient, and should be avoided
+ *
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  */
+@Deprecated
 class WeavedInterceptor implements Interceptor, Serializable {
 
     private static final long serialVersionUID = -2015905619563503718L;
 
-    private final List<Interceptor> interceptors;
+    private final Interceptor[] interceptors;
 
     WeavedInterceptor(final Interceptor... interceptors) {
-        this.interceptors = Arrays.asList(interceptors);
+        this.interceptors = interceptors;
     }
 
     @Override
     public Object processInvocation(InterceptorContext context) throws Exception {
         final int oldNext = context.getNextInterceptorIndex();
-        final List<Interceptor> old = context.getInterceptors();
-        final List<Interceptor> interceptors = new ArrayList<Interceptor>(this.interceptors);
-        interceptors.addAll(old.subList(oldNext, old.size()));
+        final Interceptor[] old = context.getInterceptors();
+        final Interceptor[] interceptors = new Interceptor[this.interceptors.length + old.length - oldNext];
+        System.arraycopy(this.interceptors, 0, interceptors, 0, this.interceptors.length);
+        System.arraycopy(old, oldNext, interceptors, this.interceptors.length, old.length - oldNext);
         context.setInterceptors(interceptors);
         try {
             return context.proceed();
