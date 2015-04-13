@@ -35,7 +35,7 @@
     <!-- Artifact Information -->
     <groupId>org.jboss.invocation</groupId>
     <artifactId>jboss-invocation</artifactId>
-    <version>1.4.0.Final</version>
+    <version>1.5.0.Beta1-SNAPSHOT</version>
     <name>Invocation API</name>
     <description>Invocation Application Programming Interface</description>
     <packaging>jar</packaging>
