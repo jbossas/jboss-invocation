@@ -66,7 +66,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
     private Object timer;
     private Interceptor[] interceptors = EMPTY;
     private int interceptorPosition = 0;
-    private final Map<Object, Object> privateData = new IdentityHashMap<Object, Object>();
+    private final Map<Object, Object> privateData = new IdentityHashMap<Object, Object>(4);
     private InvocationContext invocationContext;
 
     /**
