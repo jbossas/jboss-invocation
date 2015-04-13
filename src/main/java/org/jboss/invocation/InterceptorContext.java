@@ -27,11 +27,11 @@ import static org.jboss.invocation.InvocationMessages.msg;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Map;
 
 import javax.interceptor.InvocationContext;
@@ -259,7 +259,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
     }
 
     /**
-     * Get the current interceptors.
+     * Get the current interceptors.  The returned array should not be modified.
      *
      * @return the interceptors
      */
@@ -268,9 +268,18 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
     }
 
     /**
+     * Binary compatibility bridge for interceptors list.
+     *
+     * @return the interceptors array as a list
+     */
+    public List<Interceptor> getInterceptors$$bridge() {
+        return Collections.unmodifiableList(Arrays.asList(interceptors));
+    }
+
+    /**
      * Returns the next interceptor index.
      *
-     * @return
+     * @return the next interceptor index
      */
     public int getNextInterceptorIndex() {
         return interceptorPosition;
@@ -281,14 +290,23 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      *
      * @param interceptors the interceptor list
      */
-    public void setInterceptors(final Interceptor[]interceptors) {
+    public void setInterceptors(final Interceptor[] interceptors) {
         setInterceptors(interceptors, 0);
     }
 
     /**
-     * Set the interceptors.  With a starting index to proceed from.
+     * Set the interceptor array from a list.
      *
-     * @param interceptors the interceptor list
+     * @param interceptorList the interceptor list
+     */
+    public void setInterceptors(final List<Interceptor> interceptorList) {
+        setInterceptors(interceptorList.toArray(new Interceptor[interceptorList.size()]), 0);
+    }
+
+    /**
+     * Set the interceptors, with a starting index to proceed from.
+     *
+     * @param interceptors the interceptor array
      * @param nextIndex the next index to proceed
      */
     public void setInterceptors(final Interceptor[] interceptors, int nextIndex) {
@@ -297,6 +315,16 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
         }
         this.interceptors = interceptors;
         this.interceptorPosition = nextIndex;
+    }
+
+    /**
+     * Set the interceptors, with a starting index to proceed from.
+     *
+     * @param interceptorList the interceptor list
+     * @param nextIndex the next index to proceed
+     */
+    public void setInterceptors(final List<Interceptor> interceptorList, int nextIndex) {
+        setInterceptors(interceptorList.toArray(new Interceptor[interceptorList.size()]), nextIndex);
     }
 
     /**
