@@ -150,7 +150,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
     public Map<String, Object> getContextData() throws IllegalStateException {
         Map<String, Object> contextData = this.contextData;
         if (contextData == null) {
-            throw new IllegalStateException("The context data was not set");
+            contextData = this.contextData = new HashMap<>();
         }
         return contextData;
     }
