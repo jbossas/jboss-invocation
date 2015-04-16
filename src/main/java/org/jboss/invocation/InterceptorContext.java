@@ -374,8 +374,10 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
         clone.constructor = constructor;
         clone.parameters = parameters;
         clone.timer = timer;
+        Interceptor[] interceptors = new Interceptor[this.interceptors.length - interceptorPosition];
+        System.arraycopy(this.interceptors, interceptorPosition, interceptors, 0, interceptors.length);
         clone.interceptors = interceptors;
-        clone.interceptorPosition = interceptorPosition;
+        clone.interceptorPosition = 0;
         return clone;
     }
 
