@@ -66,6 +66,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
     private Object timer;
     private Interceptor[] interceptors = EMPTY;
     private int interceptorPosition = 0;
+    private boolean blockingCaller = false;
     private final Map<Object, Object> privateData = new IdentityHashMap<Object, Object>(4);
     private InvocationContext invocationContext;
 
@@ -325,6 +326,24 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      */
     public void setInterceptors(final List<Interceptor> interceptorList, int nextIndex) {
         setInterceptors(interceptorList.toArray(new Interceptor[interceptorList.size()]), nextIndex);
+    }
+
+    /**
+     * Determine whether this invocation is currently blocking the calling thread.
+     *
+     * @return {@code true} if the calling thread is being blocked; {@code false} otherwise
+     */
+    public boolean isBlockingCaller() {
+        return blockingCaller;
+    }
+
+    /**
+     * Establish whether this invocation is currently blocking the calling thread.
+     *
+     * @param blockingCaller {@code true} if the calling thread is being blocked; {@code false} otherwise
+     */
+    public void setBlockingCaller(final boolean blockingCaller) {
+        this.blockingCaller = blockingCaller;
     }
 
     /**
