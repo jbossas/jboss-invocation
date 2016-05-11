@@ -44,11 +44,11 @@
     <properties>
         <classfilewriter.version>1.0.4.Final</classfilewriter.version>
         <javax.interceptor.version>1.0.0.Final</javax.interceptor.version>
-        <jboss.marshalling.version>1.4.0.Final</jboss.marshalling.version>
-        <jboss.logging.version>3.1.4.GA</jboss.logging.version>
-        <jboss.logging.tools.version>1.2.0.Beta1</jboss.logging.tools.version>
+        <jboss.logging.version>3.2.1.Final</jboss.logging.version>
+        <jboss.logging.tools.version>2.0.1.Final</jboss.logging.tools.version>
         <junit.version>4.8.2</junit.version>
-        <org.wildfly.security.manager.version>1.0.0.Final</org.wildfly.security.manager.version>
+        <org.wildfly.elytron.version>1.1.0.Beta6-SNAPSHOT</org.wildfly.elytron.version>
+        <org.wildfly.common.version>1.2.0.Beta2-SNAPSHOT</org.wildfly.common.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -101,12 +101,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.jboss.marshalling</groupId>
-            <artifactId>jboss-marshalling</artifactId>
-            <version>${jboss.marshalling.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
             <version>${jboss.logging.version}</version>
@@ -133,8 +127,8 @@
         </dependency>
         <dependency>
             <groupId>org.wildfly.security</groupId>
-            <artifactId>wildfly-security-manager</artifactId>
-            <version>${org.wildfly.security.manager.version}</version>
+            <artifactId>wildfly-elytron</artifactId>
+            <version>${org.wildfly.elytron.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -142,6 +136,11 @@
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.common</groupId>
+            <artifactId>wildfly-common</artifactId>
+            <version>${org.wildfly.common.version}</version>
         </dependency>
     </dependencies>
 
