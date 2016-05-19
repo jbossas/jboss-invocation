@@ -10,6 +10,7 @@ import java.lang.reflect.UndeclaredThrowableException;
  * @author John Bailey
  */
 public class InitialInterceptor implements Interceptor, Serializable {
+    private static final long serialVersionUID = 7007565623074040083L;
 
     static final InitialInterceptor INSTANCE = new InitialInterceptor();
     static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
