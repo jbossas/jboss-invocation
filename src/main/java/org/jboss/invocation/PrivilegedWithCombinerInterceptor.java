@@ -22,21 +22,16 @@
 
 package org.jboss.invocation;
 
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-
 /**
- * An interceptor which runs the invocation in a privileged access control context while preserving any domain
- * combiner that is set on the caller access control context.
+ * @deprecated This class does nothing and will be removed in a future release.
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
+@Deprecated
 public final class PrivilegedWithCombinerInterceptor implements Interceptor {
 
     private static final PrivilegedWithCombinerInterceptor INSTANCE = new PrivilegedWithCombinerInterceptor();
     private static final InterceptorFactory FACTORY = new ImmediateInterceptorFactory(INSTANCE);
-
-    private static final RuntimePermission PERMISSION = new RuntimePermission("getPrivilegedWithCombinerInterceptor");
 
     /**
      * Get the singleton instance.
@@ -44,10 +39,6 @@ public final class PrivilegedWithCombinerInterceptor implements Interceptor {
      * @return the singleton instance
      */
     public static PrivilegedWithCombinerInterceptor getInstance() {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(PERMISSION);
-        }
         return INSTANCE;
     }
 
@@ -57,10 +48,6 @@ public final class PrivilegedWithCombinerInterceptor implements Interceptor {
      * @return a factory which returns the singleton instance
      */
     public static InterceptorFactory getFactory() {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            sm.checkPermission(PERMISSION);
-        }
         return FACTORY;
     }
 
@@ -69,15 +56,6 @@ public final class PrivilegedWithCombinerInterceptor implements Interceptor {
 
     /** {@inheritDoc} */
     public Object processInvocation(final InterceptorContext context) throws Exception {
-        final SecurityManager sm = System.getSecurityManager();
-        if (sm != null) {
-            try {
-                return AccessController.doPrivilegedWithCombiner(context);
-            } catch (PrivilegedActionException e) {
-                throw e.getException();
-            }
-        } else {
-            return context.run();
-        }
+        return context.run();
     }
 }
