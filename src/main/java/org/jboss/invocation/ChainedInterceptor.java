@@ -28,6 +28,8 @@ import java.util.List;
 
 import static org.jboss.invocation.InvocationMessages.msg;
 
+import org.wildfly.common.Assert;
+
 /**
  * An interceptor which passes invocations through a series of nested interceptors.
  *
@@ -46,9 +48,7 @@ class ChainedInterceptor implements Interceptor, Serializable {
      * @param interceptors the child interceptors
      */
     ChainedInterceptor(final Interceptor... interceptors) {
-        if (interceptors == null) {
-            throw msg.nullParameter("interceptors");
-        }
+        Assert.checkNotNullParam("interceptors", interceptors);
         this.interceptors = interceptors;
     }
 

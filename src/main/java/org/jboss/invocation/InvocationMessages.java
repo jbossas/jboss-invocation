@@ -27,7 +27,6 @@ import org.jboss.logging.annotations.Message;
 import org.jboss.logging.annotations.MessageBundle;
 import org.jboss.logging.Messages;
 
-import java.io.InvalidObjectException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.CancellationException;
 
@@ -47,17 +46,17 @@ interface InvocationMessages {
     @Message(id = 2, value = "Invocation cannot proceed (end of interceptor chain has been hit)")
     CannotProceedException cannotProceed();
 
-    @Message(id = 3, value = "Null value passed in for parameter %s")
-    IllegalArgumentException nullParameter(String param);
+    // id = 3
+    // unused (reserved indefinitely)
 
-    @Message(id = 4, value = "Null value specified for serialized field %s")
-    InvalidObjectException nullField(String param);
+    // id = 4
+    // "Null value specified for serialized field %s"
 
     @Message(id = 5, value = "The given interceptor instance is of the wrong type")
     IllegalArgumentException wrongInterceptorType();
 
     // id = 6
-    // unused
+    // unused (reserved indefinitely)
 
     @Message(id = 7, value = "Method interceptor for inaccessible method")
     SecurityException interceptorInaccessible();

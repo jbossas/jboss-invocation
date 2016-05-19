@@ -30,6 +30,8 @@ import javax.interceptor.InvocationContext;
 
 import static org.jboss.invocation.InvocationMessages.msg;
 
+import org.wildfly.common.Assert;
+
 /**
  * A method interceptor.  The target method should be non-final and must accept no parameters or a single
  * parameter of type {@link InvocationContext} (or any supertype thereof).  The method must belong to the given
@@ -52,13 +54,9 @@ public final class MethodInterceptor implements Interceptor {
      * @param changeMethod {@code true} to change the method on the context to equal the given method, {@code false} to leave it as-is
      */
     public MethodInterceptor(final Object interceptorInstance, final Method method, final boolean changeMethod) {
+        Assert.checkNotNullParam("interceptorInstance", interceptorInstance);
+        Assert.checkNotNullParam("method", method);
         this.changeMethod = changeMethod;
-        if (interceptorInstance == null) {
-            throw msg.nullParameter("interceptorInstance");
-        }
-        if (method == null) {
-            throw msg.nullParameter("method");
-        }
         this.method = method;
         this.interceptorInstance = interceptorInstance;
         checkMethodType(interceptorInstance);

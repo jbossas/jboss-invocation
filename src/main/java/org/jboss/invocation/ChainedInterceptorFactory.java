@@ -26,6 +26,8 @@ import java.io.Serializable;
 
 import static org.jboss.invocation.InvocationMessages.msg;
 
+import org.wildfly.common.Assert;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -36,9 +38,7 @@ final class ChainedInterceptorFactory implements InterceptorFactory, Serializabl
     private final InterceptorFactory[] interceptorFactories;
 
     ChainedInterceptorFactory(final InterceptorFactory... interceptorFactories) {
-        if (interceptorFactories == null) {
-            throw msg.nullParameter("interceptorFactories");
-        }
+        Assert.checkNotNullParam("interceptorFactories", interceptorFactories);
         this.interceptorFactories = interceptorFactories;
     }
 
