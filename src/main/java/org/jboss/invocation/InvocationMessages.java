@@ -29,6 +29,7 @@ import org.jboss.logging.Messages;
 
 import java.io.InvalidObjectException;
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.concurrent.CancellationException;
 
 /**
  * Invocation message logger.
@@ -72,4 +73,13 @@ interface InvocationMessages {
 
     @Message(id = 11, value = "Null value for property %s of %s")
     NullPointerException nullProperty(String propertyName, Object obj);
+
+    @Message(id = 12, value = "Invocation cancelled")
+    CancellationException invocationCancelled();
+
+    @Message(id = 13, value = "Invocation already complete")
+    IllegalStateException invocationAlreadyComplete();
+
+    @Message(id = 14, value = "No asynchronous result supplier is set")
+    IllegalStateException noAsynchronousResultSupplierSet();
 }

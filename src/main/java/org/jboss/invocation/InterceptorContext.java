@@ -29,8 +29,6 @@ import java.lang.reflect.Method;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,146 +39,72 @@ import javax.interceptor.InvocationContext;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class InterceptorContext implements Cloneable, PrivilegedExceptionAction<Object> {
+public final class InterceptorContext extends AbstractInterceptorContext implements Cloneable, PrivilegedExceptionAction<Object> {
     private static final Interceptor[] EMPTY = new Interceptor[0];
-    private static final Map<Class<?>, Class<?>> PRIMITIVES;
 
-    static {
-        final HashMap<Class<?>, Class<?>> map = new HashMap<Class<?>, Class<?>>();
-        map.put(Boolean.TYPE, Boolean.class);
-        map.put(Character.TYPE, Character.class);
-        map.put(Byte.TYPE, Byte.class);
-        map.put(Short.TYPE, Short.class);
-        map.put(Integer.TYPE, Integer.class);
-        map.put(Long.TYPE, Long.class);
-        map.put(Float.TYPE, Float.class);
-        map.put(Double.TYPE, Double.class);
-        PRIMITIVES = map;
-    }
-
-    private Object target;
-    private Method method;
-    private Constructor<?> constructor;
-    private Object[] parameters;
-    private Map<String, Object> contextData;
-    private Object timer;
     private Interceptor[] interceptors = EMPTY;
     private int interceptorPosition = 0;
-    private boolean blockingCaller = false;
-    private final Map<Object, Object> privateData = new IdentityHashMap<Object, Object>(4);
     private InvocationContext invocationContext;
 
-    /**
-     * Get the invocation target which is reported to the interceptor invocation context.
-     *
-     * @return the invocation target
-     */
+    public InterceptorContext() {
+    }
+
+    InterceptorContext(final InterceptorContext interceptorContext) {
+        super(interceptorContext, true);
+        interceptors = interceptorContext.interceptors;
+        interceptorPosition = interceptorContext.interceptorPosition;
+    }
+
+    InterceptorContext(final AsynchronousInterceptorContext context) {
+        super(context, false);
+    }
+
     public Object getTarget() {
-        return target;
+        return super.getTarget();
     }
 
-    /**
-     * Set the invocation target which is reported to the interceptor invocation context.
-     *
-     * @param target the invocation target
-     */
     public void setTarget(final Object target) {
-        this.target = target;
+        super.setTarget(target);
     }
 
-    /**
-     * Get the invoked method which is reported to the interceptor invocation context.
-     *
-     * @return the method
-     */
     public Method getMethod() {
-        return method;
+        return super.getMethod();
     }
 
-    /**
-     * Set the invoked method which is reported to the interceptor invocation context.
-     *
-     * @param method the method
-     */
     public void setMethod(final Method method) {
-        this.method = method;
+        super.setMethod(method);
     }
 
-    /**
-     * Get the intercepted constructor.
-     *
-     * @return the constructor
-     */
     public Constructor<?> getConstructor() {
-        return constructor;
+        return super.getConstructor();
     }
 
-    /**
-     * Set the intercepted constructor.
-     *
-     * @param constructor the constructor
-     */
-    public void setConstructor(Constructor<?> constructor) {
-        this.constructor = constructor;
+    public void setConstructor(final Constructor<?> constructor) {
+        super.setConstructor(constructor);
     }
 
-    /**
-     * Get the method parameters which are reported to the interceptor invocation context.
-     *
-     * @return the method parameters
-     */
     public Object[] getParameters() {
-        return parameters;
+        return super.getParameters();
     }
 
-    /**
-     * Set the method parameters which are reported to the interceptor invocation context.
-     *
-     * @param parameters the method parameters
-     */
     public void setParameters(final Object[] parameters) {
-        this.parameters = parameters;
+        super.setParameters(parameters);
     }
 
-    /**
-     * Get the context data which is reported to the interceptor invocation context.
-     *
-     * @return the context data
-     * @throws IllegalStateException if the context data was never initialized
-     */
     public Map<String, Object> getContextData() throws IllegalStateException {
-        Map<String, Object> contextData = this.contextData;
-        if (contextData == null) {
-            throw new IllegalStateException("The context data was not set");
-        }
-        return contextData;
+        return super.getContextData();
     }
 
-    /**
-     * Set the context data which is reported to the interceptor invocation context.
-     *
-     * @param contextData the context data
-     */
     public void setContextData(final Map<String, Object> contextData) {
-        this.contextData = contextData;
+        super.setContextData(contextData);
     }
 
-    /**
-     * Get the timer object which is reported to the interceptor invocation context.
-     *
-     * @return the timer object
-     */
     public Object getTimer() {
-        return timer;
+        return super.getTimer();
     }
 
-    /**
-     * Set the timer object which is reported to the interceptor invocation context.
-     *
-     * @param timer the timer object
-     */
     public void setTimer(final Object timer) {
-        this.timer = timer;
+        super.setTimer(timer);
     }
 
     /**
@@ -197,66 +121,20 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
         return invocationContext;
     }
 
-    /**
-     * Get a private data item.
-     *
-     * @param type the data type class object
-     * @param <T> the data type
-     * @return the data item or {@code null} if no such item exists
-     */
-    public <T> T getPrivateData(Class<T> type) {
-        return type.cast(privateData.get(type));
+    public <T> T getPrivateData(final Class<T> type) {
+        return super.getPrivateData(type);
     }
 
-    /**
-     * Get a private data item.  The key will be looked up by object identity, not by value.
-     *
-     * @param key the object key
-     * @return the private data object
-     */
-    public Object getPrivateData(Object key) {
-        return privateData.get(key);
+    public Object getPrivateData(final Object key) {
+        return super.getPrivateData(key);
     }
 
-    /**
-     * Insert a private data item.
-     *
-     * @param type the data type class object
-     * @param value the data item value, or {@code null} to remove the mapping
-     * @param <T> the data type
-     * @return the data item which was previously mapped to this position, or {@code null} if no such item exists
-     */
-    public <T> T putPrivateData(Class<T> type, T value) {
-        if (value == null) {
-            return type.cast(privateData.remove(type));
-        } else {
-            return type.cast(privateData.put(type, type.cast(value)));
-        }
+    public <T> T putPrivateData(final Class<T> type, final T value) {
+        return super.putPrivateData(type, value);
     }
 
-    /**
-     * Insert a private data item.  The key is used by object identity, not by value; in addition, if the key is
-     * a {@code Class} then the value given must be assignable to that class.
-     *
-     * @param key the data key
-     * @param value the data item value, or {@code null} to remove the mapping
-     * @return the data item which was previously mapped to this position, or {@code null} if no such item exists
-     */
-    public Object putPrivateData(Object key, Object value) {
-        if (key instanceof Class) {
-            final Class<?> type = (Class<?>) key;
-            if (value == null) {
-                return type.cast(privateData.remove(type));
-            } else {
-                return type.cast(privateData.put(type, type.cast(value)));
-            }
-        } else {
-            if (value == null) {
-                return privateData.remove(key);
-            } else {
-                return privateData.put(key, value);
-            }
-        }
+    public Object putPrivateData(final Object key, final Object value) {
+        return super.putPrivateData(key, value);
     }
 
     /**
@@ -273,6 +151,7 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      *
      * @return the interceptors array as a list
      */
+    @SuppressWarnings("unused")
     public List<Interceptor> getInterceptors$$bridge() {
         return Collections.unmodifiableList(Arrays.asList(interceptors));
     }
@@ -328,22 +207,12 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
         setInterceptors(interceptorList.toArray(new Interceptor[interceptorList.size()]), nextIndex);
     }
 
-    /**
-     * Determine whether this invocation is currently blocking the calling thread.
-     *
-     * @return {@code true} if the calling thread is being blocked; {@code false} otherwise
-     */
     public boolean isBlockingCaller() {
-        return blockingCaller;
+        return super.isBlockingCaller();
     }
 
-    /**
-     * Establish whether this invocation is currently blocking the calling thread.
-     *
-     * @param blockingCaller {@code true} if the calling thread is being blocked; {@code false} otherwise
-     */
     public void setBlockingCaller(final boolean blockingCaller) {
-        this.blockingCaller = blockingCaller;
+        super.setBlockingCaller(blockingCaller);
     }
 
     /**
@@ -382,45 +251,35 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
      * @return the copied context
      */
     public InterceptorContext clone() {
-        final InterceptorContext clone = new InterceptorContext();
-        final Map<String, Object> contextData = this.contextData;
-        if (contextData != null) {
-            clone.contextData = new HashMap<String, Object>(contextData);
-        }
-        clone.privateData.putAll(privateData);
-        clone.target = target;
-        clone.method = method;
-        clone.constructor = constructor;
-        clone.parameters = parameters;
-        clone.timer = timer;
-        clone.interceptors = interceptors;
-        clone.interceptorPosition = interceptorPosition;
-        return clone;
+        return new InterceptorContext(this);
     }
 
-    private class Invocation implements InvocationContext {
+    private class Invocation implements InvocationContext, PrivilegedExceptionAction<Object> {
         public Object getTarget() {
-            return target;
+            return InterceptorContext.this.getTarget();
         }
 
         public Method getMethod() {
-            return method;
+            return InterceptorContext.this.getMethod();
         }
 
         public Object[] getParameters() {
-            if(parameters == null) {
+            final Object[] parameters = InterceptorContext.this.getParameters();
+            if (parameters == null) {
                 throw new IllegalStateException("Cannot call InvocationContext.getParameters() in a lifecycle interceptor method");
             }
             return parameters;
         }
 
         public void setParameters(final Object[] params) {
+            final Object[] parameters = InterceptorContext.this.getParameters();
             if(parameters == null) {
                 throw new IllegalStateException("Cannot call InvocationContext.setParameters() in a lifecycle interceptor method");
             }
             if (params == null) {
                 throw new IllegalArgumentException("Parameters must not be null");
             }
+            final Method method = InterceptorContext.this.getMethod();
             if (method != null) {
                 final Class<?>[] parameterTypes = method.getParameterTypes();
                 if (params.length != parameterTypes.length) {
@@ -441,24 +300,28 @@ public final class InterceptorContext implements Cloneable, PrivilegedExceptionA
                     }
                 }
             }
-            parameters = params;
+            InterceptorContext.this.setParameters(params);
         }
 
         public Map<String, Object> getContextData() {
-            return contextData;
+            return InterceptorContext.this.getContextData();
         }
 
         public Object getTimer() {
-            return timer;
+            return InterceptorContext.this.getTimer();
         }
 
         public Object proceed() throws Exception {
             return InterceptorContext.this.proceed();
         }
 
+        public Object run() throws Exception {
+            return InterceptorContext.this.proceed();
+        }
+
         @Override
         public Constructor<?> getConstructor() {
-            return constructor;
+            return InterceptorContext.this.getConstructor();
         }
     }
 }
