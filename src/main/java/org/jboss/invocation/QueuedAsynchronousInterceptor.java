@@ -66,7 +66,7 @@ public final class QueuedAsynchronousInterceptor implements AsynchronousIntercep
         }
     }
 
-    public void processInvocation(final AsynchronousInterceptorContext context) throws Exception {
+    public void processInvocation(final AsynchronousInterceptorContext context) {
         final ArrayDeque<AsynchronousInterceptorContext> queue = this.queue;
         synchronized (queue) {
             if (running) {
@@ -94,13 +94,7 @@ public final class QueuedAsynchronousInterceptor implements AsynchronousIntercep
                     next = queue.poll();
                 }
             }
-            if (next != null) executor.execute(() -> {
-                try {
-                    next.proceed();
-                } catch (Exception e) {
-                    next.setResultSupplier(ResultSupplier.failed(e));
-                }
-            });
+            if (next != null) executor.execute(next::proceed);
         }
     }
 }

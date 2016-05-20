@@ -235,12 +235,17 @@ public final class AsynchronousInterceptorContext extends AbstractInterceptorCon
     /**
      * Pass the invocation on to the next or previous step in the chain (depending on whether a result has been set).
      */
-    public void proceed() throws Exception {
+    public void proceed() {
         final AsynchronousInterceptor[] interceptors = this.interceptors;
         int interceptorPosition = this.interceptorPosition;
         if (interceptorPosition < interceptors.length) {
             this.interceptorPosition = interceptorPosition + 1;
-            interceptors[interceptorPosition].processInvocation(this);
+            try {
+                interceptors[interceptorPosition].processInvocation(this);
+            } catch (Exception e) {
+                setResultSupplier(AsynchronousInterceptor.ResultSupplier.failed(e));
+                complete();
+            }
         } else {
             // complete() should have been called by now
             throw msg.cannotProceed();

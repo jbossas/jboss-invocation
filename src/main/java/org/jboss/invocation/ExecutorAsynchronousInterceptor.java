@@ -41,13 +41,6 @@ public final class ExecutorAsynchronousInterceptor implements AsynchronousInterc
     }
 
     public void processInvocation(final AsynchronousInterceptorContext context) throws Exception {
-        executor.execute(() -> {
-            try {
-                context.proceed();
-            } catch (Exception e) {
-                context.setResultSupplier(ResultSupplier.failed(e));
-                context.complete();
-            }
-        });
+        executor.execute(context::proceed);
     }
 }
