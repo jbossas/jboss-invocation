@@ -19,10 +19,6 @@
 package org.jboss.invocation;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.jboss.invocation.InvocationMessages.msg;
 
 import org.wildfly.common.Assert;
 

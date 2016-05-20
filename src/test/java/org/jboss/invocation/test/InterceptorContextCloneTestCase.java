@@ -19,7 +19,6 @@
 package org.jboss.invocation.test;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.HashMap;
 import org.jboss.invocation.Interceptor;
 import org.jboss.invocation.InterceptorContext;

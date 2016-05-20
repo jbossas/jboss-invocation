@@ -20,8 +20,6 @@ package org.jboss.invocation;
 
 import java.io.Serializable;
 
-import static org.jboss.invocation.InvocationMessages.msg;
-
 import org.wildfly.common.Assert;
 
 /**

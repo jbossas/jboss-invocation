@@ -19,9 +19,6 @@
 package org.jboss.invocation;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Weaves a series of interceptors into an existing interceptor chain.
