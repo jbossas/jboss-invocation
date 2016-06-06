@@ -29,7 +29,7 @@ import java.util.concurrent.Executor;
  */
 public final class QueuedAsynchronousInterceptor implements AsynchronousInterceptor {
     private boolean running;
-    private final ArrayDeque<AsynchronousInterceptorContext> queue = new ArrayDeque<>();
+    private final ArrayDeque<AsynchronousTask> queue = new ArrayDeque<>();
     private final Executor executor;
 
     /**
@@ -45,56 +45,77 @@ public final class QueuedAsynchronousInterceptor implements AsynchronousIntercep
      * Cancel all currently waiting invocations.
      */
     public void cancelAll() {
-        final ArrayDeque<AsynchronousInterceptorContext> queue = this.queue;
-        AsynchronousInterceptorContext context;
+        final ArrayDeque<AsynchronousTask> queue = this.queue;
+        AsynchronousTask task;
         for (;;) {
             synchronized (queue) {
-                context = queue.poll();
-                if (context == null) {
+                task = queue.poll();
+                if (task == null) {
                     return;
                 }
             }
-            context.setResultSupplier(ResultSupplier.CANCELLED);
-            context.complete();
+            // flag doesn't matter because this task was in the queue (i.e. cancel works regardless of the flag)
+            task.cancel(false);
         }
     }
 
     public int getQueueSize() {
-        final ArrayDeque<AsynchronousInterceptorContext> queue = this.queue;
+        final ArrayDeque<AsynchronousTask> queue = this.queue;
         synchronized (queue) {
             return queue.size();
         }
     }
 
-    public void processInvocation(final AsynchronousInterceptorContext context) {
-        final ArrayDeque<AsynchronousInterceptorContext> queue = this.queue;
+    public CancellationHandle processInvocation(final AsynchronousInterceptorContext context, final ResultHandler resultHandler) {
+        final ArrayDeque<AsynchronousTask> queue = this.queue;
         synchronized (queue) {
             if (running) {
-                queue.add(context);
-                return;
+                final AsynchronousTask task = new AsynchronousTask(context, resultHandler);
+                queue.add(task);
+                return task;
             } else {
                 running = true;
             }
         }
-        context.proceed();
-    }
-
-    public Object processResult(final AsynchronousInterceptorContext context) throws Exception {
-        try {
-            return context.getResult();
-        } finally {
-            final ArrayDeque<AsynchronousInterceptorContext> queue = QueuedAsynchronousInterceptor.this.queue;
-            final AsynchronousInterceptorContext next;
-            synchronized (queue) {
-                assert running;
-                if (queue.isEmpty()) {
-                    running = false;
-                    next = null;
-                } else {
-                    next = queue.poll();
+        return context.proceed(new ResultHandler() {
+            public void setResult(final ResultSupplier resultSupplier) {
+                try {
+                    runNext();
+                } finally {
+                    resultHandler.setResult(resultSupplier);
                 }
             }
-            if (next != null) executor.execute(next::proceed);
-        }
+
+            public void setCancelled() {
+                try {
+                    runNext();
+                } finally {
+                    resultHandler.setCancelled();
+                }
+            }
+
+            public void setException(final Exception exception) {
+                try {
+                    runNext();
+                } finally {
+                    resultHandler.setException(exception);
+                }
+            }
+
+            private void runNext() {
+                final ArrayDeque<AsynchronousTask> queue = QueuedAsynchronousInterceptor.this.queue;
+                final AsynchronousTask next;
+                synchronized (queue) {
+                    assert running;
+                    if (queue.isEmpty()) {
+                        running = false;
+                        next = null;
+                    } else {
+                        next = queue.poll();
+                    }
+                }
+                if (next != null) executor.execute(next);
+            }
+        });
     }
 }

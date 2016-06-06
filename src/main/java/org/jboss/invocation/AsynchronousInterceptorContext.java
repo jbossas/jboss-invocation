@@ -24,7 +24,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
+
+import org.wildfly.common.Assert;
 
 /**
  * An asynchronous interceptor/invocation context object.
@@ -37,16 +38,11 @@ public final class AsynchronousInterceptorContext extends AbstractInterceptorCon
     private AsynchronousInterceptor[] interceptors = EMPTY;
     private int interceptorPosition = 0;
     private AsynchronousInterceptor.ResultSupplier resultSupplier;
-    private final Consumer<AsynchronousInterceptorContext> consumer;
 
     /**
-     * Construct a new instance.  The given consumer is called when the invocation is complete.  The {@link #getResult()}
-     * method may be called to read the invocation result.
-     *
-     * @param consumer the result consumer (must not be {@code null})
+     * Construct a new instance.
      */
-    public AsynchronousInterceptorContext(final Consumer<AsynchronousInterceptorContext> consumer) {
-        this.consumer = consumer;
+    public AsynchronousInterceptorContext() {
     }
 
     public Object getTarget() {
@@ -182,82 +178,26 @@ public final class AsynchronousInterceptorContext extends AbstractInterceptorCon
     }
 
     /**
-     * Set the result supplier for this invocation.
-     *
-     * @param resultSupplier the result supplier for this invocation
-     */
-    public void setResultSupplier(final AsynchronousInterceptor.ResultSupplier resultSupplier) {
-        this.resultSupplier = resultSupplier;
-    }
-
-    /**
-     * Get the currently set result supplier for this invocation.
-     *
-     * @return the currently set result supplier for this invocation
-     */
-    public AsynchronousInterceptor.ResultSupplier getResultSupplier() {
-        return resultSupplier;
-    }
-
-    /**
-     * Get the invocation result from the next interceptor in the chain.
-     *
-     * @return the invocation result
-     * @throws Exception the invocation exception
-     */
-    public Object getResult() throws Exception {
-        final AsynchronousInterceptor[] interceptors = this.interceptors;
-        int interceptorPosition = this.interceptorPosition;
-        if (interceptorPosition < interceptors.length) {
-            this.interceptorPosition = interceptorPosition + 1;
-            return interceptors[interceptorPosition].processResult(this);
-        } else {
-            final AsynchronousInterceptor.ResultSupplier resultSupplier = this.resultSupplier;
-            if (resultSupplier == null) {
-                throw msg.noAsynchronousResultSupplierSet();
-            }
-            return resultSupplier.get();
-        }
-    }
-
-    /**
-     * Terminate the invocation result chain by discarding the current result.
-     */
-    public void discardResult() {
-        AsynchronousInterceptor.ResultSupplier resultSupplier = this.resultSupplier;
-        if (resultSupplier == null) {
-            throw msg.noAsynchronousResultSupplierSet();
-        }
-        this.resultSupplier = null;
-        resultSupplier.discard();
-    }
-
-    /**
      * Pass the invocation on to the next or previous step in the chain (depending on whether a result has been set).
+     *
+     * @param resultHandler the result handler to pass to the next interceptor (must not be {@code null})
+     * @return the cancellation handle for the invocation (must not be {@code null})
      */
-    public void proceed() {
+    public AsynchronousInterceptor.CancellationHandle proceed(final AsynchronousInterceptor.ResultHandler resultHandler) {
+        Assert.checkNotNullParam("resultHandler", resultHandler);
         final AsynchronousInterceptor[] interceptors = this.interceptors;
         int interceptorPosition = this.interceptorPosition;
         if (interceptorPosition < interceptors.length) {
             this.interceptorPosition = interceptorPosition + 1;
             try {
-                interceptors[interceptorPosition].processInvocation(this);
-            } catch (Exception e) {
-                setResultSupplier(AsynchronousInterceptor.ResultSupplier.failed(e));
-                complete();
+                return interceptors[interceptorPosition].processInvocation(this, resultHandler);
+            } finally {
+                this.interceptorPosition = interceptorPosition;
             }
         } else {
             // complete() should have been called by now
             throw msg.cannotProceed();
         }
-    }
-
-    /**
-     * Indicate that the interceptor chain should stop request processing and begin result processing.
-     */
-    public void complete() {
-        this.interceptorPosition = 0;
-        consumer.accept(this);
     }
 
     InterceptorContext toSynchronous() {

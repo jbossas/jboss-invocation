@@ -247,7 +247,8 @@ abstract class AbstractInterceptorContext {
     }
 
     /**
-     * Determine whether this invocation is currently blocking the calling thread.
+     * Determine whether this invocation is currently <em>directly</em> blocking the calling thread.  This means that
+     * the interceptor is running in the same thread as the original caller.
      *
      * @return {@code true} if the calling thread is being blocked; {@code false} otherwise
      */
@@ -256,7 +257,8 @@ abstract class AbstractInterceptorContext {
     }
 
     /**
-     * Establish whether this invocation is currently blocking the calling thread.
+     * Establish whether this invocation is currently <em>directly</em> blocking the calling thread.  This means that
+     * the interceptor is running in the same thread as the original caller.
      *
      * @param blockingCaller {@code true} if the calling thread is being blocked; {@code false} otherwise
      */

@@ -29,18 +29,33 @@ import org.wildfly.common.Assert;
  */
 public final class ExecutorAsynchronousInterceptor implements AsynchronousInterceptor {
     private final Executor executor;
+    private final boolean onlyIfBlocking;
 
     /**
      * Construct a new instance.
      *
      * @param executor the executor to dispatch to (must not be {@code null})
+     * @param onlyIfBlocking {@code true} to only dispatch invocations that are blocking the caller; {@code false} to
+     *      dispatch all invocations
      */
-    public ExecutorAsynchronousInterceptor(final Executor executor) {
+    public ExecutorAsynchronousInterceptor(final Executor executor, final boolean onlyIfBlocking) {
+        this.onlyIfBlocking = onlyIfBlocking;
         Assert.checkNotNullParam("executor", executor);
         this.executor = executor;
     }
 
-    public void processInvocation(final AsynchronousInterceptorContext context) throws Exception {
-        executor.execute(context::proceed);
+    public CancellationHandle processInvocation(final AsynchronousInterceptorContext context, final ResultHandler resultHandler) {
+        final boolean ibc = context.isBlockingCaller();
+        if (ibc) {
+            context.setBlockingCaller(false);
+        } else {
+            if (onlyIfBlocking) {
+                return context.proceed(resultHandler);
+            }
+        }
+        // no matter what happens, the next interceptor can never be directly blocking the calling thread
+        AsynchronousTask task = new AsynchronousTask(context, resultHandler);
+        executor.execute(task);
+        return task;
     }
 }

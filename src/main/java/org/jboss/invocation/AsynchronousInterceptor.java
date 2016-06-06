@@ -29,27 +29,45 @@ public interface AsynchronousInterceptor {
 
     /**
      * Process an invocation.  The invocation can be handled directly, or passed on to the next processor in the
-     * chain.  This method <b>must</b> eventually call either {@link AsynchronousInterceptorContext#proceed()}
-     * or {@link AsynchronousInterceptorContext#complete()}, otherwise the invocation may hang.
+     * chain.  This method <b>must</b> eventually call a method on the given {@link ResultHandler}, otherwise the invocation may hang.
+     * <p>
+     * This method must return a handle which can be used to request cancellation.
      *
      * @param context the interceptor context (not {@code null})
-     * @throws Exception if an invocation exception occurred
+     * @param resultHandler the handler for the invocation result (not {@code null})
+     * @return a handle which can be used to request a cancellation of the invocation (must not be {@code null})
      */
-    void processInvocation(AsynchronousInterceptorContext context) throws Exception;
+    CancellationHandle processInvocation(AsynchronousInterceptorContext context, ResultHandler resultHandler);
+
 
     /**
-     * Handle the invocation result.  The default implementation delegates to {@link
-     * AsynchronousInterceptorContext#getResult()} immediately.  Custom implementations should
-     * perform any post-invocation cleanup task in a finally block.  This method <b>must</b> eventually call either
-     * {@link AsynchronousInterceptorContext#getResult()} or {@link AsynchronousInterceptorContext#discardResult()}
-     * to avoid possible resource leaks.
-     *
-     * @param context the interceptor context (not {@code null})
-     * @return the invocation result
-     * @throws Exception if an invocation exception occurred
+     * A handler for the result of a method invocation.  A call to any of these methods indicates that the invocation
+     * is complete, one way or another.
      */
-    default Object processResult(AsynchronousInterceptorContext context) throws Exception {
-        return context.getResult();
+    interface ResultHandler {
+        /**
+         * Indicate that the invocation is complete, and that the result can be read from the given supplier.  Note
+         * that reading the result may fail, even if the invocation itself succeeded.
+         *
+         * @param resultSupplier the result supplier (must not be {@code null})
+         * @throws IllegalStateException if one of the {@code set*()} methods was already called
+         */
+        void setResult(ResultSupplier resultSupplier);
+
+        /**
+         * Indicate that the invocation was cancelled.
+         *
+         * @throws IllegalStateException if one of the {@code set*()} methods was already called
+         */
+        void setCancelled();
+
+        /**
+         * Indicate that the invocation failed.
+         *
+         * @param exception the failure cause (must not be {@code null})
+         * @throws IllegalStateException if one of the {@code set*()} methods was already called
+         */
+        void setException(Exception exception);
     }
 
     /**
@@ -95,5 +113,26 @@ public interface AsynchronousInterceptor {
          * A result supplier that throws a cancellation exception.
          */
         ResultSupplier CANCELLED = () -> { throw InvocationMessages.msg.invocationCancelled(); };
+    }
+
+    /**
+     * A handle for cancellation of an asynchronous invocation request.
+     */
+    interface CancellationHandle {
+
+        /**
+         * Attempt to cancel the in-progress invocation.  If the invocation is past the point where cancellation is
+         * possible, the method has no effect.  The invocation may not support cancellation, in which case the method
+         * has no effect.
+         *
+         * @param aggressiveCancelRequested {@code false} to only cancel if the method invocation has not yet begun, {@code true} to
+         * attempt to cancel even if the method is running
+         */
+        void cancel(boolean aggressiveCancelRequested);
+
+        /**
+         * The null cancellation handle, which does nothing.
+         */
+        CancellationHandle NULL = aggressiveCancelRequested -> {};
     }
 }

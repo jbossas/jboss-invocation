@@ -38,9 +38,14 @@ public final class SynchronousInterceptor implements AsynchronousInterceptor {
         this.interceptors = interceptors;
     }
 
-    public void processInvocation(final AsynchronousInterceptorContext context) throws Exception {
+    public CancellationHandle processInvocation(final AsynchronousInterceptorContext context, final ResultHandler resultHandler) {
         InterceptorContext synchContext = context.toSynchronous();
         synchContext.setInterceptors(interceptors);
-        context.setResultSupplier(ResultSupplier.succeeded(synchContext.proceed()));
+        try {
+            resultHandler.setResult(ResultSupplier.succeeded(synchContext.proceed()));
+        } catch (Exception e) {
+            resultHandler.setException(e);
+        }
+        return CancellationHandle.NULL;
     }
 }
