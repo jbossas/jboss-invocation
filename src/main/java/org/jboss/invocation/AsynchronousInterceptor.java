@@ -18,6 +18,10 @@
 
 package org.jboss.invocation;
 
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import org.wildfly.common.Assert;
 import org.wildfly.common.function.ExceptionSupplier;
 
 /**
@@ -68,6 +72,65 @@ public interface AsynchronousInterceptor {
          * @throws IllegalStateException if one of the {@code set*()} methods was already called
          */
         void setException(Exception exception);
+
+        /**
+         * Create a new result handler that delegates to this one but first performs an action.
+         *
+         * @param arg1 the first argument to pass to {@code action}
+         * @param arg2 the second argument to pass to {@code action}
+         * @param action the action to run (must not be {@code null})
+         * @return the new result handler (not {@code null})
+         */
+        default <T, U> ResultHandler withAction(T arg1, U arg2, BiConsumer<T, U> action) {
+            Assert.checkNotNullParam("action", action);
+            final ResultHandler outer = this;
+            return new ResultHandler() {
+                public void setResult(final ResultSupplier resultSupplier) {
+                    try {
+                        action.accept(arg1, arg2);
+                    } finally {
+                        outer.setResult(resultSupplier);
+                    }
+                }
+
+                public void setCancelled() {
+                    try {
+                        action.accept(arg1, arg2);
+                    } finally {
+                        outer.setCancelled();
+                    }
+                }
+
+                public void setException(final Exception exception) {
+                    try {
+                        action.accept(arg1, arg2);
+                    } finally {
+                        outer.setException(exception);
+                    }
+                }
+            };
+        }
+
+        /**
+         * Create a new result handler that delegates to this one but first performs an action.
+         *
+         * @param argument the argument to pass to {@code action}
+         * @param action the action to run (must not be {@code null})
+         * @return the new result handler (not {@code null})
+         */
+        default <T> ResultHandler withAction(T argument, Consumer<T> action) {
+            return withAction(action, argument, Consumer::accept);
+        }
+
+        /**
+         * Create a new result handler that delegates to this one but first performs an action.
+         *
+         * @param action the action to run (must not be {@code null})
+         * @return the new result handler (not {@code null})
+         */
+        default ResultHandler withAction(Runnable action) {
+            return withAction(action, Runnable::run);
+        }
     }
 
     /**

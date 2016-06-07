@@ -77,45 +77,21 @@ public final class QueuedAsynchronousInterceptor implements AsynchronousIntercep
                 running = true;
             }
         }
-        return context.proceed(new ResultHandler() {
-            public void setResult(final ResultSupplier resultSupplier) {
-                try {
-                    runNext();
-                } finally {
-                    resultHandler.setResult(resultSupplier);
-                }
-            }
+        return context.proceed(resultHandler.withAction(this, QueuedAsynchronousInterceptor::runNext));
+    }
 
-            public void setCancelled() {
-                try {
-                    runNext();
-                } finally {
-                    resultHandler.setCancelled();
-                }
+    private void runNext() {
+        final ArrayDeque<AsynchronousTask> queue = QueuedAsynchronousInterceptor.this.queue;
+        final AsynchronousTask next;
+        synchronized (queue) {
+            assert running;
+            if (queue.isEmpty()) {
+                running = false;
+                next = null;
+            } else {
+                next = queue.poll();
             }
-
-            public void setException(final Exception exception) {
-                try {
-                    runNext();
-                } finally {
-                    resultHandler.setException(exception);
-                }
-            }
-
-            private void runNext() {
-                final ArrayDeque<AsynchronousTask> queue = QueuedAsynchronousInterceptor.this.queue;
-                final AsynchronousTask next;
-                synchronized (queue) {
-                    assert running;
-                    if (queue.isEmpty()) {
-                        running = false;
-                        next = null;
-                    } else {
-                        next = queue.poll();
-                    }
-                }
-                if (next != null) executor.execute(next);
-            }
-        });
+        }
+        if (next != null) executor.execute(next);
     }
 }
