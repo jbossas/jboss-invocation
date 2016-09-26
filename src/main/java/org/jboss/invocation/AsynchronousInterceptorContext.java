@@ -142,7 +142,7 @@ public final class AsynchronousInterceptorContext extends AbstractInterceptorCon
      * @param interceptorList the interceptor list
      */
     public void setInterceptors(final List<AsynchronousInterceptor> interceptorList) {
-        setInterceptors(interceptorList.toArray(new AsynchronousInterceptor[interceptorList.size()]), 0);
+        setInterceptors(interceptorList.toArray(AsynchronousInterceptor.EMPTY_ARRAY), 0);
     }
 
     /**
@@ -166,7 +166,7 @@ public final class AsynchronousInterceptorContext extends AbstractInterceptorCon
      * @param nextIndex the next index to proceed
      */
     public void setInterceptors(final List<AsynchronousInterceptor> interceptorList, int nextIndex) {
-        setInterceptors(interceptorList.toArray(new AsynchronousInterceptor[interceptorList.size()]), nextIndex);
+        setInterceptors(interceptorList.toArray(AsynchronousInterceptor.EMPTY_ARRAY), nextIndex);
     }
 
     public boolean isBlockingCaller() {

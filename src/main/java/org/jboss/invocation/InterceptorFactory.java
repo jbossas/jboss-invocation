@@ -26,6 +26,11 @@ package org.jboss.invocation;
 public interface InterceptorFactory {
 
     /**
+     * An empty interceptor factory array.
+     */
+    InterceptorFactory[] EMPTY_ARRAY = new InterceptorFactory[0];
+
+    /**
      * Create the interceptor instance.
      *
      * @param context the interceptor factory context

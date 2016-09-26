@@ -32,6 +32,11 @@ import org.wildfly.common.function.ExceptionSupplier;
 public interface AsynchronousInterceptor {
 
     /**
+     * An empty asynchronous interceptor array.
+     */
+    AsynchronousInterceptor[] EMPTY_ARRAY = new AsynchronousInterceptor[0];
+
+    /**
      * Process an invocation.  The invocation can be handled directly, or passed on to the next processor in the
      * chain.  This method <b>must</b> eventually call a method on the given {@link ResultHandler}, otherwise the invocation may hang.
      * <p>

@@ -59,6 +59,8 @@ import java.security.PrivilegedExceptionAction;
  */
 public class ProxyFactory<T> extends AbstractProxyFactory<T> {
 
+    private static final Class<?>[] NO_CLASSES = new Class<?>[0];
+
     private volatile Field invocationHandlerField;
 
     /**
@@ -252,8 +254,7 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      */
     public ProxyFactory(ProxyConfiguration<T> proxyConfiguration) {
         super(proxyConfiguration.getProxyName(), proxyConfiguration.getSuperClass(), proxyConfiguration.getClassLoader(), proxyConfiguration.getProtectionDomain(), proxyConfiguration.getMetadataSource());
-        this.additionalInterfaces = new Class<?>[proxyConfiguration.getAdditionalInterfaces().size()];
-        proxyConfiguration.getAdditionalInterfaces().toArray(additionalInterfaces);
+        this.additionalInterfaces = proxyConfiguration.getAdditionalInterfaces().toArray(NO_CLASSES);
     }
 
     /**
