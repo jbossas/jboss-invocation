@@ -107,7 +107,7 @@ public final class Interceptors {
      */
     public static Interceptor getChainedInterceptor(Collection<Interceptor> instances) {
         final int size = instances.size();
-        return size == 1 ? instances.iterator().next() : new ChainedInterceptor(instances.toArray(new Interceptor[size]));
+        return size == 1 ? instances.iterator().next() : new ChainedInterceptor(instances.toArray(Interceptor.EMPTY_ARRAY));
     }
 
     /**
@@ -128,7 +128,7 @@ public final class Interceptors {
      */
     public static InterceptorFactory getChainedInterceptorFactory(Collection<InterceptorFactory> instances) {
         final int size = instances.size();
-        return size == 1 ? instances.iterator().next() : new ChainedInterceptorFactory(instances.toArray(new InterceptorFactory[size]));
+        return size == 1 ? instances.iterator().next() : new ChainedInterceptorFactory(instances.toArray(InterceptorFactory.EMPTY_ARRAY));
     }
 
     public static Interceptor getWeavedInterceptor(final Interceptor... interceptors) {

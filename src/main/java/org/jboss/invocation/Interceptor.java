@@ -28,6 +28,11 @@ package org.jboss.invocation;
 public interface Interceptor {
 
     /**
+     * An empty interceptor array.
+     */
+    Interceptor[] EMPTY_ARRAY = new Interceptor[0];
+
+    /**
      * Process an invocation.  The invocation can be handled directly, or passed on to the next processor in the
      * chain.
      *
