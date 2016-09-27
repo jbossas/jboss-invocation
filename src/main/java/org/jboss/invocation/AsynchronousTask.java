@@ -49,11 +49,11 @@ final class AsynchronousTask extends AtomicReference<AsynchronousInterceptor.Can
         newVal = context.proceed(resultHandler);
         while (! compareAndSet(oldVal, newVal)) {
             oldVal = get();
-            if (oldVal == CANCEL_NORMAL || oldVal == CANCEL_AGGRESSIVE) {
-                // we've been cancelled already in another thread; pass it on to the handle we just got back
-                newVal.cancel(oldVal == CANCEL_AGGRESSIVE);
-                return;
-            }
+        }
+        if (oldVal == CANCEL_NORMAL || oldVal == CANCEL_AGGRESSIVE) {
+            // we've been cancelled already in another thread; pass it on to the handle we just got back
+            newVal.cancel(oldVal == CANCEL_AGGRESSIVE);
+            return;
         }
     }
 
