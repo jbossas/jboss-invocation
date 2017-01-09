@@ -51,10 +51,6 @@ public final class InterceptorContext extends AbstractInterceptorContext impleme
         interceptorPosition = interceptorContext.interceptorPosition;
     }
 
-    InterceptorContext(final AsynchronousInterceptorContext context) {
-        super(context, false);
-    }
-
     public Object getTarget() {
         return super.getTarget();
     }
