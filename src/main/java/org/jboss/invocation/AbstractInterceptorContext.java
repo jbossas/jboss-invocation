@@ -24,6 +24,11 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
+
+import org.wildfly.common.function.ExceptionSupplier;
+
 /**
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
@@ -51,6 +56,7 @@ abstract class AbstractInterceptorContext {
     private Map<String, Object> contextData;
     private Object timer;
     private boolean blockingCaller = false;
+    private ExceptionSupplier<Transaction, SystemException> transactionSupplier;
 
     AbstractInterceptorContext() {
         privateData = new IdentityHashMap<Object, Object>(4);
@@ -182,6 +188,45 @@ abstract class AbstractInterceptorContext {
      */
     public void setTimer(final Object timer) {
         this.timer = timer;
+    }
+
+    /**
+     * Determine if a transaction supplier was established for this invocation.
+     *
+     * @return {@code true} if there is an enclosing transaction, {@code false} otherwise
+     */
+    public boolean hasTransaction() {
+        return transactionSupplier != null;
+    }
+
+    /**
+     * Get the transaction for this invocation, if any.
+     *
+     * @return the transaction for this invocation, or {@code null} if there is no transaction
+     * @throws SystemException if the transaction import failed
+     */
+    public Transaction getTransaction() throws SystemException {
+        final ExceptionSupplier<Transaction, SystemException> transactionSupplier = this.transactionSupplier;
+        return transactionSupplier == null ? null : transactionSupplier.get();
+    }
+
+    /**
+     * Set the transaction for the invocation.  If {@code null}, then there is no enclosing transaction.
+     *
+     * @param transaction the transaction for the invocation
+     */
+    public void setTransaction(final Transaction transaction) {
+        setTransactionSupplier(transaction == null ? null : () -> transaction);
+    }
+
+    /**
+     * Set the transaction supplier for the invocation.  If {@code null}, then there is no enclosing transaction.  The
+     * supplier must not return {@code null}.
+     *
+     * @param transactionSupplier the transaction supplier, or {@code null} to clear the present transaction
+     */
+    public void setTransactionSupplier(final ExceptionSupplier<Transaction, SystemException> transactionSupplier) {
+        this.transactionSupplier = transactionSupplier;
     }
 
     /**

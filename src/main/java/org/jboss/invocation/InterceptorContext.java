@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.Map;
 
 import javax.interceptor.InvocationContext;
+import javax.transaction.SystemException;
+import javax.transaction.Transaction;
+
+import org.wildfly.common.function.ExceptionSupplier;
 
 /**
  * An interceptor/invocation context object.
@@ -97,6 +101,22 @@ public final class InterceptorContext extends AbstractInterceptorContext impleme
 
     public void setTimer(final Object timer) {
         super.setTimer(timer);
+    }
+
+    public boolean hasTransaction() {
+        return super.hasTransaction();
+    }
+
+    public Transaction getTransaction() throws SystemException {
+        return super.getTransaction();
+    }
+
+    public void setTransaction(final Transaction transaction) {
+        super.setTransaction(transaction);
+    }
+
+    public void setTransactionSupplier(final ExceptionSupplier<Transaction, SystemException> transactionSupplier) {
+        super.setTransactionSupplier(transactionSupplier);
     }
 
     /**
