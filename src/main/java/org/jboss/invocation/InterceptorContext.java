@@ -25,6 +25,8 @@ import java.lang.reflect.Method;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,84 +41,167 @@ import org.wildfly.common.function.ExceptionSupplier;
  *
  * @author <a href="mailto:david.lloyd@redhat.com">David M. Lloyd</a>
  */
-public final class InterceptorContext extends AbstractInterceptorContext implements Cloneable, PrivilegedExceptionAction<Object> {
-    private static final Interceptor[] EMPTY = new Interceptor[0];
+public final class InterceptorContext implements Cloneable, PrivilegedExceptionAction<Object> {
+    static final Map<Class<?>, Class<?>> PRIMITIVES;
 
-    private Interceptor[] interceptors = EMPTY;
-    private int interceptorPosition = 0;
-    private InvocationContext invocationContext;
-
-    public InterceptorContext() {
+    static {
+        final HashMap<Class<?>, Class<?>> map = new HashMap<>();
+        map.put(Boolean.TYPE, Boolean.class);
+        map.put(Character.TYPE, Character.class);
+        map.put(Byte.TYPE, Byte.class);
+        map.put(Short.TYPE, Short.class);
+        map.put(Integer.TYPE, Integer.class);
+        map.put(Long.TYPE, Long.class);
+        map.put(Float.TYPE, Float.class);
+        map.put(Double.TYPE, Double.class);
+        PRIMITIVES = map;
     }
 
-    InterceptorContext(final InterceptorContext interceptorContext) {
-        super(interceptorContext, true);
+    private Object target;
+    private Method method;
+    private Constructor<?> constructor;
+    private Object[] parameters;
+    private Map<String, Object> contextData;
+    private Object timer;
+    private Interceptor[] interceptors = Interceptor.EMPTY_ARRAY;
+    private int interceptorPosition = 0;
+    private final Map<Object, Object> privateData;
+    private InvocationContext invocationContext;
+    private boolean blockingCaller = false;
+    private ExceptionSupplier<Transaction, SystemException> transactionSupplier;
+
+    public InterceptorContext() {
+        this.privateData = new IdentityHashMap<>(4);
+    }
+
+    InterceptorContext(final InterceptorContext interceptorContext, final boolean clone) {
+        if (clone) {
+            this.privateData = new IdentityHashMap<>(interceptorContext.privateData);
+            this.contextData = new HashMap<>(interceptorContext.contextData);
+        } else {
+            this.privateData = interceptorContext.privateData;
+            this.contextData = interceptorContext.contextData;
+        }
+        this.target = interceptorContext.target;
+        this.method = interceptorContext.method;
+        this.constructor = interceptorContext.constructor;
+        this.parameters = interceptorContext.parameters;
+        this.timer = interceptorContext.timer;
         interceptors = interceptorContext.interceptors;
         interceptorPosition = interceptorContext.interceptorPosition;
     }
 
+    /**
+     * Get the invocation target which is reported to the interceptor invocation context.
+     *
+     * @return the invocation target
+     */
     public Object getTarget() {
-        return super.getTarget();
+        return target;
     }
 
+    /**
+     * Set the invocation target which is reported to the interceptor invocation context.
+     *
+     * @param target the invocation target
+     */
     public void setTarget(final Object target) {
-        super.setTarget(target);
+        this.target = target;
     }
 
+    /**
+     * Get the invoked method which is reported to the interceptor invocation context.
+     *
+     * @return the method
+     */
     public Method getMethod() {
-        return super.getMethod();
+        return method;
     }
 
+    /**
+     * Set the invoked method which is reported to the interceptor invocation context.
+     *
+     * @param method the method
+     */
     public void setMethod(final Method method) {
-        super.setMethod(method);
+        this.method = method;
     }
 
+    /**
+     * Get the intercepted constructor.
+     *
+     * @return the constructor
+     */
     public Constructor<?> getConstructor() {
-        return super.getConstructor();
+        return constructor;
     }
 
-    public void setConstructor(final Constructor<?> constructor) {
-        super.setConstructor(constructor);
+    /**
+     * Set the intercepted constructor.
+     *
+     * @param constructor the constructor
+     */
+    public void setConstructor(Constructor<?> constructor) {
+        this.constructor = constructor;
     }
 
+    /**
+     * Get the method parameters which are reported to the interceptor invocation context.
+     *
+     * @return the method parameters
+     */
     public Object[] getParameters() {
-        return super.getParameters();
+        return parameters;
     }
 
+    /**
+     * Set the method parameters which are reported to the interceptor invocation context.
+     *
+     * @param parameters the method parameters
+     */
     public void setParameters(final Object[] parameters) {
-        super.setParameters(parameters);
+        this.parameters = parameters;
     }
 
+    /**
+     * Get the context data which is reported to the interceptor invocation context.
+     *
+     * @return the context data
+     * @throws IllegalStateException if the context data was never initialized
+     */
     public Map<String, Object> getContextData() throws IllegalStateException {
-        return super.getContextData();
+        Map<String, Object> contextData = this.contextData;
+        if (contextData == null) {
+            throw new IllegalStateException("The context data was not set");
+        }
+        return contextData;
     }
 
+    /**
+     * Set the context data which is reported to the interceptor invocation context.
+     *
+     * @param contextData the context data
+     */
     public void setContextData(final Map<String, Object> contextData) {
-        super.setContextData(contextData);
+        this.contextData = contextData;
     }
 
+    /**
+     * Get the timer object which is reported to the interceptor invocation context.
+     *
+     * @return the timer object
+     */
     public Object getTimer() {
-        return super.getTimer();
+        return timer;
     }
 
+    /**
+     * Set the timer object which is reported to the interceptor invocation context.
+     *
+     * @param timer the timer object
+     */
     public void setTimer(final Object timer) {
-        super.setTimer(timer);
-    }
-
-    public boolean hasTransaction() {
-        return super.hasTransaction();
-    }
-
-    public Transaction getTransaction() throws SystemException {
-        return super.getTransaction();
-    }
-
-    public void setTransaction(final Transaction transaction) {
-        super.setTransaction(transaction);
-    }
-
-    public void setTransactionSupplier(final ExceptionSupplier<Transaction, SystemException> transactionSupplier) {
-        super.setTransactionSupplier(transactionSupplier);
+        this.timer = timer;
     }
 
     /**
@@ -133,20 +218,125 @@ public final class InterceptorContext extends AbstractInterceptorContext impleme
         return invocationContext;
     }
 
-    public <T> T getPrivateData(final Class<T> type) {
-        return super.getPrivateData(type);
+    /**
+     * Determine if a transaction supplier was established for this invocation.
+     *
+     * @return {@code true} if there is an enclosing transaction, {@code false} otherwise
+     */
+    public boolean hasTransaction() {
+        return transactionSupplier != null;
     }
 
-    public Object getPrivateData(final Object key) {
-        return super.getPrivateData(key);
+    /**
+     * Get the transaction for this invocation, if any.
+     *
+     * @return the transaction for this invocation, or {@code null} if there is no transaction
+     * @throws SystemException if the transaction import failed
+     */
+    public Transaction getTransaction() throws SystemException {
+        final ExceptionSupplier<Transaction, SystemException> transactionSupplier = this.transactionSupplier;
+        return transactionSupplier == null ? null : transactionSupplier.get();
     }
 
-    public <T> T putPrivateData(final Class<T> type, final T value) {
-        return super.putPrivateData(type, value);
+    /**
+     * Set the transaction for the invocation.  If {@code null}, then there is no enclosing transaction.
+     *
+     * @param transaction the transaction for the invocation
+     */
+    public void setTransaction(final Transaction transaction) {
+        setTransactionSupplier(transaction == null ? null : () -> transaction);
     }
 
-    public Object putPrivateData(final Object key, final Object value) {
-        return super.putPrivateData(key, value);
+    /**
+     * Set the transaction supplier for the invocation.  If {@code null}, then there is no enclosing transaction.  The
+     * supplier must not return {@code null}.
+     *
+     * @param transactionSupplier the transaction supplier, or {@code null} to clear the present transaction
+     */
+    public void setTransactionSupplier(final ExceptionSupplier<Transaction, SystemException> transactionSupplier) {
+        this.transactionSupplier = transactionSupplier;
+    }
+
+    /**
+     * Get a private data item.
+     *
+     * @param type the data type class object
+     * @param <T> the data type
+     * @return the data item or {@code null} if no such item exists
+     */
+    public <T> T getPrivateData(Class<T> type) {
+        return type.cast(privateData.get(type));
+    }
+
+    /**
+     * Get a private data item.  The key will be looked up by object identity, not by value.
+     *
+     * @param key the object key
+     * @return the private data object
+     */
+    public Object getPrivateData(Object key) {
+        return privateData.get(key);
+    }
+
+    /**
+     * Insert a private data item.
+     *
+     * @param type the data type class object
+     * @param value the data item value, or {@code null} to remove the mapping
+     * @param <T> the data type
+     * @return the data item which was previously mapped to this position, or {@code null} if no such item exists
+     */
+    public <T> T putPrivateData(Class<T> type, T value) {
+        if (value == null) {
+            return type.cast(privateData.remove(type));
+        } else {
+            return type.cast(privateData.put(type, type.cast(value)));
+        }
+    }
+
+    /**
+     * Insert a private data item.  The key is used by object identity, not by value; in addition, if the key is
+     * a {@code Class} then the value given must be assignable to that class.
+     *
+     * @param key the data key
+     * @param value the data item value, or {@code null} to remove the mapping
+     * @return the data item which was previously mapped to this position, or {@code null} if no such item exists
+     */
+    public Object putPrivateData(Object key, Object value) {
+        if (key instanceof Class) {
+            final Class<?> type = (Class<?>) key;
+            if (value == null) {
+                return type.cast(privateData.remove(type));
+            } else {
+                return type.cast(privateData.put(type, type.cast(value)));
+            }
+        } else {
+            if (value == null) {
+                return privateData.remove(key);
+            } else {
+                return privateData.put(key, value);
+            }
+        }
+    }
+
+    /**
+     * Determine whether this invocation is currently <em>directly</em> blocking the calling thread.  This means that
+     * the interceptor is running in the same thread as the original caller.
+     *
+     * @return {@code true} if the calling thread is being blocked; {@code false} otherwise
+     */
+    public boolean isBlockingCaller() {
+        return blockingCaller;
+    }
+
+    /**
+     * Establish whether this invocation is currently <em>directly</em> blocking the calling thread.  This means that
+     * the interceptor is running in the same thread as the original caller.
+     *
+     * @param blockingCaller {@code true} if the calling thread is being blocked; {@code false} otherwise
+     */
+    public void setBlockingCaller(final boolean blockingCaller) {
+        this.blockingCaller = blockingCaller;
     }
 
     /**
@@ -219,14 +409,6 @@ public final class InterceptorContext extends AbstractInterceptorContext impleme
         setInterceptors(interceptorList.toArray(Interceptor.EMPTY_ARRAY), nextIndex);
     }
 
-    public boolean isBlockingCaller() {
-        return super.isBlockingCaller();
-    }
-
-    public void setBlockingCaller(final boolean blockingCaller) {
-        super.setBlockingCaller(blockingCaller);
-    }
-
     /**
      * Pass the invocation on to the next step in the chain.
      *
@@ -263,10 +445,10 @@ public final class InterceptorContext extends AbstractInterceptorContext impleme
      * @return the copied context
      */
     public InterceptorContext clone() {
-        return new InterceptorContext(this);
+        return new InterceptorContext(this, true);
     }
 
-    private class Invocation implements InvocationContext, PrivilegedExceptionAction<Object> {
+    final class Invocation implements InvocationContext, PrivilegedExceptionAction<Object> {
         public Object getTarget() {
             return InterceptorContext.this.getTarget();
         }
