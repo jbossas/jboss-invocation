@@ -36,6 +36,14 @@
     <description>Invocation Application Programming Interface</description>
     <packaging>jar</packaging>
 
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
     <!-- Properties -->
     <properties>
         <classfilewriter.version>1.0.4.Final</classfilewriter.version>
