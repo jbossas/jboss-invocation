@@ -52,8 +52,8 @@
         <jboss.logging.version>3.2.1.Final</jboss.logging.version>
         <jboss.logging.tools.version>2.0.1.Final</jboss.logging.tools.version>
         <junit.version>4.8.2</junit.version>
-        <org.wildfly.elytron.version>1.1.0.Beta14</org.wildfly.elytron.version>
-        <org.wildfly.common.version>1.2.0.Beta3</org.wildfly.common.version>
+        <org.wildfly.elytron.version>1.1.0.Final</org.wildfly.elytron.version>
+        <org.wildfly.common.version>1.2.0.Final</org.wildfly.common.version>
 
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
