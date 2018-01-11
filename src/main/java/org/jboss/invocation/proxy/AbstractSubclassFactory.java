@@ -32,6 +32,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -357,10 +358,18 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
                 }
             }
         }
+        ClassMetadataSource classMd = reflectionMetadataSource.getClassMetadata(getSuperClass());
         for(final Class<?> c : interfaces) {
             ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(c);
             for (Method method : data.getDeclaredMethods()) {
-                if (!Modifier.isStatic(method.getModifiers())) {
+                Method classMethod = null;
+                for(Method cm : classMd.getDeclaredMethods() ) {
+                    if(method.getName().equals(cm.getName()) && method.getReturnType().equals(cm.getReturnType()) && Arrays.equals(method.getParameterTypes(), cm.getParameterTypes())) {
+                        classMethod = cm;
+                        break;
+                    }
+                }
+                if ((classMethod == null || !Modifier.isFinal(classMethod.getModifiers())) && !Modifier.isStatic(method.getModifiers())) {
                     overrideMethod(method, MethodIdentifier.getIdentifierForMethod(method), override);
                 }
             }
