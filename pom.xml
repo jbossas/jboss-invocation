@@ -46,7 +46,7 @@
 
     <!-- Properties -->
     <properties>
-        <classfilewriter.version>1.0.4.Final</classfilewriter.version>
+        <classfilewriter.version>1.2.4.Final</classfilewriter.version>
         <javax.interceptor.version>1.0.0.Final</javax.interceptor.version>
         <javax.transaction.version>1.0.0.Final</javax.transaction.version>
         <jboss.logging.version>3.2.1.Final</jboss.logging.version>

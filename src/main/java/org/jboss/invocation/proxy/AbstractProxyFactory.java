@@ -19,6 +19,7 @@
 package org.jboss.invocation.proxy;
 
 import org.jboss.classfilewriter.AccessFlag;
+import org.jboss.classfilewriter.ClassFactory;
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.code.CodeAttribute;
 import org.jboss.invocation.proxy.classloading.ClassIdentifier;
@@ -63,10 +64,25 @@ public abstract class AbstractProxyFactory<T> extends AbstractSubclassFactory<T>
      * @param superClass       the superclass
      * @param classLoader      the defining class loader
      * @param protectionDomain the protection domain
+     * @deprecated use {@link #AbstractProxyFactory(String, Class, ClassLoader, ClassFactory, ProtectionDomain, ReflectionMetadataSource)} instead
      */
+    @Deprecated
     protected AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader,
                                    ProtectionDomain protectionDomain, final ReflectionMetadataSource reflectionMetadataSource) {
-        super(className, superClass, classLoader, protectionDomain, reflectionMetadataSource);
+        this(className, superClass, classLoader, null, protectionDomain, reflectionMetadataSource);
+    }
+
+    /**
+     * Construct a new instance.
+     *
+     * @param className        the class name
+     * @param superClass       the superclass
+     * @param classLoader      the defining class loader
+     * @param protectionDomain the protection domain
+     */
+    protected AbstractProxyFactory(String className, Class<T> superClass, ClassLoader classLoader, ClassFactory classFactory,
+                                   ProtectionDomain protectionDomain, final ReflectionMetadataSource reflectionMetadataSource) {
+        super(className, superClass, classLoader, classFactory, protectionDomain, reflectionMetadataSource);
         staticConstructor = classFile.addMethod(AccessFlag.of(AccessFlag.PUBLIC, AccessFlag.STATIC), "<clinit>", "V");
     }
 

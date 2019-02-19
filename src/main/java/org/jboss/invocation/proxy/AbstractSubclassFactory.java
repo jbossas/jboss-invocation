@@ -19,6 +19,7 @@
 package org.jboss.invocation.proxy;
 
 import org.jboss.classfilewriter.AccessFlag;
+import org.jboss.classfilewriter.ClassFactory;
 import org.jboss.classfilewriter.ClassMethod;
 import org.jboss.classfilewriter.util.DescriptorUtils;
 import org.jboss.invocation.proxy.reflection.ClassMetadataSource;
@@ -81,10 +82,25 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param superClass       the superclass
      * @param classLoader      the defining class loader
      * @param protectionDomain the protection domain
+     * @deprecated use {@link #AbstractSubclassFactory(String, Class, ClassLoader, ClassFactory, ProtectionDomain, ReflectionMetadataSource)} instead
      */
+    @Deprecated
     protected AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader,
                                       ProtectionDomain protectionDomain, final ReflectionMetadataSource reflectionMetadataSource) {
-        super(className, superClass, classLoader, protectionDomain);
+        this(className, superClass, classLoader, null, protectionDomain, reflectionMetadataSource);
+    }
+
+    /**
+     * Construct a new instance.
+     *
+     * @param className        the class name
+     * @param superClass       the superclass
+     * @param classLoader      the defining class loader
+     * @param protectionDomain the protection domain
+     */
+    protected AbstractSubclassFactory(String className, Class<T> superClass, ClassLoader classLoader, ClassFactory classFactory,
+                                      ProtectionDomain protectionDomain, final ReflectionMetadataSource reflectionMetadataSource) {
+        super(className, superClass, classLoader, classFactory, protectionDomain);
         this.reflectionMetadataSource = reflectionMetadataSource;
     }
 

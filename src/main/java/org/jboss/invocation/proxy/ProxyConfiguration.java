@@ -17,6 +17,7 @@
  */
 package org.jboss.invocation.proxy;
 
+import org.jboss.classfilewriter.ClassFactory;
 import org.jboss.invocation.proxy.reflection.DefaultReflectionMetadataSource;
 import org.jboss.invocation.proxy.reflection.ReflectionMetadataSource;
 
@@ -36,6 +37,7 @@ public class ProxyConfiguration<T> {
     private Class<T> superClass;
     private ProtectionDomain protectionDomain;
     private final List<Class<?>> additionalInterfaces = new ArrayList<Class<?>>(0);
+    private ClassFactory classFactory;
 
     /**
      * @return Any additional interfaces that the proxy should implement
@@ -52,6 +54,24 @@ public class ProxyConfiguration<T> {
      */
     public ProxyConfiguration<T> addAdditionalInterface(final Class<?> additionalInterface) {
         this.additionalInterfaces.add(additionalInterface);
+        return this;
+    }
+
+    /**
+     * @return The class factory that the proxy should be defined via
+     */
+    public ClassFactory getClassFactory() {
+        return classFactory;
+    }
+
+    /**
+     * Sets the class factory that the proxy should be defined via
+     *
+     * @param classFactory The class factory
+     * @return The builder
+     */
+    public ProxyConfiguration<T> setClassFactory(final ClassFactory classFactory) {
+        this.classFactory = classFactory;
         return this;
     }
 

@@ -18,6 +18,7 @@
 
 package org.jboss.invocation.proxy;
 
+import org.jboss.classfilewriter.ClassFactory;
 import org.jboss.classfilewriter.ClassFile;
 
 import java.security.ProtectionDomain;
@@ -78,23 +79,50 @@ public abstract class AbstractClassFactory<T> {
      * @param className        the generated class name
      * @param superClass       the superclass of the generated class
      * @param classLoader      the class loader used to load the class
+     * @param classFactory     the classFactory used to create the class
      * @param protectionDomain the protection domain of the class
      */
-    protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
+    protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ClassFactory classFactory, ProtectionDomain protectionDomain) {
         if (classLoader == null) {
             throw new IllegalArgumentException("ClassLoader cannot be null when attempting to proxy " + superClass + ". If you are trying to proxy a JDK class you must specify the class loader explicitly to prevent memory leaks");
         }
-        if(superClass == null) {
+        if (superClass == null) {
             throw new IllegalArgumentException("Superclass cannot be null for proxy " + className);
         }
-        if(className == null) {
+        if (className == null) {
             throw new IllegalArgumentException("Class name cannot be null");
         }
         this.className = className;
         this.superClass = superClass;
         this.classLoader = classLoader;
         this.protectionDomain = protectionDomain;
-        classFile = new ClassFile(className, superClass.getName());
+        classFile = classFactory == null ? new ClassFile(className, superClass.getName(), classLoader) : new ClassFile(className, superClass.getName(), classLoader, classFactory);
+    }
+
+    /**
+     * Construct a new instance.
+     *
+     * @param className        the generated class name
+     * @param superClass       the superclass of the generated class
+     * @param classLoader      the class loader used to load the class
+     * @param protectionDomain the protection domain of the class
+     * @deprecated use {@link #AbstractClassFactory(String, Class, ClassLoader, ClassFactory, ProtectionDomain)} instead
+     */
+    @Deprecated
+    protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ProtectionDomain protectionDomain) {
+        this(className, superClass, classLoader, null, protectionDomain);
+    }
+
+    /**
+     * Construct a new instance with a {@code null} protection domain.
+     *
+     * @param className    the generated class name
+     * @param superClass   the superclass of the generated class
+     * @param classLoader  the class loader used to load the class
+     * @param classFactory the classFactory used to create the class
+     */
+    protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader, ClassFactory classFactory) {
+        this(className, superClass, classLoader, classFactory, null);
     }
 
     /**
@@ -103,9 +131,11 @@ public abstract class AbstractClassFactory<T> {
      * @param className   the generated class name
      * @param superClass  the superclass of the generated class
      * @param classLoader the class loader used to load the class
+     * @deprecated use {@link #AbstractClassFactory(String, Class, ClassLoader, ClassFactory)} instead
      */
+    @Deprecated
     protected AbstractClassFactory(String className, Class<T> superClass, ClassLoader classLoader) {
-        this(className, superClass, classLoader, null);
+        this(className, superClass, classLoader, null, null);
     }
 
     /**
@@ -114,8 +144,20 @@ public abstract class AbstractClassFactory<T> {
      * @param className  the generated class name
      * @param superClass the superclass of the generated class
      */
+    protected AbstractClassFactory(String className, Class<T> superClass, ClassFactory classFactory) {
+        this(className, superClass, superClass.getClassLoader(), classFactory, null);
+    }
+
+    /**
+     * Construct a new instance with a {@code null} protection domain.
+     *
+     * @param className  the generated class name
+     * @param superClass the superclass of the generated class
+     * @deprecated use {@link #AbstractClassFactory(String, Class, ClassFactory)} instead
+     */
+    @Deprecated
     protected AbstractClassFactory(String className, Class<T> superClass) {
-        this(className, superClass, superClass.getClassLoader(), null);
+        this(className, superClass, superClass.getClassLoader(), null, null);
     }
 
     /**
@@ -155,9 +197,9 @@ public abstract class AbstractClassFactory<T> {
                     } catch (ClassNotFoundException e) {
                         buildClassDefinition();
                         if (protectionDomain == null) {
-                            generatedClass = (Class<? extends T>) classFile.define(classLoader);
+                            generatedClass = (Class<? extends T>) classFile.define();
                         } else {
-                            generatedClass = (Class<? extends T>) classFile.define(classLoader, protectionDomain);
+                            generatedClass = (Class<? extends T>) classFile.define(protectionDomain);
                         }
                         afterClassLoad(generatedClass);
                     }

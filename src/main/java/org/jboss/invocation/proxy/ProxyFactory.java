@@ -253,7 +253,8 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
      * @param proxyConfiguration The configuration to use to build the proxy
      */
     public ProxyFactory(ProxyConfiguration<T> proxyConfiguration) {
-        super(proxyConfiguration.getProxyName(), proxyConfiguration.getSuperClass(), proxyConfiguration.getClassLoader(), proxyConfiguration.getProtectionDomain(), proxyConfiguration.getMetadataSource());
+        super(proxyConfiguration.getProxyName(), proxyConfiguration.getSuperClass(), proxyConfiguration.getClassLoader(),
+              proxyConfiguration.getClassFactory(), proxyConfiguration.getProtectionDomain(), proxyConfiguration.getMetadataSource());
         this.additionalInterfaces = proxyConfiguration.getAdditionalInterfaces().toArray(NO_CLASSES);
     }
 
