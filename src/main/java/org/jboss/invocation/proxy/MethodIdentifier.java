@@ -233,9 +233,17 @@ public final class MethodIdentifier implements Serializable {
     }
 
     /**
+     * The method identifier for {@code Object.clone()}.
+     */
+    public static final MethodIdentifier CLONE = getIdentifier(Object.class, "clone");
+    /**
      * The method identifier for {@code Object.equals()}.
      */
     public static final MethodIdentifier EQUALS = getIdentifier(boolean.class, "equals", Object.class);
+    /**
+     * The method identifier for {@code Object.finalize()}.
+     */
+    public static final MethodIdentifier FINALIZE = getIdentifier(void.class, "finalize");
     /**
      * The method identifier for {@code Object.hashCode()}.
      */
@@ -244,8 +252,4 @@ public final class MethodIdentifier implements Serializable {
      * The method identifier for {@code Object.toString()}.
      */
     public static final MethodIdentifier TO_STRING = getIdentifier(String.class, "toString");
-    /**
-     * The method identifier for {@code Object.finalize()}.
-     */
-    public static final MethodIdentifier FINALIZE = getIdentifier(void.class, "finalize");
 }

@@ -68,6 +68,7 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
 
     static {
         HashSet<MethodIdentifier> skip = new HashSet<MethodIdentifier>();
+        skip.add(MethodIdentifier.CLONE);
         skip.add(MethodIdentifier.EQUALS);
         skip.add(MethodIdentifier.FINALIZE);
         skip.add(MethodIdentifier.HASH_CODE);
@@ -141,18 +142,6 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
-     * Overrides all public methods on the superclass. The default {@link MethodBodyCreator} is used to generate the class body.
-     * <p/>
-     * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
-     * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
-     * {@link #overrideHashcode(MethodBodyCreator)}{@link #overrideToString(MethodBodyCreator)}
-     * {@link #overrideFinalize(MethodBodyCreator)}
-     */
-    protected void overridePublicMethods() {
-        overridePublicMethods(getDefaultMethodOverride());
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -161,20 +150,30 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
     }
 
     /**
+     * Calls {@link #overridePublicMethods(MethodBodyCreator)} with the default {@link MethodBodyCreator}.
+     */
+    protected void overridePublicMethods() {
+        overridePublicMethods(getDefaultMethodOverride());
+    }
+
+    /**
      * Overrides all public methods on the superclass. The given {@link MethodBodyCreator} is used to generate the class body.
      * <p/>
-     * NOTE: This will not override <code>equals(Object)</code>, <code>hashCode()</code>, <code>finalize()</code> and
-     * <code>toString()</code>, these should be overridden separately using {@link #overrideEquals(MethodBodyCreator)}
-     * {@link #overrideHashcode(MethodBodyCreator)},{@link #overrideToString(MethodBodyCreator)} and
+     * Note this will not override <code>clone()</code>, <code>equals(Object)</code>, <code>finalize()</code>,
+     * <code>hashCode()</code> and <code>toString()</code>, these should be overridden separately using
+     * {@link #overrideClone(MethodBodyCreator)}
+     * {@link #overrideEquals(MethodBodyCreator)}
      * {@link #overrideFinalize(MethodBodyCreator)}
+     * {@link #overrideHashcode(MethodBodyCreator)}
+     * {@link #overrideToString(MethodBodyCreator)}
      *
      * @param override the method body creator to use
      */
-    protected void overridePublicMethods(final  MethodBodyCreator override) {
+    protected void overridePublicMethods(final MethodBodyCreator override) {
         Class<?> currentClass = getSuperClass();
         ClassMetadataSource data;
         MethodIdentifier identifier;
-        while (currentClass != null) {
+        while (currentClass != null && currentClass != Object.class) {
             data = reflectionMetadataSource.getClassMetadata(currentClass);
             for (Method method : data.getDeclaredMethods()) {
                 if (!Modifier.isPublic(method.getModifiers())) {
@@ -205,6 +204,14 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * <code>toString()</code> and <code>finalize()</code>. The given {@link MethodBodyCreator} is used to generate the class
      * body.
      * <p/>
+     * Note this will not override <code>clone()</code>, <code>equals(Object)</code>, <code>finalize()</code>,
+     * <code>hashCode()</code> and <code>toString()</code>, these should be overridden separately using
+     * {@link #overrideClone(MethodBodyCreator)}
+     * {@link #overrideEquals(MethodBodyCreator)}
+     * {@link #overrideFinalize(MethodBodyCreator)}
+     * {@link #overrideHashcode(MethodBodyCreator)}
+     * {@link #overrideToString(MethodBodyCreator)}
+     * <p/>
      * Note that private methods are not actually overridden, and if the sub-class is loaded by a different ClassLoader to the
      * parent class then neither will package-private methods. These methods will still be present on the new class however, and
      * can be accessed via reflection
@@ -226,13 +233,6 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
                 }
                 if (Modifier.isFinal(method.getModifiers())) {
                     continue; // don't override final methods
-                }
-                // ClassMetadataSource.getDeclaredMethods isn't precise about what methods should
-                // be returned and at least one impl is returning superclass methods.
-                // See https://issues.redhat.com/browse/WFCORE-4514. That impl probably should
-                // be changed, but let's guard against the problem here.
-                if (method.getDeclaringClass() == Object.class) {
-                    continue;
                 }
                 identifier = MethodIdentifier.getIdentifierForMethod(method);
                 if (SKIP_BY_DEFAULT.contains(identifier)) {
@@ -346,6 +346,32 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
             throw new RuntimeException(e);
         }
         return overrideMethod(finalize, MethodIdentifier.getIdentifierForMethod(finalize), creator);
+    }
+
+    /**
+     * Override the clone method using the default {@link MethodBodyCreator}.
+     *
+     * @return true if the method was not already overridden
+     */
+    protected boolean overrideClone() {
+        return overrideClone(getDefaultMethodOverride());
+    }
+
+    /**
+     * Override the clone method using the given {@link MethodBodyCreator}.
+     *
+     * @param creator the method body creator to use
+     * @return true if the method was not already overridden
+     */
+    protected boolean overrideClone(final MethodBodyCreator creator) {
+        final ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
+        final Method clone;
+        try {
+            clone = data.getMethod("clone", Object.class);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return overrideMethod(clone, MethodIdentifier.getIdentifierForMethod(clone), creator);
     }
 
     /**

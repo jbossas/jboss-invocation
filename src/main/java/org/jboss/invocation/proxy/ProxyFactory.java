@@ -285,9 +285,9 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
         for (Class<?> iface : additionalInterfaces) {
             addInterface(creator, iface);
         }
-        overrideToString(creator);
         overrideEquals(creator);
         overrideHashcode(creator);
+        overrideToString(creator);
         createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
         for (Annotation annotation : this.getSuperClass().getDeclaredAnnotations()) {
