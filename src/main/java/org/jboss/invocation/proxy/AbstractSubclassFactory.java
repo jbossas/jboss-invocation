@@ -170,21 +170,26 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      *
      * @param override the method body creator to use
      */
-    protected void overridePublicMethods(MethodBodyCreator override) {
-        Class<?> c = getSuperClass();
-        while (c != null) {
-            ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(c);
-
+    protected void overridePublicMethods(final  MethodBodyCreator override) {
+        Class<?> currentClass = getSuperClass();
+        ClassMetadataSource data;
+        MethodIdentifier identifier;
+        while (currentClass != null) {
+            data = reflectionMetadataSource.getClassMetadata(currentClass);
             for (Method method : data.getDeclaredMethods()) {
-                MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
-                if (!Modifier.isPublic(method.getModifiers()) || Modifier.isFinal(method.getModifiers())) {
-                    continue;
+                if (!Modifier.isPublic(method.getModifiers())) {
+                    continue; // don't override non public methods
                 }
-                if (!SKIP_BY_DEFAULT.contains(identifier)) {
-                    overrideMethod(method, identifier, override);
+                if (Modifier.isFinal(method.getModifiers())) {
+                    continue; // don't override final methods
                 }
+                identifier = MethodIdentifier.getIdentifierForMethod(method);
+                if (SKIP_BY_DEFAULT.contains(identifier)) {
+                    continue; // don't override configured methods
+                }
+                overrideMethod(method, identifier, override);
             }
-            c = c.getSuperclass();
+            currentClass = currentClass.getSuperclass();
         }
     }
 
@@ -206,18 +211,21 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      *
      * @param override the method body creator to use
      */
-    protected void overrideAllMethods(MethodBodyCreator override) {
+    protected void overrideAllMethods(final MethodBodyCreator override) {
         Class<?> currentClass = getSuperClass();
+        ClassMetadataSource data;
+        MethodIdentifier identifier;
         while (currentClass != null && currentClass != Object.class) {
-            ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(currentClass);
+            data = reflectionMetadataSource.getClassMetadata(currentClass);
             for (Method method : data.getDeclaredMethods()) {
-                // do not override static or private methods
-                if (Modifier.isStatic(method.getModifiers()) || Modifier.isPrivate(method.getModifiers())) {
-                    continue;
+                if (Modifier.isStatic(method.getModifiers())) {
+                    continue; // don't override static methods
                 }
-                // don't attempt to override final methods
+                if (Modifier.isPrivate(method.getModifiers())) {
+                    continue; // don't override private methods
+                }
                 if (Modifier.isFinal(method.getModifiers())) {
-                    continue;
+                    continue; // don't override final methods
                 }
                 // ClassMetadataSource.getDeclaredMethods isn't precise about what methods should
                 // be returned and at least one impl is returning superclass methods.
@@ -226,10 +234,11 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
                 if (method.getDeclaringClass() == Object.class) {
                     continue;
                 }
-                MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
-                if (!SKIP_BY_DEFAULT.contains(identifier)) {
-                    overrideMethod(method, identifier, override);
+                identifier = MethodIdentifier.getIdentifierForMethod(method);
+                if (SKIP_BY_DEFAULT.contains(identifier)) {
+                    continue; // don't override configured methods
                 }
+                overrideMethod(method, identifier, override);
             }
             currentClass = currentClass.getSuperclass();
         }
