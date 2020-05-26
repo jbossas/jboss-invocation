@@ -259,9 +259,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param creator the method body creator to use
      * @return true if the method was not already overridden
      */
-    protected boolean overrideEquals(MethodBodyCreator creator) {
-        Method equals = null;
-        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
+    protected boolean overrideEquals(final MethodBodyCreator creator) {
+        final ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
+        final Method equals;
         try {
             equals = data.getMethod("equals", Boolean.TYPE, Object.class);
         } catch (Exception e) {
@@ -285,10 +285,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param creator the method body creator to use
      * @return true if the method was not already overridden
      */
-    protected boolean overrideHashcode(MethodBodyCreator creator) {
-
-        Method hashCode = null;
-        ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
+    protected boolean overrideHashcode(final MethodBodyCreator creator) {
+        final ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
+        final Method hashCode;
         try {
             hashCode = data.getMethod("hashCode", Integer.TYPE);
         } catch (Exception e) {
@@ -312,9 +311,9 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * @param creator the method body creator to use
      * @return true if the method was not already overridden
      */
-    protected boolean overrideToString(MethodBodyCreator creator) {
-        Method toString = null;
+    protected boolean overrideToString(final MethodBodyCreator creator) {
         final ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
+        final Method toString;
         try {
             toString = data.getMethod("toString", String.class);
         } catch (Exception e) {
@@ -336,10 +335,11 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
      * Override the finalize method using the given {@link MethodBodyCreator}.
      *
      * @param creator the method body creator to use
+     * @return true if the method was not already overridden
      */
-    protected boolean overrideFinalize(MethodBodyCreator creator) {
-        Method finalize = null;
+    protected boolean overrideFinalize(final MethodBodyCreator creator) {
         final ClassMetadataSource data = reflectionMetadataSource.getClassMetadata(Object.class);
+        final Method finalize;
         try {
             finalize = data.getMethod("finalize", void.class);
         } catch (Exception e) {
