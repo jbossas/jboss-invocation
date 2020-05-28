@@ -215,11 +215,18 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
                 if (Modifier.isStatic(method.getModifiers()) || Modifier.isPrivate(method.getModifiers())) {
                     continue;
                 }
-                MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
                 // don't attempt to override final methods
                 if (Modifier.isFinal(method.getModifiers())) {
                     continue;
                 }
+                // ClassMetadataSource.getDeclaredMethods isn't precise about what methods should
+                // be returned and at least one impl is returning superclass methods.
+                // See https://issues.redhat.com/browse/WFCORE-4514. That impl probably should
+                // be changed, but let's guard against the problem here.
+                if (method.getDeclaringClass() == Object.class) {
+                    continue;
+                }
+                MethodIdentifier identifier = MethodIdentifier.getIdentifierForMethod(method);
                 if (!SKIP_BY_DEFAULT.contains(identifier)) {
                     overrideMethod(method, identifier, override);
                 }
