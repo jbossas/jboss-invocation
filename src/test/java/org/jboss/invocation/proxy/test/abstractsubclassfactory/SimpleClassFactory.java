@@ -40,6 +40,7 @@ public class SimpleClassFactory<T> extends AbstractSubclassFactory<T> {
     @Override
     protected void generateClass() {
         overridePublicMethods();
+        overrideClone();
         overrideEquals();
         overrideFinalize();
         overrideHashcode();
