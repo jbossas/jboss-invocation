@@ -51,7 +51,7 @@
         <javax.transaction.version>1.0.0.Final</javax.transaction.version>
         <jboss.logging.version>3.2.1.Final</jboss.logging.version>
         <jboss.logging.tools.version>2.0.1.Final</jboss.logging.tools.version>
-        <junit.version>4.8.2</junit.version>
+        <junit.version>4.13.1</junit.version>
         <org.wildfly.elytron.version>1.1.0.Final</org.wildfly.elytron.version>
         <org.wildfly.common.version>1.2.0.Final</org.wildfly.common.version>
 
