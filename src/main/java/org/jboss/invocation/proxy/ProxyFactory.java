@@ -281,13 +281,13 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             createWriteReplace();
         }
         MethodBodyCreator creator = getDefaultMethodOverride();
-        overrideAllMethods(creator);
         for (Class<?> iface : additionalInterfaces) {
             addInterface(creator, iface);
         }
-        overrideToString(creator);
+        overrideAllMethods(creator);
         overrideEquals(creator);
         overrideHashcode(creator);
+        overrideToString(creator);
         createConstructorDelegates(new ProxyConstructorBodyCreator());
         finalizeStaticConstructor();
         for (Annotation annotation : this.getSuperClass().getDeclaredAnnotations()) {
