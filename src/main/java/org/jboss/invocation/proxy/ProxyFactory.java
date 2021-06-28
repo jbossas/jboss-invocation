@@ -281,10 +281,10 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             createWriteReplace();
         }
         MethodBodyCreator creator = getDefaultMethodOverride();
-        overrideAllMethods(creator);
         for (Class<?> iface : additionalInterfaces) {
             addInterface(creator, iface);
         }
+        overrideAllMethods(creator);
         overrideEquals(creator);
         overrideHashcode(creator);
         overrideToString(creator);
