@@ -18,12 +18,6 @@
 
 package org.jboss.invocation.proxy;
 
-import org.jboss.classfilewriter.AccessFlag;
-import org.jboss.classfilewriter.ClassMethod;
-import org.jboss.classfilewriter.code.BranchEnd;
-import org.jboss.classfilewriter.code.CodeAttribute;
-import org.jboss.classfilewriter.util.Boxing;
-
 import java.io.ObjectStreamException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AccessibleObject;
@@ -35,6 +29,12 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+
+import org.jboss.classfilewriter.AccessFlag;
+import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.code.BranchEnd;
+import org.jboss.classfilewriter.code.CodeAttribute;
+import org.jboss.classfilewriter.util.Boxing;
 
 /**
  * Proxy Factory that generates proxies that delegate all calls to an {@link InvocationHandler}.
@@ -281,10 +281,29 @@ public class ProxyFactory<T> extends AbstractProxyFactory<T> {
             createWriteReplace();
         }
         MethodBodyCreator creator = getDefaultMethodOverride();
-        for (Class<?> iface : additionalInterfaces) {
-            addInterface(creator, iface);
+
+        boolean isMessaging = false;
+        for (int i = additionalInterfaces.length - 1; i >= 0; i--) {
+            if ("MessageListener".equals(additionalInterfaces[i].getSimpleName())) {
+                isMessaging = true;
+                break;
+            }
         }
-        overrideAllMethods(creator);
+
+        // For messaging endpoint, addInterface() is called after overrideAllMethods()
+        // so that proxy methods from additional interfaces win.
+        if (isMessaging) {
+            overrideAllMethods(creator);
+            for (Class<?> iface : additionalInterfaces) {
+                addInterface(creator, iface);
+            }
+        } else {
+            for (Class<?> iface : additionalInterfaces) {
+                addInterface(creator, iface);
+            }
+            overrideAllMethods(creator);
+        }
+
         overrideEquals(creator);
         overrideHashcode(creator);
         overrideToString(creator);
