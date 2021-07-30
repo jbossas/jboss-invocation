@@ -18,13 +18,6 @@
 
 package org.jboss.invocation.proxy;
 
-import org.jboss.classfilewriter.AccessFlag;
-import org.jboss.classfilewriter.ClassFactory;
-import org.jboss.classfilewriter.ClassMethod;
-import org.jboss.classfilewriter.util.DescriptorUtils;
-import org.jboss.invocation.proxy.reflection.ClassMetadataSource;
-import org.jboss.invocation.proxy.reflection.ReflectionMetadataSource;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -34,6 +27,13 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+
+import org.jboss.classfilewriter.AccessFlag;
+import org.jboss.classfilewriter.ClassFactory;
+import org.jboss.classfilewriter.ClassMethod;
+import org.jboss.classfilewriter.util.DescriptorUtils;
+import org.jboss.invocation.proxy.reflection.ClassMetadataSource;
+import org.jboss.invocation.proxy.reflection.ReflectionMetadataSource;
 
 /**
  * Class factory for classes that override superclass methods.
@@ -175,6 +175,13 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
         MethodIdentifier identifier;
         while (currentClass != null && currentClass != Object.class) {
             data = reflectionMetadataSource.getClassMetadata(currentClass);
+
+            // first pass to exclude any final methods and their overridden methods in superclass
+            for (Method method : data.getDeclaredMethods()) {
+                if (Modifier.isFinal(method.getModifiers()) && method.getDeclaringClass() != Object.class) {
+                    overriddenMethods.add(MethodIdentifier.getIdentifierForMethod(method));
+                }
+            }
             for (Method method : data.getDeclaredMethods()) {
                 if (!Modifier.isPublic(method.getModifiers())) {
                     continue; // don't override non public methods
@@ -224,6 +231,13 @@ public abstract class AbstractSubclassFactory<T> extends AbstractClassFactory<T>
         MethodIdentifier identifier;
         while (currentClass != null && currentClass != Object.class) {
             data = reflectionMetadataSource.getClassMetadata(currentClass);
+
+            // first pass to exclude any final methods and their overridden methods in superclass
+            for (Method method : data.getDeclaredMethods()) {
+                if (Modifier.isFinal(method.getModifiers()) && method.getDeclaringClass() != Object.class) {
+                    overriddenMethods.add(MethodIdentifier.getIdentifierForMethod(method));
+                }
+            }
             for (Method method : data.getDeclaredMethods()) {
                 if (Modifier.isStatic(method.getModifiers())) {
                     continue; // don't override static methods

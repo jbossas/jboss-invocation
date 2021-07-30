@@ -17,13 +17,13 @@
  */
 package org.jboss.invocation.proxy.test.proxyfactory;
 
+import java.lang.reflect.Method;
+import java.util.List;
+
 import junit.framework.Assert;
 import org.jboss.invocation.proxy.ProxyConfiguration;
 import org.jboss.invocation.proxy.ProxyFactory;
 import org.junit.Test;
-
-import java.lang.reflect.Method;
-import java.util.List;
 
 public class SimpleProxyFactoryTest {
 
@@ -41,6 +41,20 @@ public class SimpleProxyFactoryTest {
         Assert.assertEquals(10L, array[0]);
         Assert.assertEquals(0.0, array[1]);
 
+    }
+
+    /**
+     * The final methods in {@code SimpleClass2} should not be overridden in the generated proxy class.
+     */
+    @Test
+    public void testSimpleProxy2() throws InstantiationException, IllegalAccessException {
+        final ProxyConfiguration<SimpleClass2> proxyConfiguration = new ProxyConfiguration<SimpleClass2>()
+                .setSuperClass(SimpleClass2.class)
+                .setProxyName(SimpleClass2.class.getPackage(), "SimpleClass2$$Proxy3")
+                .setClassLoader(SimpleClass2.class.getClassLoader());
+        ProxyFactory<SimpleClass2> proxyFactory = new ProxyFactory<SimpleClass2>(proxyConfiguration);
+        SimpleClass2 instance = proxyFactory.newInstance(new SimpleInvocationHandler());
+        instance.method1();
     }
 
     @Test
@@ -68,7 +82,7 @@ public class SimpleProxyFactoryTest {
                 .setClassLoader(SimpleClass.class.getClassLoader());
         ProxyFactory<SimpleClass> proxyFactory = new ProxyFactory<SimpleClass>(proxyConfiguration);
         List<Method> methods = proxyFactory.getCachedMethods();
-        Assert.assertEquals(5, methods.size());
+        Assert.assertEquals(7, methods.size());
         Method method1 = null;
         for (Method m : methods) {
             if (m.getName().equals("method1")) {
