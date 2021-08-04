@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2016 Red Hat, Inc., and individual contributors
+ * Copyright 2021 Red Hat, Inc., and individual contributors
  * as indicated by the @author tags.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,28 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.jboss.invocation.proxy.test.proxyfactory;
 
+public class SimpleClass2 extends SimpleClass {
 
-public class SimpleClass {
-
-    public SimpleClass() {
-
+    /**
+     * This is a final method that overrides {@code foo} method from its superclass.
+     * Generated proxy class should not override this method.
+     */
+    @Override
+    public final void foo() {
     }
 
-    public Object[] method1() {
-        return null;
-    }
-
-    public Object[] method2(long v1, double v2, Object v3, int[] v4) {
-        return null;
-    }
-
-    public void foo() {
-        throw new UnsupportedOperationException();
-    }
-
-    protected void bar() {
-        throw new UnsupportedOperationException();
+    /**
+     * This is a final method that overrides {@code bar} method from its superclass.
+     * Generated proxy class should not override this method.
+     */
+    @Override
+    protected final void bar() {
     }
 }
