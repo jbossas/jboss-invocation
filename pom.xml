@@ -1,6 +1,6 @@
 <!--
   ~ JBoss, Home of Professional Open Source.
-  ~ Copyright 2016 Red Hat, Inc., and individual contributors
+  ~ Copyright 2021 Red Hat, Inc., and individual contributors
   ~ as indicated by the @author tags.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,23 +18,20 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-    <!-- Parent -->
     <parent>
         <groupId>org.jboss</groupId>
         <artifactId>jboss-parent</artifactId>
-        <version>19</version>
+        <version>38</version>
     </parent>
 
-    <!-- POM Model Version -->
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- Artifact Information -->
     <groupId>org.jboss.invocation</groupId>
-    <artifactId>jboss-invocation</artifactId>
+    <artifactId>jboss-invocation-parent</artifactId>
     <version>1.7.0.Final-SNAPSHOT</version>
-    <name>Invocation API</name>
-    <description>Invocation Application Programming Interface</description>
-    <packaging>jar</packaging>
+    <name>JBoss Invocation Parent</name>
+    <description>Invocation Application Programming Interface Parent</description>
+    <packaging>pom</packaging>
 
     <licenses>
         <license>
@@ -44,121 +41,159 @@
         </license>
     </licenses>
 
-    <!-- Properties -->
-    <properties>
-        <classfilewriter.version>1.2.4.Final</classfilewriter.version>
-        <javax.interceptor.version>1.0.0.Final</javax.interceptor.version>
-        <javax.transaction.version>1.0.0.Final</javax.transaction.version>
-        <jboss.logging.version>3.2.1.Final</jboss.logging.version>
-        <jboss.logging.tools.version>2.0.1.Final</jboss.logging.tools.version>
-        <junit.version>4.13.1</junit.version>
-        <org.wildfly.elytron.version>1.1.0.Final</org.wildfly.elytron.version>
-        <org.wildfly.common.version>1.2.0.Final</org.wildfly.common.version>
-
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
-
-    <!-- Build Information -->
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <artifactId>maven-source-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.jboss.bridger</groupId>
-                <artifactId>bridger</artifactId>
-                <version>1.1.Final</version>
-                <configuration>
-                    <detail>true</detail>
-                </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.ow2.asm</groupId>
-                        <artifactId>asm</artifactId>
-                        <version>5.0.4</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <!-- run after "compile", runs bridger on main classes -->
-                    <execution>
-                        <id>weave</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>transform</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-
-    </build>
-
-    <!-- Dependencies -->
-    <dependencies>
-        <dependency>
-            <groupId>org.jboss.spec.javax.interceptor</groupId>
-            <artifactId>jboss-interceptors-api_1.2_spec</artifactId>
-            <version>${javax.interceptor.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.spec.javax.transaction</groupId>
-            <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-            <version>${javax.transaction.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging</artifactId>
-            <version>${jboss.logging.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-processor</artifactId>
-            <version>${jboss.logging.tools.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-annotations</artifactId>
-            <version>${jboss.logging.tools.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.classfilewriter</groupId>
-            <artifactId>jboss-classfilewriter</artifactId>
-            <version>${classfilewriter.version}</version>
-            <type>jar</type>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wildfly.security</groupId>
-            <artifactId>wildfly-elytron</artifactId>
-            <version>${org.wildfly.elytron.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.wildfly.common</groupId>
-            <artifactId>wildfly-common</artifactId>
-            <version>${org.wildfly.common.version}</version>
-        </dependency>
-    </dependencies>
-
     <scm>
         <connection>scm:git:git://github.com/jbossas/jboss-invocation.git</connection>
         <developerConnection>scm:git:git@github.com:jbossas/jboss-invocation.git</developerConnection>
         <url>scm:git:git://github.com/jbossas/jboss-invocation.git</url>
     </scm>
+
+    <properties>
+        <version.jakarta.interceptor>2.0.0</version.jakarta.interceptor>
+        <version.jakarta.transaction>2.0.0</version.jakarta.transaction>
+        <version.javax.interceptor>1.0.0.Final</version.javax.interceptor>
+        <version.javax.transaction>1.0.0.Final</version.javax.transaction>
+        <version.jboss.logging>3.2.1.Final</version.jboss.logging>
+        <version.jboss.logging.tools>2.0.1.Final</version.jboss.logging.tools>
+        <version.junit>4.13.1</version.junit>
+        <version.org.jboss.bridger>1.1.Final</version.org.jboss.bridger>
+        <version.org.jboss.classfilewriter>1.2.4.Final</version.org.jboss.classfilewriter>
+        <version.org.ow2.asm>5.0.4</version.org.ow2.asm>
+        <version.org.wildfly.common>1.2.0.Final</version.org.wildfly.common>
+        <version.org.wildfly.security>1.1.0.Final</version.org.wildfly.security>
+        <version.org.wildfly.extras.batavia>1.0.10.Final</version.org.wildfly.extras.batavia>
+    </properties>
+
+    <modules>
+        <module>javax</module>
+        <module>jakarta</module>
+    </modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.wildfly.extras.batavia</groupId>
+                    <artifactId>transformer-tools-mvn</artifactId>
+                    <version>${version.org.wildfly.extras.batavia}</version>
+                    <executions>
+                        <execution>
+                            <id>transform-sources</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>transform-sources</goal>
+                            </goals>
+                            <configuration>
+                                <source-project>${jakarta.transformer.input.dir}</source-project>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.wildfly.extras.batavia</groupId>
+                            <artifactId>transformer-impl-eclipse</artifactId>
+                            <version>${version.org.wildfly.extras.batavia}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <plugin>
+                    <groupId>org.jboss.bridger</groupId>
+                    <artifactId>bridger</artifactId>
+                    <version>${version.org.jboss.bridger}</version>
+                    <configuration>
+                        <detail>true</detail>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.ow2.asm</groupId>
+                            <artifactId>asm</artifactId>
+                            <version>${version.org.ow2.asm}</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <!-- run after "compile", runs bridger on main classes -->
+                        <execution>
+                            <id>weave</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>transform</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>jakarta.interceptor</groupId>
+                <artifactId>jakarta.interceptor-api</artifactId>
+                <version>${version.jakarta.interceptor}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.transaction</groupId>
+                <artifactId>jakarta.transaction-api</artifactId>
+                <version>${version.jakarta.transaction}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.spec.javax.interceptor</groupId>
+                <artifactId>jboss-interceptors-api_1.2_spec</artifactId>
+                <version>${version.javax.interceptor}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.spec.javax.transaction</groupId>
+                <artifactId>jboss-transaction-api_1.2_spec</artifactId>
+                <version>${version.javax.transaction}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.logging</groupId>
+                <artifactId>jboss-logging</artifactId>
+                <version>${version.jboss.logging}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.logging</groupId>
+                <artifactId>jboss-logging-processor</artifactId>
+                <version>${version.jboss.logging.tools}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.logging</groupId>
+                <artifactId>jboss-logging-annotations</artifactId>
+                <version>${version.jboss.logging.tools}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.security</groupId>
+                <artifactId>wildfly-elytron</artifactId>
+                <version>${version.org.wildfly.security}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.common</groupId>
+                <artifactId>wildfly-common</artifactId>
+                <version>${version.org.wildfly.common}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.classfilewriter</groupId>
+                <artifactId>jboss-classfilewriter</artifactId>
+                <version>${version.org.jboss.classfilewriter}</version>
+                <type>jar</type>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.junit}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>
