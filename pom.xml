@@ -54,15 +54,47 @@
         <jboss.logging.version>3.2.1.Final</jboss.logging.version>
         <jboss.logging.tools.version>2.0.1.Final</jboss.logging.tools.version>
         <junit.version>4.13.1</junit.version>
+        <org.jboss.bridger.version>1.1.Final</org.jboss.bridger.version>
+        <org.ow2.asm.version>5.0.4</org.ow2.asm.version>
         <org.wildfly.elytron.version>1.1.0.Final</org.wildfly.elytron.version>
         <org.wildfly.common.version>1.2.0.Final</org.wildfly.common.version>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <modules>
         <module>javax</module>
     </modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.jboss.bridger</groupId>
+                    <artifactId>bridger</artifactId>
+                    <version>${org.jboss.bridger.version}</version>
+                    <configuration>
+                        <detail>true</detail>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.ow2.asm</groupId>
+                            <artifactId>asm</artifactId>
+                            <version>${org.ow2.asm.version}</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <!-- run after "compile", runs bridger on main classes -->
+                        <execution>
+                            <id>weave</id>
+                            <phase>process-classes</phase>
+                            <goals>
+                                <goal>transform</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
 
     <dependencyManagement>
         <dependencies>
