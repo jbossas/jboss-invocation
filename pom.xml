@@ -28,7 +28,7 @@
 
     <groupId>org.jboss.invocation</groupId>
     <artifactId>jboss-invocation-parent</artifactId>
-    <version>1.7.0.Final-SNAPSHOT</version>
+    <version>1.7.0.Final</version>
     <name>JBoss Invocation Parent</name>
     <description>Invocation Application Programming Interface Parent</description>
     <packaging>pom</packaging>

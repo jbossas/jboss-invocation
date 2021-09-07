@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.jboss.invocation</groupId>
         <artifactId>jboss-invocation-parent</artifactId>
-        <version>1.7.0.Final-SNAPSHOT</version>
+        <version>1.7.0.Final</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
