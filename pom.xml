@@ -48,19 +48,19 @@
     </scm>
 
     <properties>
-        <classfilewriter.version>1.2.4.Final</classfilewriter.version>
-        <version.jakarta.interceptor.jakarta-interceptors-api>2.0.0</version.jakarta.interceptor.jakarta-interceptors-api>
-        <version.jakarta.transaction.jakarta-transaction-api>2.0.0</version.jakarta.transaction.jakarta-transaction-api>
-        <javax.interceptor.version>1.0.0.Final</javax.interceptor.version>
-        <javax.transaction.version>1.0.0.Final</javax.transaction.version>
-        <jboss.logging.version>3.2.1.Final</jboss.logging.version>
-        <jboss.logging.tools.version>2.0.1.Final</jboss.logging.tools.version>
-        <junit.version>4.13.1</junit.version>
-        <org.jboss.bridger.version>1.1.Final</org.jboss.bridger.version>
-        <org.ow2.asm.version>5.0.4</org.ow2.asm.version>
-        <org.wildfly.elytron.version>1.1.0.Final</org.wildfly.elytron.version>
+        <version.jakarta.interceptor>2.0.0</version.jakarta.interceptor>
+        <version.jakarta.transaction>2.0.0</version.jakarta.transaction>
+        <version.javax.interceptor>1.0.0.Final</version.javax.interceptor>
+        <version.javax.transaction>1.0.0.Final</version.javax.transaction>
+        <version.jboss.logging>3.2.1.Final</version.jboss.logging>
+        <version.jboss.logging.tools>2.0.1.Final</version.jboss.logging.tools>
+        <version.junit>4.13.1</version.junit>
+        <version.org.jboss.bridger>1.1.Final</version.org.jboss.bridger>
+        <version.org.jboss.classfilewriter>1.2.4.Final</version.org.jboss.classfilewriter>
+        <version.org.ow2.asm>5.0.4</version.org.ow2.asm>
+        <version.org.wildfly.common>1.2.0.Final</version.org.wildfly.common>
+        <version.org.wildfly.security>1.1.0.Final</version.org.wildfly.security>
         <version.org.wildfly.extras.batavia>1.0.10.Final</version.org.wildfly.extras.batavia>
-        <org.wildfly.common.version>1.2.0.Final</org.wildfly.common.version>
     </properties>
 
     <modules>
@@ -98,7 +98,7 @@
                 <plugin>
                     <groupId>org.jboss.bridger</groupId>
                     <artifactId>bridger</artifactId>
-                    <version>${org.jboss.bridger.version}</version>
+                    <version>${version.org.jboss.bridger}</version>
                     <configuration>
                         <detail>true</detail>
                     </configuration>
@@ -106,7 +106,7 @@
                         <dependency>
                             <groupId>org.ow2.asm</groupId>
                             <artifactId>asm</artifactId>
-                            <version>${org.ow2.asm.version}</version>
+                            <version>${version.org.ow2.asm}</version>
                         </dependency>
                     </dependencies>
                     <executions>
@@ -129,68 +129,68 @@
             <dependency>
                 <groupId>jakarta.interceptor</groupId>
                 <artifactId>jakarta.interceptor-api</artifactId>
-                <version>${version.jakarta.interceptor.jakarta-interceptors-api}</version>
+                <version>${version.jakarta.interceptor}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>jakarta.transaction</groupId>
                 <artifactId>jakarta.transaction-api</artifactId>
-                <version>${version.jakarta.transaction.jakarta-transaction-api}</version>
+                <version>${version.jakarta.transaction}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.spec.javax.interceptor</groupId>
                 <artifactId>jboss-interceptors-api_1.2_spec</artifactId>
-                <version>${javax.interceptor.version}</version>
+                <version>${version.javax.interceptor}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.spec.javax.transaction</groupId>
                 <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-                <version>${javax.transaction.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.classfilewriter</groupId>
-                <artifactId>jboss-classfilewriter</artifactId>
-                <version>${classfilewriter.version}</version>
-                <type>jar</type>
+                <version>${version.javax.transaction}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.logging</groupId>
                 <artifactId>jboss-logging</artifactId>
-                <version>${jboss.logging.version}</version>
+                <version>${version.jboss.logging}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.logging</groupId>
                 <artifactId>jboss-logging-processor</artifactId>
-                <version>${jboss.logging.tools.version}</version>
+                <version>${version.jboss.logging.tools}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.jboss.logging</groupId>
                 <artifactId>jboss-logging-annotations</artifactId>
-                <version>${jboss.logging.tools.version}</version>
+                <version>${version.jboss.logging.tools}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.wildfly.security</groupId>
                 <artifactId>wildfly-elytron</artifactId>
-                <version>${org.wildfly.elytron.version}</version>
+                <version>${version.org.wildfly.security}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>org.wildfly.common</groupId>
                 <artifactId>wildfly-common</artifactId>
-                <version>${org.wildfly.common.version}</version>
+                <version>${version.org.wildfly.common}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.classfilewriter</groupId>
+                <artifactId>jboss-classfilewriter</artifactId>
+                <version>${version.org.jboss.classfilewriter}</version>
+                <type>jar</type>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
+                <version>${version.junit}</version>
                 <scope>test</scope>
             </dependency>
         </dependencies>
