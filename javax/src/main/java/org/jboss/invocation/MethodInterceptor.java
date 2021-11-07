@@ -56,7 +56,7 @@ public final class MethodInterceptor implements Interceptor {
         this.method = method;
         this.interceptorInstance = interceptorInstance;
         checkMethodType(interceptorInstance);
-        withContext = method.getParameterTypes().length == 1;
+        withContext = method.getParameterCount() == 1;
     }
 
     /**
