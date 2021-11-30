@@ -27,10 +27,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Invocation API</name>
+    <name>Invocation API - Jakarta Variant</name>
     <groupId>org.jboss.invocation</groupId>
     <artifactId>jboss-invocation-jakarta</artifactId>
-    <description>Invocation Application Programming Interface</description>
+    <description>Invocation Application Programming Interface - Jakarta Variant</description>
     <packaging>jar</packaging>
 
     <properties>
