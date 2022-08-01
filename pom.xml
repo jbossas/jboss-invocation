@@ -55,12 +55,12 @@
         <version.jboss.logging>3.4.3.Final</version.jboss.logging>
         <version.jboss.logging.tools>2.2.1.Final</version.jboss.logging.tools>
         <version.junit>4.13.1</version.junit>
-        <version.org.jboss.bridger>1.1.Final</version.org.jboss.bridger>
-        <version.org.jboss.classfilewriter>1.2.4.Final</version.org.jboss.classfilewriter>
-        <version.org.ow2.asm>5.0.4</version.org.ow2.asm>
-        <version.org.wildfly.common>1.2.0.Final</version.org.wildfly.common>
-        <version.org.wildfly.security>1.1.0.Final</version.org.wildfly.security>
-        <version.org.wildfly.extras.batavia>1.0.10.Final</version.org.wildfly.extras.batavia>
+        <version.org.jboss.bridger>1.6.Final</version.org.jboss.bridger>
+        <version.org.jboss.classfilewriter>1.2.5.Final</version.org.jboss.classfilewriter>
+        <version.org.ow2.asm>9.3</version.org.ow2.asm>
+        <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
+        <version.org.wildfly.security>1.20.0.Final</version.org.wildfly.security>
+        <version.org.wildfly.extras.batavia>1.0.15.Final</version.org.wildfly.extras.batavia>
     </properties>
 
     <modules>
