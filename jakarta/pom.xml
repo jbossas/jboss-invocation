@@ -77,7 +77,11 @@
         </dependency>
         <dependency>
             <groupId>org.wildfly.security</groupId>
-            <artifactId>wildfly-elytron</artifactId>
+            <artifactId>wildfly-elytron-security-manager</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly.security</groupId>
+            <artifactId>wildfly-elytron-auth-server</artifactId>
         </dependency>
         <dependency>
             <groupId>org.wildfly.common</groupId>
