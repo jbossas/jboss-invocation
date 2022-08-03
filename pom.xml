@@ -59,7 +59,7 @@
         <version.org.jboss.classfilewriter>1.2.5.Final</version.org.jboss.classfilewriter>
         <version.org.ow2.asm>9.3</version.org.ow2.asm>
         <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
-        <version.org.wildfly.security>1.20.0.Final</version.org.wildfly.security>
+        <version.org.wildfly.security.elytron>1.20.0.Final</version.org.wildfly.security.elytron>
         <version.org.wildfly.extras.batavia>1.0.15.Final</version.org.wildfly.extras.batavia>
     </properties>
 
@@ -170,8 +170,14 @@
             </dependency>
             <dependency>
                 <groupId>org.wildfly.security</groupId>
-                <artifactId>wildfly-elytron</artifactId>
-                <version>${version.org.wildfly.security}</version>
+                <artifactId>wildfly-elytron-security-manager</artifactId>
+                <version>${version.org.wildfly.security.elytron}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.wildfly.security</groupId>
+                <artifactId>wildfly-elytron-auth-server</artifactId>
+                <version>${version.org.wildfly.security.elytron}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
