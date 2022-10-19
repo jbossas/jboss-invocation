@@ -50,8 +50,6 @@
     <properties>
         <version.jakarta.interceptor>2.0.0</version.jakarta.interceptor>
         <version.jakarta.transaction>2.0.0</version.jakarta.transaction>
-        <version.javax.interceptor>1.0.0.Final</version.javax.interceptor>
-        <version.javax.transaction>1.0.0.Final</version.javax.transaction>
         <version.jboss.logging>3.4.3.Final</version.jboss.logging>
         <version.jboss.logging.tools>2.2.1.Final</version.jboss.logging.tools>
         <version.junit>4.13.1</version.junit>
@@ -60,41 +58,15 @@
         <version.org.ow2.asm>9.3</version.org.ow2.asm>
         <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
         <version.org.wildfly.security.elytron>1.20.0.Final</version.org.wildfly.security.elytron>
-        <version.org.wildfly.extras.batavia>1.0.15.Final</version.org.wildfly.extras.batavia>
     </properties>
 
     <modules>
         <module>javax</module>
-        <module>jakarta</module>
     </modules>
 
     <build>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>org.wildfly.extras.batavia</groupId>
-                    <artifactId>transformer-tools-mvn</artifactId>
-                    <version>${version.org.wildfly.extras.batavia}</version>
-                    <executions>
-                        <execution>
-                            <id>transform-sources</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>transform-sources</goal>
-                            </goals>
-                            <configuration>
-                                <source-project>${jakarta.transformer.input.dir}</source-project>
-                            </configuration>
-                        </execution>
-                    </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.wildfly.extras.batavia</groupId>
-                            <artifactId>transformer-impl-eclipse</artifactId>
-                            <version>${version.org.wildfly.extras.batavia}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
                 <plugin>
                     <groupId>org.jboss.bridger</groupId>
                     <artifactId>bridger</artifactId>
@@ -136,18 +108,6 @@
                 <groupId>jakarta.transaction</groupId>
                 <artifactId>jakarta.transaction-api</artifactId>
                 <version>${version.jakarta.transaction}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.spec.javax.interceptor</groupId>
-                <artifactId>jboss-interceptors-api_1.2_spec</artifactId>
-                <version>${version.javax.interceptor}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.jboss.spec.javax.transaction</groupId>
-                <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-                <version>${version.javax.transaction}</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>

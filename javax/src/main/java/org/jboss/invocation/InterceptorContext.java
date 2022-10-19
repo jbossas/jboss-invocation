@@ -30,9 +30,9 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.interceptor.InvocationContext;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
+import jakarta.interceptor.InvocationContext;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.Transaction;
 
 import org.wildfly.common.function.ExceptionSupplier;
 

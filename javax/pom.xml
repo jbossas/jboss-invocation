@@ -27,10 +27,10 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Invocation API - Javax Variant</name>
+    <name>Invocation API - Jakarta Variant</name>
     <groupId>org.jboss.invocation</groupId>
-    <artifactId>jboss-invocation</artifactId>
-    <description>Invocation Application Programming Interface - Javax Variant</description>
+    <artifactId>jboss-invocation-jakarta</artifactId>
+    <description>Invocation Application Programming Interface - Jakarta Variant</description>
     <packaging>jar</packaging>
 
     <build>
@@ -44,12 +44,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jboss.spec.javax.interceptor</groupId>
-            <artifactId>jboss-interceptors-api_1.2_spec</artifactId>
+            <groupId>jakarta.interceptor</groupId>
+            <artifactId>jakarta.interceptor-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.jboss.spec.javax.transaction</groupId>
-            <artifactId>jboss-transaction-api_1.2_spec</artifactId>
+            <groupId>jakarta.transaction</groupId>
+            <artifactId>jakarta.transaction-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jboss.logging</groupId>
