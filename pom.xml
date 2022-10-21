@@ -28,7 +28,7 @@
 
     <groupId>org.jboss.invocation</groupId>
     <artifactId>jboss-invocation</artifactId>
-    <version>2.0.0.Final-SNAPSHOT</version>
+    <version>2.0.0.Final</version>
     <name>JBoss Invocation API - Jakarta EE Variant</name>
     <description>Invocation Application Programming Interface - Jakarta EE Variant</description>
     <packaging>jar</packaging>
