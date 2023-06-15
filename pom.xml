@@ -60,7 +60,7 @@
         <version.org.jboss.logging.tools>2.2.1.Final</version.org.jboss.logging.tools>
         <version.org.ow2.asm>9.5</version.org.ow2.asm>
         <version.org.wildfly.common>1.6.0.Final</version.org.wildfly.common>
-        <version.org.wildfly.security>2.2.0.Final</version.org.wildfly.security>
+        <version.org.wildfly.security>2.2.1.Final</version.org.wildfly.security>
     </properties>
 
     <build>
