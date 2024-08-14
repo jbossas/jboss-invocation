@@ -61,7 +61,7 @@
         <version.org.jboss.logging.tools>3.0.1.Final</version.org.jboss.logging.tools>
         <version.org.ow2.asm>9.7</version.org.ow2.asm>
         <version.org.wildfly.common>2.0.0</version.org.wildfly.common>
-        <version.org.wildfly.security>2.5.0.Final</version.org.wildfly.security>
+        <version.org.wildfly.security>2.5.1.Final</version.org.wildfly.security>
         <maven.repository.url>https://repository.jboss.org/nexus/content/groups/public/</maven.repository.url>
     </properties>
 
